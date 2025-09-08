@@ -1,5 +1,18 @@
-import React, { useState } from 'react';
-import { MapPin, Battery, Wifi, MessageCircle, Shield, Settings, Bell, ArrowLeft, Clock, CheckCircle, AlertTriangle, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  MapPin, 
+  Battery, 
+  Wifi, 
+  MessageCircle, 
+  Shield, 
+  Settings, 
+  Bell, 
+  ArrowLeft, 
+  Clock, 
+  CheckCircle, 
+  AlertTriangle, 
+  Send 
+} from 'lucide-react';
 
 const FamilyTrackingApp = () => {
   const [selectedChild, setSelectedChild] = useState(0);
@@ -10,6 +23,10 @@ const FamilyTrackingApp = () => {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [newMessage, setNewMessage] = useState('');
+  const [showEmergencyConfirmation, setShowEmergencyConfirmation] = useState(false);
+  const [isEmergencyActive, setIsEmergencyActive] = useState(false);
+  const [emergencyType, setEmergencyType] = useState('');
+  const [alertStartTime, setAlertStartTime] = useState(null);
 
   const children = [
     {
@@ -26,8 +43,20 @@ const FamilyTrackingApp = () => {
       safeZone: "School",
       messagingStatus: "online",
       messages: [
-        { id: 1, sender: 'parent', message: 'Oi Emma! Como foi a aula hoje?', timestamp: '14:30', verified: true },
-        { id: 2, sender: 'child', message: 'Foi legal! Aprendi sobre dinossauros 🦕', timestamp: '14:32', verified: true }
+        { 
+          id: 1, 
+          sender: 'parent', 
+          message: 'Oi Emma! Como foi a aula hoje?', 
+          timestamp: '14:30', 
+          verified: true 
+        },
+        { 
+          id: 2, 
+          sender: 'child', 
+          message: 'Foi legal! Aprendi sobre dinossauros 🦕', 
+          timestamp: '14:32', 
+          verified: true 
+        }
       ]
     },
     {
@@ -44,13 +73,42 @@ const FamilyTrackingApp = () => {
       safeZone: "Park",
       messagingStatus: "offline",
       messages: [
-        { id: 1, sender: 'parent', message: 'Jake, lembra de voltar às 17h!', timestamp: '15:45', verified: true },
-        { id: 2, sender: 'child', message: 'Ok pai! Estou jogando futebol com os amigos', timestamp: '15:50', verified: true }
+        { 
+          id: 1, 
+          sender: 'parent', 
+          message: 'Jake, lembra de voltar às 17h!', 
+          timestamp: '15:45', 
+          verified: true 
+        },
+        { 
+          id: 2, 
+          sender: 'child', 
+          message: 'Ok pai! Estou jogando futebol com os amigos', 
+          timestamp: '15:50', 
+          verified: true 
+        }
       ]
     }
   ];
 
+  const familyMembers = [
+    { name: "Mom - Sarah", phone: "+1 (555) 123-4567" },
+    { name: "Dad - Michael", phone: "+1 (555) 987-6543" },
+    { name: "Grandma - Mary", phone: "+1 (555) 456-7890" },
+    { name: "Uncle John", phone: "+1 (555) 321-0987" }
+  ];
+
   const activeChild = children[selectedChild];
+
+  useEffect(() => {
+    let interval;
+    if (isEmergencyActive) {
+      interval = setInterval(() => {
+        // Force re-render
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isEmergencyActive]);
 
   const handleCheckMessages = () => {
     setCheckStatus('sending');
@@ -110,6 +168,94 @@ const FamilyTrackingApp = () => {
       }, 2500);
     }
   };
+
+  const handleEmergencyPress = () => {
+    setShowEmergencyConfirmation(true);
+  };
+
+  const confirmEmergency = (type) => {
+    setIsEmergencyActive(true);
+    setAlertStartTime(new Date());
+    setEmergencyType(type);
+    setShowEmergencyConfirmation(false);
+  };
+
+  const cancelEmergency = () => {
+    setIsEmergencyActive(false);
+    setAlertStartTime(null);
+    setEmergencyType('');
+    setShowEmergencyConfirmation(false);
+  };
+
+  const formatTime = (date) => {
+    if (!date) return '';
+    return date.toLocaleTimeString();
+  };
+
+  const getTimeDifference = () => {
+    if (!alertStartTime) return '';
+    const now = new Date();
+    const diff = Math.floor((now - alertStartTime) / 1000);
+    const minutes = Math.floor(diff / 60);
+    const seconds = diff % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  if (showEmergencyConfirmation) {
+    return (
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4">
+          <div className="flex items-center space-x-3 mb-4">
+            <button 
+              onClick={() => setShowEmergencyConfirmation(false)}
+              className="p-2 hover:bg-red-500 rounded-full transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-bold">🚨 Confirm Emergency</h1>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="text-center mb-8">
+            <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4 animate-pulse" />
+            <h2 className="text-xl font-bold text-gray-800 mb-2">What type of emergency?</h2>
+            <p className="text-gray-600">All family members will be notified immediately</p>
+          </div>
+
+          <div className="space-y-4 mb-8">
+            <button
+              onClick={() => confirmEmergency('Medical Emergency')}
+              className="w-full p-4 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
+            >
+              🏥 Medical Emergency
+            </button>
+            
+            <button
+              onClick={() => confirmEmergency('Safety Emergency')}
+              className="w-full p-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors"
+            >
+              ⚠️ Safety Emergency
+            </button>
+            
+            <button
+              onClick={() => confirmEmergency('General Emergency')}
+              className="w-full p-4 bg-red-400 hover:bg-red-500 text-white rounded-lg font-semibold transition-colors"
+            >
+              🚨 General Emergency
+            </button>
+          </div>
+
+          <button
+            onClick={() => setShowEmergencyConfirmation(false)}
+            className="w-full p-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (currentScreen === 'safezones') {
     return (
@@ -281,6 +427,17 @@ const FamilyTrackingApp = () => {
   if (currentScreen === 'emergency') {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
+        {isEmergencyActive && (
+          <div className="bg-red-600 text-white p-4 animate-pulse">
+            <div className="text-center">
+              <h2 className="text-lg font-bold">🚨 EMERGENCY ACTIVE</h2>
+              <p className="text-sm opacity-90">{emergencyType}</p>
+              <p className="text-sm opacity-90">Started at: {formatTime(alertStartTime)}</p>
+              <p className="text-sm opacity-90">Duration: {getTimeDifference()}</p>
+            </div>
+          </div>
+        )}
+
         <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4">
           <div className="flex items-center space-x-3 mb-4">
             <button 
@@ -294,18 +451,85 @@ const FamilyTrackingApp = () => {
         </div>
 
         <div className="p-6">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Emergency Button</h2>
-            <p className="text-gray-600 mb-8">Press this button if you need immediate help.</p>
-            
-            <button className="relative w-48 h-48 mx-auto bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg animate-pulse">
-              <div className="flex flex-col items-center justify-center h-full">
-                <AlertTriangle className="h-12 w-12 mb-2" />
-                <span className="text-xl font-bold">EMERGENCY</span>
-                <span className="text-sm">PRESS HERE</span>
+          {!isEmergencyActive ? (
+            <>
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">Emergency Button</h2>
+                <p className="text-gray-600 mb-8">Press this button if you need immediate help.</p>
+                
+                <button 
+                  onClick={handleEmergencyPress}
+                  className="relative w-48 h-48 mx-auto bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg animate-pulse transform hover:scale-105 transition-all duration-300"
+                >
+                  <div className="absolute inset-4 border-4 border-white rounded-full opacity-50"></div>
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <AlertTriangle className="h-12 w-12 mb-2" />
+                    <span className="text-xl font-bold">EMERGENCY</span>
+                    <span className="text-sm">PRESS HERE</span>
+                  </div>
+                </button>
               </div>
-            </button>
-          </div>
+
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-800 mb-3">Family Members ({familyMembers.length})</h3>
+                <div className="space-y-2">
+                  {familyMembers.map((member, index) => (
+                    <div key={index} className="flex items-center justify-between bg-white rounded-lg p-3">
+                      <div>
+                        <span className="font-medium text-gray-800">{member.name}</span>
+                        <p className="text-sm text-gray-600">{member.phone}</p>
+                      </div>
+                      <span className="text-green-600">
+                        <CheckCircle className="h-5 w-5" />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="text-center">
+              <div className="mb-8">
+                <AlertTriangle className="h-24 w-24 text-red-500 mx-auto mb-4 animate-pulse" />
+                <h2 className="text-2xl font-bold text-red-600 mb-2">🚨 EMERGENCY ACTIVATED</h2>
+                <p className="text-lg text-gray-700 mb-2">{emergencyType}</p>
+                <p className="text-gray-600">All family members have been notified</p>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-green-800 mb-3">📱 Notification Status:</h3>
+                <div className="space-y-2">
+                  {familyMembers.map((member, index) => (
+                    <div key={index} className="flex items-center justify-between">
+                      <span className="text-sm text-green-700">{member.name}</span>
+                      <div className="flex items-center space-x-1">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-xs text-green-600">Notified</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <button className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                  📞 Call 911
+                </button>
+                
+                <button className="w-full flex items-center justify-center space-x-2 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                  <MapPin className="h-5 w-5" />
+                  <span>Share My Location</span>
+                </button>
+              </div>
+
+              <button
+                onClick={cancelEmergency}
+                className="w-full py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+              >
+                Cancel Emergency Alert
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
