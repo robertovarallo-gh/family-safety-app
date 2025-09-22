@@ -90,6 +90,14 @@ const FamilyTrackingApp = () => {
     loadAppData(user);
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (children.length > 0 && currentScreen === 'dashboard') {
+        console.log('Auto-refresh: Actualizando ubicaciones...');
+        loadChildren();
+      }
+    }, 30000); // 30 segundos
+
   const loadAppData = async (userData) => {
     try {
       setLoading(true);
@@ -276,14 +284,20 @@ const loadChildren = async (userData = user) => {
       }
 
       // Simular ID de usuario único
-      const mockUserId = 'user-' + Date.now();
+      // const mockUserId = 'user-' + Date.now();
+	  
+	  // USAR USUARIO REAL en lugar de mock
+	  const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error('Usuario no autenticado');
+      }
       
       // Crear miembro familiar directo (sin autenticación)
       const memberResponse = await FamilyMembersService.createFamilyMember({
         firstName: newChild.name,
         lastName: newChild.apellido,
         email: newChild.email,
-        user_id: mockUserId,
+        user_id: currentUser.id,
         role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto',
         age: calculatedAge,
         relationship: 'Hijo/a',
@@ -292,7 +306,7 @@ const loadChildren = async (userData = user) => {
       }, user.user_metadata.family_id, user.id);
 
       if (!memberResponse.success) {
-        throw new Error(`Error creando miembro familiar: ${memberResponse.message}`);
+        throw new Error(memberResponse.message);
       }
 
       console.log('Miembro agregado en modo testing');
@@ -302,11 +316,11 @@ const loadChildren = async (userData = user) => {
       resetAddChildForm();
       setCurrentScreen('dashboard');
       
-      alert(`${newChild.name} ${newChild.apellido} fue agregado exitosamente (MODO TESTING - sin email real)`);
+      alert(`${newChild.name} ${newChild.apellido} fue agregado exitosamente`);
 
     } catch (error) {
       console.error('Error agregando hijo:', error);
-      setAddChildError(error.message || 'Error al agregar hijo');
+      setAddChildError(error.message);
     } finally {
       setAddChildLoading(false);
     }
