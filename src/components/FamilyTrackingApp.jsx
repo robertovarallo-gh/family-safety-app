@@ -97,6 +97,8 @@ const FamilyTrackingApp = () => {
         loadChildren();
       }
     }, 30000); // 30 segundos
+	  return () => clearInterval(interval); // ← AGREGAR ESTA LÍNEA
+	}, [children.length, currentScreen]);  
 
   const loadAppData = async (userData) => {
     try {
