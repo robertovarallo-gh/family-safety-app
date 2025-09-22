@@ -305,9 +305,9 @@ const loadChildren = async (userData = user) => {
         emergencyContact: true
       }, user.user_metadata.family_id, user.id);
 
-      if (!memberResponse.success) {
-        throw new Error(memberResponse.message);
-      }
+	  if (!memberResponse.success) {
+	    throw new Error(memberResponse.message);
+	  }
 
       console.log('Miembro agregado en modo testing');
 
@@ -316,7 +316,7 @@ const loadChildren = async (userData = user) => {
       resetAddChildForm();
       setCurrentScreen('dashboard');
       
-      alert(`${newChild.name} ${newChild.apellido} fue agregado exitosamente`);
+      alert(`${newChild.name} fue agregado exitosamente`);
 
     } catch (error) {
       console.error('Error agregando hijo:', error);
