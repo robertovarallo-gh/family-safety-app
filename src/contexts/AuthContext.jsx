@@ -1,90 +1,6 @@
-// contexts/AuthContext.js
+// contexts/AuthContext.jsx - MIGRADO A SUPABASE
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-// Configuración de la API
-const API_URL = 'http://localhost:5000/api';
-
-// Servicios de autenticación
-const authService = {
-  // Login
-  login: async (email, password) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Error en login');
-    }
-    
-    if (data.token) {
-      localStorage.setItem('familywatch_token', data.token);
-      localStorage.setItem('familywatch_user', JSON.stringify(data.user));
-    }
-    
-    return data;
-  },
-
-  // Registro
-  register: async (userData) => {
-    const response = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Error en registro');
-    }
-    
-    if (data.token) {
-      localStorage.setItem('familywatch_token', data.token);
-      localStorage.setItem('familywatch_user', JSON.stringify(data.user));
-    }
-    
-    return data;
-  },
-
-  // Logout
-  logout: () => {
-    localStorage.removeItem('familywatch_token');
-    localStorage.removeItem('familywatch_user');
-  },
-
-  // Verificar si está autenticado
-  isAuthenticated: () => {
-    return !!localStorage.getItem('familywatch_token');
-  },
-
-  // Obtener usuario del localStorage
-  getStoredUser: () => {
-    const user = localStorage.getItem('familywatch_user');
-    return user ? JSON.parse(user) : null;
-  },
-
-  // Obtener usuario actual del servidor
-  getCurrentUser: async () => {
-    const token = localStorage.getItem('familywatch_token');
-    if (!token) throw new Error('No token');
-
-    const response = await fetch(`${API_URL}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Error obteniendo usuario');
-    }
-    
-    return data;
-  }
-};
+import { supabase } from '../services/supabaseClient';
 
 // Crear el contexto
 const AuthContext = createContext();
@@ -103,75 +19,177 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState(null);
 
   // Verificar autenticación al cargar
   useEffect(() => {
-    const checkAuth = async () => {
+    // Obtener sesión actual
+    const getInitialSession = async () => {
       try {
-        if (authService.isAuthenticated()) {
-          const storedUser = authService.getStoredUser();
-          setUser(storedUser);
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error obteniendo sesión:', error);
+        } else if (session) {
+          setSession(session);
+          setUser(session.user);
           setIsAuthenticated(true);
-          
-          // Verificar que el token siga siendo válido
-          try {
-            const currentUser = await authService.getCurrentUser();
-            setUser(currentUser.user);
-          } catch (error) {
-            console.log('Token inválido, limpiando sesión');
-            authService.logout();
-            setUser(null);
-            setIsAuthenticated(false);
-          }
         }
       } catch (error) {
-        console.error('Error verificando autenticación:', error);
+        console.error('Error en getInitialSession:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkAuth();
+    getInitialSession();
+
+    // Escuchar cambios de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
+        
+        setSession(session);
+        setUser(session?.user || null);
+        setIsAuthenticated(!!session);
+        setLoading(false);
+      }
+    );
+
+    // Cleanup subscription
+    return () => subscription.unsubscribe();
   }, []);
 
   // Función de login
   const login = async (email, password) => {
     try {
-      const response = await authService.login(email, password);
-      setUser(response.user);
-      setIsAuthenticated(true);
-      return response;
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // No necesitas setear el state aquí, se hace automáticamente por onAuthStateChange
+      return {
+        success: true,
+        user: data.user,
+        session: data.session,
+        token: data.session.access_token
+      };
     } catch (error) {
+      console.error('Error en login:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   // Función de registro
   const register = async (userData) => {
     try {
-      const response = await authService.register(userData);
-      setUser(response.user);
-      setIsAuthenticated(true);
-      return response;
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            first_name: userData.firstName,
+            last_name: userData.lastName,
+            phone: userData.phone,
+            family_id: userData.familyId
+          }
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return {
+        success: true,
+        user: data.user,
+        session: data.session,
+        needsEmailConfirmation: !data.session // Si no hay sesión, necesita confirmación
+      };
     } catch (error) {
+      console.error('Error en registro:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
   // Función de logout
-  const logout = () => {
-    authService.logout();
-    setUser(null);
-    setIsAuthenticated(false);
+  const logout = async () => {
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error en logout:', error);
+      }
+      
+      // El state se limpia automáticamente por onAuthStateChange
+    } catch (error) {
+      console.error('Error en logout:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Función para reset de password
+  const resetPassword = async (email) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error en reset password:', error);
+      throw error;
+    }
+  };
+
+  // Función para actualizar perfil
+  const updateProfile = async (updates) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: updates
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error actualizando perfil:', error);
+      throw error;
+    }
   };
 
   const value = {
     user,
+    session,
     isAuthenticated,
     loading,
     login,
     register,
-    logout
+    logout,
+    resetPassword,
+    updateProfile
   };
 
   return (
