@@ -255,79 +255,106 @@ const loadChildren = async (userData = user) => {
     return age;
   };
 
-  // MODO TESTING - Agregar hijo sin autenticación real
-  const handleAddChild = async (e) => {
-    e.preventDefault();
-    setAddChildLoading(true);
-    setAddChildError('');
+const handleAddChild = async (e) => {
+  e.preventDefault();
+  setAddChildLoading(true);
+  setAddChildError('');
 
-    try {
-      console.log('MODO TESTING: Agregando hijo sin autenticación real');
-      
-      // Validaciones
-      if (!newChild.name.trim()) {
-        throw new Error('El nombre es requerido');
-      }
-      if (!newChild.apellido.trim()) {
-        throw new Error('El apellido es requerido');
-      }
-      if (!newChild.email.trim()) {
-        throw new Error('El email es requerido');
-      }
-      if (!newChild.birthDate) {
-        throw new Error('La fecha de nacimiento es requerida');
-      }
-
-      const calculatedAge = calculateAge(newChild.birthDate);
-      if (calculatedAge < 1) {
-        throw new Error('La fecha de nacimiento no puede ser futura o muy reciente');
-      }
-      if (calculatedAge > 25) {
-        throw new Error('La edad no puede ser mayor a 25 años');
-      }
-
-      // Simular ID de usuario único
-      // const mockUserId = 'user-' + Date.now();
-	  
-	  // USAR USUARIO REAL en lugar de mock
-	  const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        throw new Error('Usuario no autenticado');
-      }
-      
-      // Crear miembro familiar directo (sin autenticación)
-      const memberResponse = await FamilyMembersService.createFamilyMember({
-        firstName: newChild.name,
-        lastName: newChild.apellido,
-        email: newChild.email,
-        user_id: currentUser.id,
-        role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto',
-        age: calculatedAge,
-        relationship: 'Hijo/a',
-        phone: newChild.phone,
-        emergencyContact: true
-      }, user.user_metadata.family_id, user.id);
-
-	  if (!memberResponse.success) {
-	    throw new Error(memberResponse.message);
-	  }
-
-      console.log('Miembro agregado en modo testing');
-
-      // Recargar datos y limpiar formulario
-      await loadChildren();
-      resetAddChildForm();
-      setCurrentScreen('dashboard');
-      
-      alert(`${newChild.name} fue agregado exitosamente`);
-
-    } catch (error) {
-      console.error('Error agregando hijo:', error);
-      setAddChildError(error.message);
-    } finally {
-      setAddChildLoading(false);
+  try {
+    // Validaciones existentes
+    if (!newChild.name.trim()) {
+      throw new Error('El nombre es requerido');
     }
-  };
+    if (!newChild.apellido.trim()) {
+      throw new Error('El apellido es requerido');
+    }
+    if (!newChild.email.trim()) {
+      throw new Error('El email es requerido');
+    }
+    if (!newChild.birthDate) {
+      throw new Error('La fecha de nacimiento es requerida');
+    }
+
+    const calculatedAge = calculateAge(newChild.birthDate);
+    if (calculatedAge < 1) {
+      throw new Error('La fecha de nacimiento no puede ser futura o muy reciente');
+    }
+    if (calculatedAge > 25) {
+      throw new Error('La edad no puede ser mayor a 25 años');
+    }
+
+    // Obtener usuario actual
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      throw new Error('Usuario no autenticado');
+    }
+
+    // 1. Crear usuario en Supabase Auth con credenciales reales
+    const temporaryPassword = 'FamilyWatch2024!';
+    
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: newChild.email,
+      password: temporaryPassword,
+      options: {
+        data: {
+          first_name: newChild.name,
+          last_name: newChild.apellido,
+          family_id: currentUser.user_metadata.family_id,
+          role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto'
+        }
+      }
+    });
+
+    if (authError) {
+      throw new Error(`Error creando usuario: ${authError.message}`);
+    }
+
+    if (!authData.user) {
+      throw new Error('No se pudo crear el usuario');
+    }
+
+    // 2. Crear miembro familiar vinculado al nuevo usuario
+    const memberResponse = await FamilyMembersService.createFamilyMember({
+      firstName: newChild.name,
+      lastName: newChild.apellido,
+      email: newChild.email,
+      user_id: authData.user.id, // ID del nuevo usuario creado
+      role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto',
+      age: calculatedAge,
+      relationship: 'Hijo/a',
+      phone: newChild.phone,
+      emergencyContact: true
+    }, currentUser.user_metadata.family_id, currentUser.id);
+
+    if (!memberResponse.success) {
+      throw new Error(`Error creando miembro familiar: ${memberResponse.message}`);
+    }
+
+    // Recargar datos y limpiar formulario
+    await loadChildren();
+    resetAddChildForm();
+    setCurrentScreen('dashboard');
+    
+    // Mostrar credenciales al usuario
+    alert(`${newChild.name} ${newChild.apellido} fue agregado exitosamente!
+
+🔐 CREDENCIALES DE ACCESO:
+📧 Email: ${newChild.email}
+🔑 Password: ${temporaryPassword}
+
+Para testing desde celular:
+1. Abre: https://family-safety-app.vercel.app
+2. Usa estas credenciales para login
+3. El usuario debe cambiar su contraseña después del primer login`);
+
+  } catch (error) {
+    console.error('Error agregando hijo:', error);
+    setAddChildError(error.message);
+  } finally {
+    setAddChildLoading(false);
+  }
+};
+
 
   const resetAddChildForm = () => {
     setNewChild({
