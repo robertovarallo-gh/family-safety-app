@@ -1,0 +1,60 @@
+/* src/styles/leaflet-custom.css */
+
+/* Fix para los iconos de Leaflet en React */
+.leaflet-div-icon {
+  background: transparent;
+  border: none;
+}
+
+/* Popup personalizado */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  margin: 8px 12px;
+  line-height: 1.4;
+}
+
+/* Animación para marcadores de niños */
+@keyframes pulse-child {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.custom-child-marker:hover {
+  animation: pulse-child 1s ease-in-out infinite;
+}
+
+/* Controles del mapa */
+.leaflet-control-zoom {
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-control-zoom a {
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .leaflet-control-container {
+    font-size: 14px;
+  }
+  
+  .leaflet-control-zoom a {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+  }
+}
