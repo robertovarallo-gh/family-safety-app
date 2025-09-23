@@ -26,6 +26,117 @@ import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 
+// Componente LoginScreen - agregar antes del componente principal FamilyTrackingApp
+const LoginScreen = ({ onLogin }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      alert('Por favor ingresa email y contraseña');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await onLogin(email, password);
+    } catch (error) {
+      console.error('Error en login:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
+      <div className="w-full p-6">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <Users className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">FamilyCare</h1>
+          <p className="text-gray-600">Inicia sesión para continuar</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="tu@email.com"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Contraseña
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                placeholder="••••••••"
+                required
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                disabled={loading}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5 text-gray-400" />
+                ) : (
+                  <Eye className="h-5 w-5 text-gray-400" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Iniciando sesión...
+              </div>
+            ) : (
+              'Iniciar Sesión'
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700 font-medium mb-2">Usuarios de prueba:</p>
+          <div className="text-xs text-blue-600 space-y-1">
+            <p><strong>Computadora:</strong> varallo.padre@familywatch.com</p>
+            <p><strong>Celular:</strong> varallo.hijo@familywatch.com</p>
+            <p><strong>Password:</strong> FamilyWatch2024!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 const FamilyTrackingApp = () => {
   console.log('🚀 FamilyTrackingApp iniciando...');
 
@@ -36,18 +147,7 @@ const FamilyTrackingApp = () => {
   const [safeZones, setSafeZones] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Usuario mock para testing (sin autenticación real)
-  const [user, setUser] = useState({
-    id: '07e293c7-3db1-44db-a5b6-d0a2e249d734',
-    email: 'test@familywatch.com',
-    user_metadata: {
-      family_id: 'a5bfd6c1-7cba-482b-8bdf-ecda80c21150',
-      first_name: 'Roberto',
-      last_name: 'Varallo'
-    },
-    created_at: new Date().toISOString(),
-    email_confirmed_at: new Date().toISOString()
-  });
+  const [user, setUser] = useState(null);
 
   // Estados para funcionalidades
   const [checkStatus, setCheckStatus] = useState('idle');
@@ -83,12 +183,31 @@ const FamilyTrackingApp = () => {
     { name: "Uncle John", phone: "+57 (314) 321-0987" }
   ];
 
-  // BYPASS TEMPORAL - Sin autenticación real
-  useEffect(() => {
-    console.log('MODO TESTING: Saltando autenticación real');
-    setLoading(false);
-    loadAppData(user);
-  }, []);
+// Autenticación real con Supabase
+useEffect(() => {
+  const checkAuth = async () => {
+    setLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        console.log('Usuario autenticado:', session.user.email);
+        setUser(session.user);
+        await loadAppData(session.user);
+      } else {
+        console.log('Sin sesión - redirigir a login');
+        setCurrentScreen('login');
+      }
+    } catch (error) {
+      console.error('Error verificando auth:', error);
+      setCurrentScreen('login');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  checkAuth();
+}, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -369,6 +488,28 @@ Para testing desde celular:
     });
     setAddChildError('');
   };
+
+// Función de login real
+const handleLogin = async (email, password) => {
+  try {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+    
+    setUser(data.user);
+    setCurrentScreen('dashboard');
+    await loadAppData(data.user);
+  } catch (error) {
+    alert(`Error de login: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // MODO TESTING - Logout simple
   const handleLogout = () => {
@@ -1037,27 +1178,31 @@ Para testing desde celular:
   }
 
   // Dashboard principal
-  return (
-    <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
-      <header className="bg-white shadow-sm border-b">
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Users className="h-6 w-6 text-white" />
+  if (currentScreen === 'login') {
+  return <LoginScreen onLogin={handleLogin} />;
+  }
+    if (loading) {
+      return (
+      <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+        <header className="bg-white shadow-sm border-b">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-xl font-bold text-gray-900">FamilyCare</h1>
+                <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+                  MODO TESTING
+                </div>
               </div>
-              <h1 className="text-xl font-bold text-gray-900">FamilyCare</h1>
-              <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
-                MODO TESTING
-              </div>
-            </div>
             
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">
-                  {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
-                </span>
-              </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-bold">
+                    {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
+                  </span>
+                </div>
               
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative">
                 <Bell className="h-5 w-5" />
@@ -1319,6 +1464,11 @@ Para testing desde celular:
         </div>
       )}
     </div>
+  );
+  return (
+  <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+    // dashboard content
+  </div>
   );
 };
 
