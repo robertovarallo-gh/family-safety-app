@@ -1330,14 +1330,7 @@ const handleGetCurrentLocation = async () => {
     const locationData = await geolocationService.getCurrentPosition();
     console.log('Ubicación obtenida:', locationData);
 	
-	// Mostrar datos en alert para debugging
-    alert(`GPS Debug:
-Lat: ${locationData.latitude}
-Lng: ${locationData.longitude}  
-Accuracy: ${locationData.accuracy}
-Battery: ${JSON.stringify(locationData.battery)}
-Timestamp: ${locationData.timestamp}`);
-    
+   
     // Obtener usuario actual (no hardcodeado)
     const { data: { user: currentUser } } = await supabase.auth.getUser();
     if (!currentUser) {
@@ -1369,10 +1362,9 @@ Timestamp: ${locationData.timestamp}`);
       await loadChildren();
       
       alert(`GPS guardado exitosamente!
-      
-Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
-Precisión: ${locationData.accuracy}m
-Guardado en base de datos: Sí`);
+	  Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
+	  Precisión: ${locationData.accuracy}m
+	  Guardado en base de datos: Sí`);
     } else {
       throw new Error(saveResult.error);
     }
