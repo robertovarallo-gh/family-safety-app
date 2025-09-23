@@ -1329,6 +1329,14 @@ const handleGetCurrentLocation = async () => {
     
     const locationData = await geolocationService.getCurrentPosition();
     console.log('Ubicación obtenida:', locationData);
+	
+	// Mostrar datos en alert para debugging
+    alert(`GPS Debug:
+Lat: ${locationData.latitude}
+Lng: ${locationData.longitude}  
+Accuracy: ${locationData.accuracy}
+Battery: ${JSON.stringify(locationData.battery)}
+Timestamp: ${locationData.timestamp}`);
     
     // Obtener usuario actual (no hardcodeado)
     const { data: { user: currentUser } } = await supabase.auth.getUser();
