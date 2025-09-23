@@ -28,6 +28,7 @@ class LocationStorageService {
         throw new Error('Coordenadas de latitud y longitud son requeridas');
       }
 
+    let batteryLevel = null;
     try {
       if ('getBattery' in navigator) {
         const battery = await navigator.getBattery();
@@ -43,7 +44,7 @@ class LocationStorageService {
         latitude: locationData.latitude,
         longitude: locationData.longitude,
         accuracy: locationData.accuracy || null,
-        battery_level: 40,
+        battery_level: batteryLevel,
         is_manual: options.isManual !== undefined ? options.isManual : true,
         address: options.address || null,
         // timestamp se genera automáticamente en la DB
