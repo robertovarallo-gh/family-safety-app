@@ -233,23 +233,69 @@ const FamilyTrackingApp = () => {
   const loadChildren = async (userData = user) => {
     try {
       console.log('Cargando miembros familiares con ubicaciones reales...');
+      console.log('userData completa:', userData);
       
-      if (!userData?.user_metadata?.family_id) {
-        console.log('Usuario sin family_id');
-        setChildren([]);
-        return;
+      // Verificar si el usuario tiene family_id
+      let familyId = userData?.user_metadata?.family_id;
+      
+      if (!familyId) {
+        console.log('Usuario sin family_id, creando familia automáticamente...');
+        
+        // Crear family_id basado en el user_id
+        familyId = `family_${userData.id}`;
+        
+        // Actualizar el metadata del usuario en Supabase
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: { 
+            family_id: familyId,
+            first_name: userData.user_metadata?.first_name || userData.email.split('@')[0],
+            last_name: userData.user_metadata?.last_name || 'Usuario'
+          }
+        });
+        
+        if (updateError) {
+          console.error('Error actualizando family_id:', updateError);
+        } else {
+          console.log('Family_id creado exitosamente:', familyId);
+          // Actualizar el estado local del usuario
+          setUser({...userData, user_metadata: {...userData.user_metadata, family_id: familyId}});
+        }
       }
       
-      const familyId = userData.user_metadata.family_id;
+      const familyId = userData.user_metadata?.family_id || `family_${userData.id}`;
       console.log('Usando family_id:', familyId);
       
       // Obtener miembros familiares
       const membersResponse = await FamilyMembersService.getFamilyMembers(familyId);
       
       if (!membersResponse.success || !membersResponse.members?.length) {
-        console.log('No hay miembros familiares');
-        setChildren([]);
-        return;
+        console.log('No hay miembros familiares registrados');
+        
+        // Crear automáticamente el primer miembro familiar (el usuario actual)
+        console.log('Creando miembro familiar para el usuario actual...');
+        
+        const createMemberResult = await FamilyMembersService.createFamilyMember({
+          firstName: userData.user_metadata?.first_name || userData.email.split('@')[0],
+          lastName: userData.user_metadata?.last_name || 'Usuario',
+          email: userData.email,
+          user_id: userData.id,
+          role: 'padre/madre',
+          age: 35,
+          relationship: 'Padre/Madre',
+          phone: userData.phone || '',
+          emergencyContact: true
+        }, familyId, userData.id);
+        
+        if (createMemberResult.success) {
+          console.log('Miembro familiar creado exitosamente');
+          // Recargar después de crear el miembro
+          setTimeout(() => loadChildren(userData), 1000);
+          return;
+        } else {
+          console.error('Error creando miembro familiar:', createMemberResult);
+          setChildren([]);
+          return;
+        }
       }
       
       console.log('Miembros cargados:', membersResponse.members);
