@@ -181,58 +181,6 @@ const FamilyTrackingApp = () => {
     { name: "Uncle John", phone: "+57 (314) 321-0987" }
   ];
 
-  // Función para obtener GPS y guardar en base de datos
-  const handleGetCurrentLocation = async () => {
-    try {
-      console.log('Solicitando ubicación GPS...');
-      
-      const locationData = await geolocationService.getCurrentPosition();
-      console.log('Ubicación obtenida:', locationData);
-  
-      // Obtener usuario actual (no hardcodeado)
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        throw new Error('Usuario no autenticado');
-      }
-      
-      // Buscar el miembro familiar del usuario actual
-      const { data: memberData, error: memberError } = await supabase
-        .from('family_members')
-        .select('id, first_name')
-        .eq('user_id', currentUser.id)  // Usar el user_id real
-        .single();
-      
-      if (memberError || !memberData) {
-        throw new Error('No se encontró tu registro en family_members');
-      }
-      
-      console.log('Miembro encontrado:', memberData);
-      
-      // Guardar en base de datos
-      const saveResult = await locationStorageService.saveLocation(
-        memberData.id, 
-        locationData,
-        { isManual: true }
-      );
-      
-      if (saveResult.success) {
-        // Recargar datos del dashboard
-        await loadChildren();
-        
-        alert(`GPS guardado exitosamente!
-        Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
-        Precisión: ${locationData.accuracy}m
-        Guardado en base de datos: Sí`);
-      } else {
-        throw new Error(saveResult.error);
-      }
-      
-    } catch (error) {
-      console.error('Error:', error);
-      alert(`Error: ${error.message}`);
-    }
-  };
-
   // Autenticación real con Supabase
   useEffect(() => {
     const checkAuth = async () => {
@@ -834,6 +782,58 @@ Para testing desde celular:
     const minutes = Math.floor(diff / 60);
     const seconds = diff % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  // Función para obtener GPS y guardar en base de datos
+  const handleGetCurrentLocation = async () => {
+    try {
+      console.log('Solicitando ubicación GPS...');
+      
+      const locationData = await geolocationService.getCurrentPosition();
+      console.log('Ubicación obtenida:', locationData);
+  
+      // Obtener usuario actual (no hardcodeado)
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error('Usuario no autenticado');
+      }
+      
+      // Buscar el miembro familiar del usuario actual
+      const { data: memberData, error: memberError } = await supabase
+        .from('family_members')
+        .select('id, first_name')
+        .eq('user_id', currentUser.id)  // Usar el user_id real
+        .single();
+      
+      if (memberError || !memberData) {
+        throw new Error('No se encontró tu registro en family_members');
+      }
+      
+      console.log('Miembro encontrado:', memberData);
+      
+      // Guardar en base de datos
+      const saveResult = await locationStorageService.saveLocation(
+        memberData.id, 
+        locationData,
+        { isManual: true }
+      );
+      
+      if (saveResult.success) {
+        // Recargar datos del dashboard
+        await loadChildren();
+        
+        alert(`GPS guardado exitosamente!
+        Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
+        Precisión: ${locationData.accuracy}m
+        Guardado en base de datos: Sí`);
+      } else {
+        throw new Error(saveResult.error);
+      }
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`Error: ${error.message}`);
+    }
   };
 
   // 1. Pantalla de login
