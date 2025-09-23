@@ -262,6 +262,8 @@ const FamilyTrackingApp = () => {
         }
       }
       
+      // Usar el family_id (existente o recién creado)
+      
       const familyId = userData.user_metadata?.family_id || `family_${userData.id}`;
       console.log('Usando family_id:', familyId);
       
