@@ -18,7 +18,7 @@ import {
   Users
 } from 'lucide-react';
 
-// Importaciones de servicios reales
+// Importaciones de servicios  reales
 import { familyService } from "../services/api.js";
 import SafeZonesManager from "./SafeZonesManager.jsx";
 import FamilyMembersService from '../services/FamilyMembersService.js';
