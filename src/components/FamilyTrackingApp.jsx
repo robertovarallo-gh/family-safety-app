@@ -38,7 +38,7 @@ const FamilyTrackingApp = () => {
 
   // Usuario mock para testing (sin autenticación real)
   const [user, setUser] = useState({
-    id: 'test-user-123',
+    id: '07e293c7-3db1-44db-a5b6-d0a2e249d734',
     email: 'test@familywatch.com',
     user_metadata: {
       family_id: 'a5bfd6c1-7cba-482b-8bdf-ecda80c21150',
