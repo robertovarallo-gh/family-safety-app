@@ -26,7 +26,7 @@ import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 
-// Componente LoginScreen - agregar antes del componente principal FamilyTrackingApp
+// Componente LoginScreen
 const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -136,7 +136,6 @@ const LoginScreen = ({ onLogin }) => {
   );
 };
 
-
 const FamilyTrackingApp = () => {
   console.log('🚀 FamilyTrackingApp iniciando...');
 
@@ -146,7 +145,6 @@ const FamilyTrackingApp = () => {
   const [children, setChildren] = useState([]);
   const [safeZones, setSafeZones] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const [user, setUser] = useState(null);
 
   // Estados para funcionalidades
@@ -183,31 +181,83 @@ const FamilyTrackingApp = () => {
     { name: "Uncle John", phone: "+57 (314) 321-0987" }
   ];
 
-// Autenticación real con Supabase
-useEffect(() => {
-  const checkAuth = async () => {
-    setLoading(true);
+  // Función para obtener GPS y guardar en base de datos
+  const handleGetCurrentLocation = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('Solicitando ubicación GPS...');
       
-      if (session?.user) {
-        console.log('Usuario autenticado:', session.user.email);
-        setUser(session.user);
-        await loadAppData(session.user);
-      } else {
-        console.log('Sin sesión - redirigir a login');
-        setCurrentScreen('login');
+      const locationData = await geolocationService.getCurrentPosition();
+      console.log('Ubicación obtenida:', locationData);
+  
+      // Obtener usuario actual (no hardcodeado)
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error('Usuario no autenticado');
       }
+      
+      // Buscar el miembro familiar del usuario actual
+      const { data: memberData, error: memberError } = await supabase
+        .from('family_members')
+        .select('id, first_name')
+        .eq('user_id', currentUser.id)  // Usar el user_id real
+        .single();
+      
+      if (memberError || !memberData) {
+        throw new Error('No se encontró tu registro en family_members');
+      }
+      
+      console.log('Miembro encontrado:', memberData);
+      
+      // Guardar en base de datos
+      const saveResult = await locationStorageService.saveLocation(
+        memberData.id, 
+        locationData,
+        { isManual: true }
+      );
+      
+      if (saveResult.success) {
+        // Recargar datos del dashboard
+        await loadChildren();
+        
+        alert(`GPS guardado exitosamente!
+        Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
+        Precisión: ${locationData.accuracy}m
+        Guardado en base de datos: Sí`);
+      } else {
+        throw new Error(saveResult.error);
+      }
+      
     } catch (error) {
-      console.error('Error verificando auth:', error);
-      setCurrentScreen('login');
-    } finally {
-      setLoading(false);
+      console.error('Error:', error);
+      alert(`Error: ${error.message}`);
     }
   };
-  
-  checkAuth();
-}, []);
+
+  // Autenticación real con Supabase
+  useEffect(() => {
+    const checkAuth = async () => {
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          console.log('Usuario autenticado:', session.user.email);
+          setUser(session.user);
+          await loadAppData(session.user);
+        } else {
+          console.log('Sin sesión - redirigir a login');
+          setCurrentScreen('login');
+        }
+      } catch (error) {
+        console.error('Error verificando auth:', error);
+        setCurrentScreen('login');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -215,7 +265,7 @@ useEffect(() => {
         console.log('Auto-refresh: Actualizando ubicaciones...');
         loadChildren();
       }
-	}, 30000); // 30 segundos
+    }, 30000); // 30 segundos
     
     return () => clearInterval(interval);
   }, [children.length, currentScreen]);
@@ -226,112 +276,112 @@ useEffect(() => {
       await loadChildren(userData);
       await loadSafeZones();
     } catch (error) {
-      console.error('❌ Error cargando datos de la aplicación:', error);
+      console.error('⌐ Error cargando datos de la aplicación:', error);
     } finally {
       setLoading(false);
     }
   };
 
-const loadChildren = async (userData = user) => {
-  try {
-    console.log('Cargando miembros familiares con ubicaciones reales...');
-    
-    if (!userData?.user_metadata?.family_id) {
-      console.log('Usuario sin family_id');
-      setChildren([]);
-      return;
-    }
-    
-    const familyId = userData.user_metadata.family_id;
-    console.log('Usando family_id:', familyId);
-    
-    // Obtener miembros familiares
-    const membersResponse = await FamilyMembersService.getFamilyMembers(familyId);
-    
-    if (!membersResponse.success || !membersResponse.members?.length) {
-      console.log('No hay miembros familiares');
-      setChildren([]);
-      return;
-    }
-    
-    console.log('Miembros cargados:', membersResponse.members);
-    
-    // Para cada miembro, obtener su última ubicación real
-    const formattedMembers = [];
-    
-    for (const member of membersResponse.members) {
-      // Obtener última ubicación real de la base de datos
-      const locationResult = await locationStorageService.getLatestLocation(member.id);
+  const loadChildren = async (userData = user) => {
+    try {
+      console.log('Cargando miembros familiares con ubicaciones reales...');
       
-      let coordinates = { lat: 4.6951, lng: -74.0787 }; // Coordenadas por defecto (Bogotá)
-      let location = "Ubicación no disponible";
-      let lastUpdate = "Sin actualización";
-      let isConnected = false;
-      
-      if (locationResult.success && locationResult.location) {
-        // Usar ubicación real de la base de datos
-        coordinates = {
-          lat: parseFloat(locationResult.location.latitude),
-          lng: parseFloat(locationResult.location.longitude)
-        };
-        
-        location = locationResult.location.address || "Ubicación GPS actualizada";
-        
-        const updateTime = new Date(locationResult.location.timestamp);
-        lastUpdate = updateTime.toLocaleString();
-        
-        // Considerar "conectado" si la última ubicación es de menos de 1 hora
-        const oneHourAgo = new Date();
-        oneHourAgo.setHours(oneHourAgo.getHours() - 1);
-        isConnected = updateTime > oneHourAgo;
-        
-        console.log(`Ubicación real para ${member.first_name}:`, coordinates);
-      } else {
-        console.log(`Sin ubicación GPS para ${member.first_name}, usando coordenadas por defecto`);
+      if (!userData?.user_metadata?.family_id) {
+        console.log('Usuario sin family_id');
+        setChildren([]);
+        return;
       }
       
-      formattedMembers.push({
-        id: member.id,
-        name: `${member.first_name} ${member.last_name}`,
-        age: member.age || 0,
-        location: location,
-        address: member.address || "Bogotá, Colombia", 
-        distance: "Calculando...",
-        lastUpdate: lastUpdate,
-        battery: locationResult.location?.battery_level || 85,
-        isConnected: isConnected,
-        avatar: member.role === 'niño' ? '👶' : member.role === 'adolescente' ? '🧒' : member.role === 'adulto' ? '👨' : '👴',
-        photo: member.photo_url || "/api/placeholder/48/48",
-        safeZone: "Verificando zona...",
-        messagingStatus: "online",
-        coordinates: coordinates, // UBICACIÓN REAL del GPS
-        role: member.role,
-        relationship: member.relationship,
-        phone: member.phone,
-        emergency_contact: member.emergency_contact,
-        // Información adicional de la ubicación real
-        hasRealLocation: locationResult.success && locationResult.location,
-        locationAccuracy: locationResult.location?.accuracy || null,
-        messages: [
-          { 
-            id: 1, 
-            sender: 'parent', 
-            message: `Hola ${member.first_name}! ¿Cómo estás?`, 
-            timestamp: '14:30', 
-            verified: true 
-          }
-        ]
-      });
+      const familyId = userData.user_metadata.family_id;
+      console.log('Usando family_id:', familyId);
+      
+      // Obtener miembros familiares
+      const membersResponse = await FamilyMembersService.getFamilyMembers(familyId);
+      
+      if (!membersResponse.success || !membersResponse.members?.length) {
+        console.log('No hay miembros familiares');
+        setChildren([]);
+        return;
+      }
+      
+      console.log('Miembros cargados:', membersResponse.members);
+      
+      // Para cada miembro, obtener su última ubicación real
+      const formattedMembers = [];
+      
+      for (const member of membersResponse.members) {
+        // Obtener última ubicación real de la base de datos
+        const locationResult = await locationStorageService.getLatestLocation(member.id);
+        
+        let coordinates = { lat: 4.6951, lng: -74.0787 }; // Coordenadas por defecto (Bogotá)
+        let location = "Ubicación no disponible";
+        let lastUpdate = "Sin actualización";
+        let isConnected = false;
+        
+        if (locationResult.success && locationResult.location) {
+          // Usar ubicación real de la base de datos
+          coordinates = {
+            lat: parseFloat(locationResult.location.latitude),
+            lng: parseFloat(locationResult.location.longitude)
+          };
+          
+          location = locationResult.location.address || "Ubicación GPS actualizada";
+          
+          const updateTime = new Date(locationResult.location.timestamp);
+          lastUpdate = updateTime.toLocaleString();
+          
+          // Considerar "conectado" si la última ubicación es de menos de 1 hora
+          const oneHourAgo = new Date();
+          oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+          isConnected = updateTime > oneHourAgo;
+          
+          console.log(`Ubicación real para ${member.first_name}:`, coordinates);
+        } else {
+          console.log(`Sin ubicación GPS para ${member.first_name}, usando coordenadas por defecto`);
+        }
+        
+        formattedMembers.push({
+          id: member.id,
+          name: `${member.first_name} ${member.last_name}`,
+          age: member.age || 0,
+          location: location,
+          address: member.address || "Bogotá, Colombia", 
+          distance: "Calculando...",
+          lastUpdate: lastUpdate,
+          battery: locationResult.location?.battery_level || 85,
+          isConnected: isConnected,
+          avatar: member.role === 'niño' ? '👶' : member.role === 'adolescente' ? '🧑' : member.role === 'adulto' ? '👨' : '👴',
+          photo: member.photo_url || "/api/placeholder/48/48",
+          safeZone: "Verificando zona...",
+          messagingStatus: "online",
+          coordinates: coordinates, // UBICACIÓN REAL del GPS
+          role: member.role,
+          relationship: member.relationship,
+          phone: member.phone,
+          emergency_contact: member.emergency_contact,
+          // Información adicional de la ubicación real
+          hasRealLocation: locationResult.success && locationResult.location,
+          locationAccuracy: locationResult.location?.accuracy || null,
+          messages: [
+            { 
+              id: 1, 
+              sender: 'parent', 
+              message: `Hola ${member.first_name}! ¿Cómo estás?`, 
+              timestamp: '14:30', 
+              verified: true 
+            }
+          ]
+        });
+      }
+      
+      setChildren(formattedMembers);
+      console.log('Miembros con ubicaciones reales:', formattedMembers);
+      
+    } catch (error) {
+      console.error('Error cargando miembros familiares:', error);
+      setChildren([]);
     }
-    
-    setChildren(formattedMembers);
-    console.log('Miembros con ubicaciones reales:', formattedMembers);
-    
-  } catch (error) {
-    console.error('Error cargando miembros familiares:', error);
-    setChildren([]);
-  }
-};
+  };
 
   const loadSafeZones = async () => {
     try {
@@ -354,7 +404,7 @@ const loadChildren = async (userData = user) => {
         setSafeZones([]);
       }
     } catch (error) {
-      console.error('❌ Error cargando zonas seguras:', error);
+      console.error('⌐ Error cargando zonas seguras:', error);
       setSafeZones([]);
     }
   };
@@ -374,88 +424,88 @@ const loadChildren = async (userData = user) => {
     return age;
   };
 
-const handleAddChild = async (e) => {
-  e.preventDefault();
-  setAddChildLoading(true);
-  setAddChildError('');
+  const handleAddChild = async (e) => {
+    e.preventDefault();
+    setAddChildLoading(true);
+    setAddChildError('');
 
-  try {
-    // Validaciones existentes
-    if (!newChild.name.trim()) {
-      throw new Error('El nombre es requerido');
-    }
-    if (!newChild.apellido.trim()) {
-      throw new Error('El apellido es requerido');
-    }
-    if (!newChild.email.trim()) {
-      throw new Error('El email es requerido');
-    }
-    if (!newChild.birthDate) {
-      throw new Error('La fecha de nacimiento es requerida');
-    }
-
-    const calculatedAge = calculateAge(newChild.birthDate);
-    if (calculatedAge < 1) {
-      throw new Error('La fecha de nacimiento no puede ser futura o muy reciente');
-    }
-    if (calculatedAge > 25) {
-      throw new Error('La edad no puede ser mayor a 25 años');
-    }
-
-    // Obtener usuario actual
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) {
-      throw new Error('Usuario no autenticado');
-    }
-
-    // 1. Crear usuario en Supabase Auth con credenciales reales
-    const temporaryPassword = 'FamilyWatch2024!';
-    
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: newChild.email,
-      password: temporaryPassword,
-      options: {
-        data: {
-          first_name: newChild.name,
-          last_name: newChild.apellido,
-          family_id: currentUser.user_metadata.family_id,
-          role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto'
-        }
+    try {
+      // Validaciones existentes
+      if (!newChild.name.trim()) {
+        throw new Error('El nombre es requerido');
       }
-    });
+      if (!newChild.apellido.trim()) {
+        throw new Error('El apellido es requerido');
+      }
+      if (!newChild.email.trim()) {
+        throw new Error('El email es requerido');
+      }
+      if (!newChild.birthDate) {
+        throw new Error('La fecha de nacimiento es requerida');
+      }
 
-    if (authError) {
-      throw new Error(`Error creando usuario: ${authError.message}`);
-    }
+      const calculatedAge = calculateAge(newChild.birthDate);
+      if (calculatedAge < 1) {
+        throw new Error('La fecha de nacimiento no puede ser futura o muy reciente');
+      }
+      if (calculatedAge > 25) {
+        throw new Error('La edad no puede ser mayor a 25 años');
+      }
 
-    if (!authData.user) {
-      throw new Error('No se pudo crear el usuario');
-    }
+      // Obtener usuario actual
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error('Usuario no autenticado');
+      }
 
-    // 2. Crear miembro familiar vinculado al nuevo usuario
-    const memberResponse = await FamilyMembersService.createFamilyMember({
-      firstName: newChild.name,
-      lastName: newChild.apellido,
-      email: newChild.email,
-      user_id: authData.user.id, // ID del nuevo usuario creado
-      role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto',
-      age: calculatedAge,
-      relationship: 'Hijo/a',
-      phone: newChild.phone,
-      emergencyContact: true
-    }, currentUser.user_metadata.family_id, currentUser.id);
+      // 1. Crear usuario en Supabase Auth con credenciales reales
+      const temporaryPassword = 'FamilyWatch2024!';
+      
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newChild.email,
+        password: temporaryPassword,
+        options: {
+          data: {
+            first_name: newChild.name,
+            last_name: newChild.apellido,
+            family_id: currentUser.user_metadata.family_id,
+            role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto'
+          }
+        }
+      });
 
-    if (!memberResponse.success) {
-      throw new Error(`Error creando miembro familiar: ${memberResponse.message}`);
-    }
+      if (authError) {
+        throw new Error(`Error creando usuario: ${authError.message}`);
+      }
 
-    // Recargar datos y limpiar formulario
-    await loadChildren();
-    resetAddChildForm();
-    setCurrentScreen('dashboard');
-    
-    // Mostrar credenciales al usuario
-    alert(`${newChild.name} ${newChild.apellido} fue agregado exitosamente!
+      if (!authData.user) {
+        throw new Error('No se pudo crear el usuario');
+      }
+
+      // 2. Crear miembro familiar vinculado al nuevo usuario
+      const memberResponse = await FamilyMembersService.createFamilyMember({
+        firstName: newChild.name,
+        lastName: newChild.apellido,
+        email: newChild.email,
+        user_id: authData.user.id, // ID del nuevo usuario creado
+        role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto',
+        age: calculatedAge,
+        relationship: 'Hijo/a',
+        phone: newChild.phone,
+        emergencyContact: true
+      }, currentUser.user_metadata.family_id, currentUser.id);
+
+      if (!memberResponse.success) {
+        throw new Error(`Error creando miembro familiar: ${memberResponse.message}`);
+      }
+
+      // Recargar datos y limpiar formulario
+      await loadChildren();
+      resetAddChildForm();
+      setCurrentScreen('dashboard');
+      
+      // Mostrar credenciales al usuario
+      alert(`${newChild.name} ${newChild.apellido} fue agregado exitosamente!
 
 🔐 CREDENCIALES DE ACCESO:
 📧 Email: ${newChild.email}
@@ -466,14 +516,13 @@ Para testing desde celular:
 2. Usa estas credenciales para login
 3. El usuario debe cambiar su contraseña después del primer login`);
 
-  } catch (error) {
-    console.error('Error agregando hijo:', error);
-    setAddChildError(error.message);
-  } finally {
-    setAddChildLoading(false);
-  }
-};
-
+    } catch (error) {
+      console.error('Error agregando hijo:', error);
+      setAddChildError(error.message);
+    } finally {
+      setAddChildLoading(false);
+    }
+  };
 
   const resetAddChildForm = () => {
     setNewChild({
@@ -489,27 +538,26 @@ Para testing desde celular:
     setAddChildError('');
   };
 
-// Función de login real
-const handleLogin = async (email, password) => {
-  try {
-    setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
+  // Función de login real
+  const handleLogin = async (email, password) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-    if (error) throw error;
-    
-    setUser(data.user);
-    setCurrentScreen('dashboard');
-    await loadAppData(data.user);
-  } catch (error) {
-    alert(`Error de login: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      if (error) throw error;
+      
+      setUser(data.user);
+      setCurrentScreen('dashboard');
+      await loadAppData(data.user);
+    } catch (error) {
+      alert(`Error de login: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // MODO TESTING - Logout simple
   const handleLogout = () => {
@@ -788,7 +836,12 @@ const handleLogin = async (email, password) => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Loading screen
+  // 1. Pantalla de login
+  if (currentScreen === 'login') {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
+  // 2. Loading screen
   if (loading) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
@@ -801,7 +854,7 @@ const handleLogin = async (email, password) => {
     );
   }
 
-  // Pantalla de agregar hijo
+  // 3. Pantalla de agregar hijo
   if (currentScreen === 'addchild') {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -1178,47 +1231,38 @@ const handleLogin = async (email, password) => {
   }
 
   // Dashboard principal
-  if (currentScreen === 'login') {
-  return <LoginScreen onLogin={handleLogin} />;
-  }
-    if (loading) {
-      return (
-      <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
-        <header className="bg-white shadow-sm border-b">
-          <div className="px-4 py-3">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-                <h1 className="text-xl font-bold text-gray-900">FamilyCare</h1>
-                <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
-                  MODO TESTING
-                </div>
+  return (
+    <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+      <header className="bg-white shadow-sm border-b">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Users className="h-6 w-6 text-white" />
               </div>
-            
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">
-                    {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
-                  </span>
-                </div>
-              
+              <h1 className="text-xl font-bold text-gray-900">FamilyCare</h1>
+              <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+                MODO TESTING
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">
+                  {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
+                </span>
+              </div>
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative">
                 <Bell className="h-5 w-5" />
                 <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
               </button>
-              
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
                 <Settings className="h-5 w-5" />
               </button>
-
               <button onClick={handleLogout} className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Cerrar sesión">
                 <LogOut className="h-5 w-5" />
               </button>
             </div>
           </div>
-
           {children.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1282,7 +1326,6 @@ const handleLogin = async (email, password) => {
                       Actualizado: {activeChild?.lastUpdate || 'Hace un momento'}
                     </span>
                   </div>
-                  
                   {activeChild?.safeZone && activeChild.safeZone !== "Zona desconocida" && (
                     <div className="flex items-center space-x-1 text-green-600">
                       <span className="text-green-500">🛡️</span>
@@ -1297,8 +1340,7 @@ const handleLogin = async (email, password) => {
               <div className="flex items-center mb-4">
                 <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">INFO</span>
                 <h3 className="text-lg font-semibold text-gray-900">Child Information</h3>
-              </div>
-              
+              </div>              
               <div className="flex items-center space-x-4 mb-4">
                 <div className="relative">
                   <img src={activeChild?.photo} alt={activeChild?.name} className="w-16 h-16 rounded-full object-cover" />
@@ -1313,7 +1355,6 @@ const handleLogin = async (email, password) => {
                   </div>
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
@@ -1321,8 +1362,7 @@ const handleLogin = async (email, password) => {
                     <span className="text-sm font-medium">{activeChild?.battery}%</span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Battery</p>
-                </div>
-                
+                </div> 
                 <div className="bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center space-x-2">
                     <Wifi className={`h-4 w-4 ${activeChild?.isConnected ? 'text-green-500' : 'text-red-500'}`} />
@@ -1331,7 +1371,6 @@ const handleLogin = async (email, password) => {
                   <p className="text-xs text-gray-500 mt-1">Status</p>
                 </div>
               </div>
-
               <div className="text-center">
                 <p className="text-sm text-gray-500">Last update: {activeChild?.lastUpdate}</p>
                 <p className="text-sm text-green-600 font-medium">In Safe Zone: {activeChild?.safeZone}</p>
@@ -1343,12 +1382,10 @@ const handleLogin = async (email, password) => {
                 <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">ACTIONS</span>
                 <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
               </div>
-              
               <button onClick={() => setCurrentScreen('messaging')} className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
                 <MessageCircle className="h-5 w-5" />
                 <span className="font-medium">Enviar Mensaje</span>
               </button>
-
               <button onClick={handleCheckMessages} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                 checkStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
               }`}>
@@ -1375,20 +1412,17 @@ const handleLogin = async (email, password) => {
                   </>
                 )}
               </button>
-              
               <button onClick={() => setCurrentScreen('safezones')} className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
                 <Shield className="h-5 w-5" />
                 <span className="font-medium">Gestionar Zonas Seguras</span>
               </button>
-              
-			  <button 
-				onClick={handleGetCurrentLocation}
-				className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors"
-				>
-				<span>🌍</span>
-				<span className="font-medium">Probar GPS</span>
-			  </button>
-			  
+              <button 
+                onClick={handleGetCurrentLocation}
+                className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors"
+              >
+                <span>🌍</span>
+                <span className="font-medium">Probar GPS</span>
+              </button>
               <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
                 <AlertTriangle className="h-5 w-5" />
                 <span className="font-medium">Emergencia</span>
@@ -1418,7 +1452,6 @@ const handleLogin = async (email, password) => {
                 {activeChild?.name} está respondendo. Digite a senha familiar:
               </p>
             </div>
-
             <div>
               <input
                 type="password"
@@ -1429,11 +1462,9 @@ const handleLogin = async (email, password) => {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg"
                 autoFocus
               />
-              
               {passwordError && (
                 <p className="text-red-600 text-sm mt-2 text-center">{passwordError}</p>
               )}
-
               <div className="flex space-x-3 mt-4">
                 <button
                   onClick={() => {
@@ -1454,7 +1485,6 @@ const handleLogin = async (email, password) => {
                 </button>
               </div>
             </div>
-
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <p className="text-xs text-gray-600 text-center">
                 Senhas de teste: 1234, emma, jake
@@ -1465,65 +1495,6 @@ const handleLogin = async (email, password) => {
       )}
     </div>
   );
-  return (
-  <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
-    // dashboard content
-  </div>
-  );
 };
-
-// Función para obtener GPS y guardar en base de datos
-const handleGetCurrentLocation = async () => {
-  try {
-    console.log('Solicitando ubicación GPS...');
-    
-    const locationData = await geolocationService.getCurrentPosition();
-    console.log('Ubicación obtenida:', locationData);
-	
-   
-    // Obtener usuario actual (no hardcodeado)
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) {
-      throw new Error('Usuario no autenticado');
-    }
-    
-    // Buscar el miembro familiar del usuario actual
-    const { data: memberData, error: memberError } = await supabase
-      .from('family_members')
-      .select('id, first_name')
-      .eq('user_id', currentUser.id)  // Usar el user_id real
-      .single();
-    
-    if (memberError || !memberData) {
-      throw new Error('No se encontró tu registro en family_members');
-    }
-    
-    console.log('Miembro encontrado:', memberData);
-    
-    // Guardar en base de datos
-    const saveResult = await locationStorageService.saveLocation(
-      memberData.id, 
-      locationData,
-      { isManual: true }
-    );
-    
-    if (saveResult.success) {
-      // Recargar datos del dashboard
-      await loadChildren();
-      
-      alert(`GPS guardado exitosamente!
-	  Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
-	  Precisión: ${locationData.accuracy}m
-	  Guardado en base de datos: Sí`);
-    } else {
-      throw new Error(saveResult.error);
-    }
-    
-  } catch (error) {
-    console.error('Error:', error);
-    alert(`Error: ${error.message}`);
-  }
-};
-
 
 export default FamilyTrackingApp;
