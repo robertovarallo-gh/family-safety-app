@@ -28,6 +28,15 @@ class LocationStorageService {
         throw new Error('Coordenadas de latitud y longitud son requeridas');
       }
 
+    try {
+      if ('getBattery' in navigator) {
+        const battery = await navigator.getBattery();
+        batteryLevel = Math.round(battery.level * 100);
+      }
+    } catch (error) {
+      console.log('Battery API no disponible');
+    }
+
       // Preparar datos para inserción
       const locationRecord = {
         user_id: userId,
@@ -39,6 +48,10 @@ class LocationStorageService {
         address: options.address || null,
         // timestamp se genera automáticamente en la DB
       };
+
+// Debug para ver exactamente qué se está enviando
+console.log('locationRecord antes de insertar:', JSON.stringify(locationRecord));
+alert(`Debug DB: ${JSON.stringify(locationRecord)}`);
 
       console.log('Guardando ubicación:', locationRecord);
 

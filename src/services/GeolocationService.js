@@ -167,7 +167,7 @@ class GeolocationService {
       // Estimación de precisión
       precision: this.getPrecisionLevel(position.coords.accuracy),
       // Información del dispositivo si está disponible
-      battery: this.getBatteryLevel(),
+      battery: null,
       isManual: true // Por defecto, las solicitudes son manuales
     };
   }
