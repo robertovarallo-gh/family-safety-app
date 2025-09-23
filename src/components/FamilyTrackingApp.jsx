@@ -1330,12 +1330,17 @@ const handleGetCurrentLocation = async () => {
     const locationData = await geolocationService.getCurrentPosition();
     console.log('Ubicación obtenida:', locationData);
     
-    // Buscar tu ID en family_members usando los valores exactos del modo testing
+    // Obtener usuario actual (no hardcodeado)
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (!currentUser) {
+      throw new Error('Usuario no autenticado');
+    }
+    
+    // Buscar el miembro familiar del usuario actual
     const { data: memberData, error: memberError } = await supabase
       .from('family_members')
       .select('id, first_name')
-      .eq('family_id', 'a5bfd6c1-7cba-482b-8bdf-ecda80c21150')
-      .eq('email', 'test@familywatch.com')
+      .eq('user_id', currentUser.id)  // Usar el user_id real
       .single();
     
     if (memberError || !memberData) {
@@ -1352,6 +1357,9 @@ const handleGetCurrentLocation = async () => {
     );
     
     if (saveResult.success) {
+      // Recargar datos del dashboard
+      await loadChildren();
+      
       alert(`GPS guardado exitosamente!
       
 Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
@@ -1366,5 +1374,6 @@ Guardado en base de datos: Sí`);
     alert(`Error: ${error.message}`);
   }
 };
+
 
 export default FamilyTrackingApp;
