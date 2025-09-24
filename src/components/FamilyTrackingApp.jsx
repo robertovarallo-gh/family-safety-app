@@ -298,7 +298,7 @@ const FamilyTrackingApp = () => {
         console.log('Usuario sin family_id, creando familia automáticamente...');
         
         // Crear family_id basado en el user_id
-        familyId = `family_${userData.id}`;
+        familyId = userData.id;
         
         // Actualizar el metadata del usuario en Supabase
         const { error: updateError } = await supabase.auth.updateUser({
