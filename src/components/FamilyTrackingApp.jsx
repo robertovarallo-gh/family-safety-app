@@ -1331,11 +1331,27 @@ const handleCheckMessages = () => {
                 MODO TESTING
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-bold">
-                  {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
-                </span>
+			<div className="flex items-center space-x-3">
+              <div className="relative group">
+                <button className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-300 transition-all">
+                  <span className="text-white text-sm font-bold">
+                    {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
+                  </span>
+                </button>
+                
+                <div className="absolute right-0 top-10 bg-white rounded-lg shadow-lg border py-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  <div className="px-4 py-2 border-b">
+                    <p className="text-sm font-medium text-gray-900">{user?.user_metadata?.first_name} {user?.user_metadata?.last_name}</p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  </div>
+                  <button 
+                    onClick={handleLogout}
+                    className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Cambiar Usuario</span>
+                  </button>
+                </div>
               </div>
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative">
                 <Bell className="h-5 w-5" />
@@ -1343,9 +1359,6 @@ const handleCheckMessages = () => {
               </button>
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
                 <Settings className="h-5 w-5" />
-              </button>
-              <button onClick={handleLogout} className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Cerrar sesión">
-                <LogOut className="h-5 w-5" />
               </button>
             </div>
           </div>
