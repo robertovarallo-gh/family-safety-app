@@ -610,10 +610,35 @@ Para testing desde celular:
     }
   };
 
-  // MODO TESTING - Logout simple
-  const handleLogout = () => {
-    console.log('Logout en modo testing - recargando página');
-    window.location.reload();
+// Función de logout real - CORREGIDA
+  const handleLogout = async () => {
+    try {
+      console.log('Cerrando sesión...');
+      setLoading(true);
+      
+      // Limpiar sesión de Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Error en logout:', error);
+        // Aún así, limpiar estado local
+      }
+      
+      // Limpiar estado local
+      setUser(null);
+      setChildren([]);
+      setSafeZones([]);
+      setCurrentScreen('login');
+      
+      console.log('Logout exitoso - redirigiendo a login');
+      
+    } catch (error) {
+      console.error('Error durante logout:', error);
+      // Fallback: recargar página si falla el logout
+      window.location.reload();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const activeChild = children[selectedChild] || children[0];
