@@ -136,6 +136,8 @@ const LoginScreen = ({ onLogin }) => {
   );
 };
 
+//Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
+
 const FamilyTrackingApp = () => {
   console.log('🚀 FamilyTrackingApp iniciando...');
 
@@ -181,7 +183,61 @@ const FamilyTrackingApp = () => {
     { name: "Uncle John", phone: "+57 (314) 321-0987" }
   ];
 
-  // Autenticación real con Supabase
+  // Función para obtener GPS y guardar en base de datos
+  const handleGetCurrentLocation = async () => {
+    try {
+      console.log('Solicitando ubicación GPS...');
+      
+      const locationData = await geolocationService.getCurrentPosition();
+      console.log('Ubicación obtenida:', locationData);
+  
+      // Obtener usuario actual (no hardcodeado)
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) {
+        throw new Error('Usuario no autenticado');
+      }
+      
+      // Buscar el miembro familiar del usuario actual
+      const { data: memberData, error: memberError } = await supabase
+        .from('family_members')
+        .select('id, first_name')
+        .eq('user_id', currentUser.id)  // Usar el user_id real
+        .single();
+      
+      if (memberError || !memberData) {
+        throw new Error('No se encontró tu registro en family_members');
+      }
+      
+      console.log('Miembro encontrado:', memberData);
+      
+      // Guardar en base de datos
+      const saveResult = await locationStorageService.saveLocation(
+        memberData.id, 
+        locationData,
+        { isManual: true }
+      );
+      
+      if (saveResult.success) {
+        // Recargar datos del dashboard
+        await loadChildren();
+        
+        alert(`GPS guardado exitosamente!
+        Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
+        Precisión: ${locationData.accuracy}m
+        Guardado en base de datos: Sí`);
+      } else {
+        throw new Error(saveResult.error);
+      }
+      
+    } catch (error) {
+      console.error('Error:', error);
+      alert(`Error: ${error.message}`);
+    }
+  };
+  
+// Parte 3 del FamilyTrackingApp.jsx - useEffect hooks y carga de datos
+
+// Autenticación real con Supabase
   useEffect(() => {
     const checkAuth = async () => {
       setLoading(true);
@@ -262,9 +318,6 @@ const FamilyTrackingApp = () => {
         }
       }
       
-      // Usar el family_id (existente o recién creado)
-      
-      const familyId = userData.user_metadata?.family_id || `family_${userData.id}`;
       console.log('Usando family_id:', familyId);
       
       // Obtener miembros familiares
@@ -378,8 +431,10 @@ const FamilyTrackingApp = () => {
       setChildren([]);
     }
   };
+  
+// Parte 4 del FamilyTrackingApp.jsx - Funciones de configuración y formularios
 
-  const loadSafeZones = async () => {
+const loadSafeZones = async () => {
     try {
       const zones = await familyService.getSafeZones();
       
@@ -562,8 +617,10 @@ Para testing desde celular:
   };
 
   const activeChild = children[selectedChild] || children[0];
+  
+// Parte 5 del FamilyTrackingApp.jsx - useEffect adicionales y funciones de mapas
 
-  useEffect(() => {
+useEffect(() => {
     let interval;
     if (isEmergencyActive) {
       interval = setInterval(() => {
@@ -740,8 +797,10 @@ Para testing desde celular:
       });
     }
   };
+  
+// Parte 6 del FamilyTrackingApp.jsx - Funciones de interacción (mensajes, emergencias, etc.)
 
-  const handleCheckMessages = () => {
+const handleCheckMessages = () => {
     setCheckStatus('sending');
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setCheckRequestTime(time);
@@ -831,60 +890,10 @@ Para testing desde celular:
     const seconds = diff % 60;
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
-
-  // Función para obtener GPS y guardar en base de datos
-  const handleGetCurrentLocation = async () => {
-    try {
-      console.log('Solicitando ubicación GPS...');
-      
-      const locationData = await geolocationService.getCurrentPosition();
-      console.log('Ubicación obtenida:', locationData);
   
-      // Obtener usuario actual (no hardcodeado)
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        throw new Error('Usuario no autenticado');
-      }
-      
-      // Buscar el miembro familiar del usuario actual
-      const { data: memberData, error: memberError } = await supabase
-        .from('family_members')
-        .select('id, first_name')
-        .eq('user_id', currentUser.id)  // Usar el user_id real
-        .single();
-      
-      if (memberError || !memberData) {
-        throw new Error('No se encontró tu registro en family_members');
-      }
-      
-      console.log('Miembro encontrado:', memberData);
-      
-      // Guardar en base de datos
-      const saveResult = await locationStorageService.saveLocation(
-        memberData.id, 
-        locationData,
-        { isManual: true }
-      );
-      
-      if (saveResult.success) {
-        // Recargar datos del dashboard
-        await loadChildren();
-        
-        alert(`GPS guardado exitosamente!
-        Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
-        Precisión: ${locationData.accuracy}m
-        Guardado en base de datos: Sí`);
-      } else {
-        throw new Error(saveResult.error);
-      }
-      
-    } catch (error) {
-      console.error('Error:', error);
-      alert(`Error: ${error.message}`);
-    }
-  };
+// Parte 7 del FamilyTrackingApp.jsx - Renders condicionales (Login, Loading, Add Child)
 
-  // 1. Pantalla de login
+// 1. Pantalla de login
   if (currentScreen === 'login') {
     return <LoginScreen onLogin={handleLogin} />;
   }
@@ -1088,8 +1097,10 @@ Para testing desde celular:
       </div>
     );
   }
+  
+// Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajería
 
-  // Pantalla de confirmación de emergencia
+// Pantalla de confirmación de emergencia
   if (showEmergencyConfirmation) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -1277,8 +1288,10 @@ Para testing desde celular:
       </div>
     );
   }
+  
+// Parte 9 del FamilyTrackingApp.jsx - Dashboard principal
 
-  // Dashboard principal
+// Dashboard principal
   return (
     <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
       <header className="bg-white shadow-sm border-b">
@@ -1487,8 +1500,10 @@ Para testing desde celular:
           <span className="font-medium">Agregar Nuevo Hijo</span>
         </button>
       </div>
+	  
+// Parte 10 del FamilyTrackingApp.jsx - Modal de contraseña, cierre del componente y export
 
-      {showPasswordModal && (
+{showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-sm">
             <div className="text-center mb-4">
