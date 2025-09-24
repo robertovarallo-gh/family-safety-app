@@ -1289,7 +1289,7 @@ const handleCheckMessages = () => {
     );
   }
   
-// Parte 9 del FamilyTrackingApp.jsx - Dashboard principal
+// Parte 9 y 10 del FamilyTrackingApp.jsx - Dashboard principal
 
 // Dashboard principal
   return (
@@ -1500,10 +1500,8 @@ const handleCheckMessages = () => {
           <span className="font-medium">Agregar Nuevo Hijo</span>
         </button>
       </div>
-	  
-// Parte 10 del FamilyTrackingApp.jsx - Modal de contraseña, cierre del componente y export
 
-{showPasswordModal && (
+	  {showPasswordModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-sm">
             <div className="text-center mb-4">
