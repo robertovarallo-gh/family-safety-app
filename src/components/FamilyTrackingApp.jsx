@@ -51,6 +51,26 @@ const LoginScreen = ({ onLogin }) => {
     }
   };
 
+    // Reset Password
+    const handlePasswordReset = async (email) => {
+      if (!email) {
+        alert('Por favor ingresa tu email primero');
+        return;
+      }
+    
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: 'https://family-safety-app.vercel.app/reset-password'
+        });
+      
+        if (error) throw error;
+      
+        alert('Se ha enviado un enlace de restablecimiento a tu email');
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+  };
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
       <div className="w-full p-6">
@@ -122,6 +142,17 @@ const LoginScreen = ({ onLogin }) => {
             )}
           </button>
         </form>
+		
+		{/* Agregar botón de reset password */}
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => handlePasswordReset(email)}
+            disabled={loading || !email}
+            className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline"
+          >
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700 font-medium mb-2">Usuarios de prueba:</p>
