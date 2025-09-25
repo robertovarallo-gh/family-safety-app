@@ -353,6 +353,10 @@ const FamilyTrackingApp = () => {
       
       // Obtener miembros familiares
       const membersResponse = await FamilyMembersService.getFamilyMembers(familyId);
+	  console.log('DEBUG - family_id usado:', familyId);
+      console.log('DEBUG - respuesta getFamilyMembers:', membersResponse);
+      console.log('DEBUG - members array:', membersResponse.members);
+      console.log('DEBUG - members length:', membersResponse.members?.length);
       
       if (!membersResponse.success || !membersResponse.members?.length) {
         console.log('No hay miembros familiares registrados');
