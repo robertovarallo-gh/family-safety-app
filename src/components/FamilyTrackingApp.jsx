@@ -26,7 +26,7 @@ import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 
-// Componente LoginScreen
+
 // Componente LoginScreen
 const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -303,7 +303,6 @@ const LoginScreen = ({ onLogin }) => {
       </div>
     </div>
   );
-};
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
