@@ -145,12 +145,13 @@ const LoginScreen = ({ onLogin }) => {
 		
 		{/* Agregar botón de reset password */}
         <div className="mt-4 text-center">
-          <button
-            onClick={() => handlePasswordReset(email)}
-            disabled={loading || !email}
-            className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline"
-          >
-            ¿Olvidaste tu contraseña?
+          <button className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline">
+            // onClick={() => handlePasswordReset(email)}
+            // disabled={loading || !email}
+            // colar classname de volta aqui
+			  BOTÓN DE PRUEBA
+            // >
+            // ¿Olvidaste tu contraseña?
           </button>
         </div>
 
@@ -324,6 +325,7 @@ const FamilyTrackingApp = () => {
       
       // Verificar si el usuario tiene family_id
       let familyId = userData?.user_metadata?.family_id;
+	  console.log('family_id original del metadata:', familyId);
       
       if (!familyId) {
         console.log('Usuario sin family_id, creando familia automáticamente...');
