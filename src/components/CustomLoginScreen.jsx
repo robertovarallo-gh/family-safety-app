@@ -187,7 +187,7 @@ const CustomLoginScreen = () => {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">FamilyWatch</h1>
           <p className="text-gray-600">
-            {isLogin ? 'Bienvenido de vuelta' : 'Crea tu cuenta familiar'}
+            {isLogin ? 'Cuida a tu familia' : 'Crea tu cuenta familiar'}
           </p>
         </div>
 
