@@ -1311,6 +1311,6 @@ return (
     <button onClick={handleLogout}>LOGOUT</button>
   </div>
 );
-);
+};
 
 export default FamilyTrackingApp;
