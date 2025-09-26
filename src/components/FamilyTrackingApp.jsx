@@ -27,44 +27,119 @@ import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 
 // Parte 1 - Login Screen
-const LoginScreen = ({ onLogin }) => {
+  const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !password) {
+      alert('Por favor ingresa email y contrase?a');
+      return;
+    }
+    setLoading(true);
+    try {
+      await onLogin(email, password);
+    } catch (error) {
+      console.error('Error en login:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen p-6">
-      <h1 className="text-2xl font-bold mb-4">FamilyCare</h1>
-      
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        className="w-full px-4 py-3 border rounded-lg mb-4"
-      />
-      
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        className="w-full px-4 py-3 border rounded-lg mb-4"
-      />
-      
-      <button
-        onClick={() => onLogin(email, password)}
-        className="w-full py-3 bg-blue-600 text-white rounded-lg mb-4"
-      >
-        Iniciar Sesi√≥n
-      </button>
-      
-      <button
-        onClick={() => alert(`Reset para: ${email}`)}
-        className="w-full py-3 bg-red-500 text-white rounded-lg"
-      >
-        BOT√ìN DE RESET - DEBER√çA APARECER
-      </button>
+    <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
+      <div className="w-full p-6">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+            <Users className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">FamilyCare</h1>
+          <p className="text-gray-600">Inicia sesi®Æn para continuar</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="tu@email.com"
+              required
+              disabled={loading}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Contrase?a</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
+                placeholder="????????"
+                required
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                disabled={loading}
+              >
+                {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                Iniciando sesi®Æn...
+              </div>
+            ) : (
+              'Iniciar Sesi®Æn'
+            )}
+          </button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => {
+              if (!email) {
+                alert('Por favor ingresa tu email primero');
+                return;
+              }
+              alert(`Se enviar®™a reset password a: ${email}`);
+            }}
+            disabled={loading || !email}
+            className="text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline"
+          >
+            ?Olvidaste tu contrase?a?
+          </button>
+        </div>
+
+        <hr className="my-6 border-gray-200" />
+
+        <div className="bg-blue-50 rounded-lg p-4">
+          <p className="text-sm text-blue-700 font-medium mb-2">Usuarios de prueba:</p>
+          <div className="text-xs text-blue-600 space-y-1">
+            <p><strong>Computadora:</strong> varallo.padre@familywatch.com</p>
+            <p><strong>Celular:</strong> varallo.hijo@familywatch.com</p>
+            <p><strong>Password:</strong> FamilyWatch2024!</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -1276,53 +1351,306 @@ const handleCheckMessages = () => {
 // Parte 9 y 10 del FamilyTrackingApp.jsx - Dashboard principal
 
 // Dashboard principal
-// C√ìDIGO DE DIAGN√ìSTICO - REEMPLAZA EL DASHBOARD COMPLETO
+// CODIGO DE DIAGNOSTICO - REEMPLAZA EL DASHBOARD COMPLETO
 console.log('=== RENDER DECISION ===');
 console.log('currentScreen:', currentScreen);
 console.log('loading:', loading);
 console.log('user:', user);
 
+// 1. Pantalla de login
+if (currentScreen === 'login') {
+  return <LoginScreen onLogin={handleLogin} />;
+}
+
+// 2. Loading screen
 if (loading) {
-  console.log('MOSTRANDO LOADING');
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
-      <div>LOADING...</div>
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-lg font-semibold text-gray-700">Carregando FamilyWatch...</p>
+        <p className="text-xs text-gray-400 mt-2">Bem-vindo, {user?.user_metadata?.first_name || user?.email}</p>
+      </div>
     </div>
   );
 }
 
-if (currentScreen === 'login') {
-  console.log('DEBER√çA MOSTRAR LOGIN');
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen p-6">
-      <h1>LOGIN SCREEN RENDERING</h1>
-      <button onClick={() => alert('Login test')}>TEST BUTTON</button>
-    </div>
-  );
-}
-
-console.log('MOSTRANDO DASHBOARD U OTRA PANTALLA');
+// Dashboard principal
 return (
-  <div className="max-w-md mx-auto bg-white min-h-screen p-6" style={{backgroundColor: 'lightblue'}}>
-    <h1 style={{fontSize: '24px', color: 'red'}}>DASHBOARD OR OTHER SCREEN</h1>
-    <p style={{fontSize: '18px'}}>currentScreen: {currentScreen}</p>
-    <p style={{fontSize: '18px'}}>user: {user ? user.email : 'null'}</p>
-    <button 
-      onClick={handleLogout}
-      style={{
-        backgroundColor: 'red',
-        color: 'white',
-        padding: '20px',
-        fontSize: '20px',
-        border: 'none',
-        borderRadius: '10px',
-        cursor: 'pointer',
-        width: '100%',
-        marginTop: '20px'
-      }}
-    >
-      LOGOUT BUTTON
-    </button>
+  <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+    <header className="bg-white shadow-sm border-b">
+      <div className="px-4 py-3">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <Users className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900">FamilyCare</h1>
+            <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
+              MODO TESTING
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="relative group">
+              <button className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-300 transition-all">
+                <span className="text-white text-sm font-bold">
+                  {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
+                </span>
+              </button>
+              
+              <div className="absolute right-0 top-10 bg-white rounded-lg shadow-lg border py-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                <div className="px-4 py-2 border-b">
+                  <p className="text-sm font-medium text-gray-900">{user?.user_metadata?.first_name} {user?.user_metadata?.last_name}</p>
+                  <p className="text-xs text-gray-500">{user?.email}</p>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Cambiar Usuario</span>
+                </button>
+              </div>
+            </div>
+            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+            </button>
+            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
+              <Settings className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        {children.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Seleccionar miembro familiar
+            </label>
+            <select 
+              value={selectedChild} 
+              onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {children.map((child, index) => (
+                <option key={child.id} value={index}>
+                  {child.name} ({child.relationship})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+    </header>
+
+    <div className="p-4 space-y-4">
+      {children.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+          <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay miembros familiares</h3>
+          <p className="text-gray-600 mb-6">Agrega el primer miembro de tu familia para comenzar</p>
+          <button 
+            onClick={() => setCurrentScreen('addchild')}
+            className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium"
+          >
+            <Users className="h-5 w-5" />
+            <span>Agregar primer miembro</span>
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">MAPA</span>
+                Live Location
+              </h3>
+              <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicaci®Æn no disponible'} ? {activeChild?.distance || 'Distancia no disponible'}</p>
+            </div>
+            <div 
+              id="dashboard-map"
+              className="w-full h-64"
+              style={{ minHeight: '256px' }}
+            />
+            <div className="p-4 bg-gray-50 border-t">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-1">
+                    <div className={`w-2 h-2 rounded-full ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
+                    <span className={activeChild?.isConnected ? 'text-green-600' : 'text-red-600'}>
+                      {activeChild?.isConnected ? 'En l®™nea' : 'Desconectado'}
+                    </span>
+                  </div>
+                  <span className="text-gray-500">
+                    Actualizado: {activeChild?.lastUpdate || 'Hace un momento'}
+                  </span>
+                </div>
+                {activeChild?.safeZone && activeChild.safeZone !== "Zona desconocida" && (
+                  <div className="flex items-center space-x-1 text-green-600">
+                    <span className="text-green-500">???</span>
+                    <span className="font-medium">En zona segura</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border p-6">
+            <div className="flex items-center mb-4">
+              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">INFO</span>
+              <h3 className="text-lg font-semibold text-gray-900">Child Information</h3>
+            </div>              
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="relative">
+                <img src={activeChild?.photo} alt={activeChild?.name} className="w-16 h-16 rounded-full object-cover" />
+                <div className={`absolute bottom-0 right-0 w-5 h-5 ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full border-2 border-white`}></div>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-gray-900">{activeChild?.name}</h2>
+                <p className="text-gray-600">{activeChild?.age} years old</p>
+                <div className="flex items-center space-x-2 mt-1">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">{activeChild?.location}</span>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <Battery className={`h-4 w-4 ${activeChild?.battery > 20 ? 'text-green-500' : 'text-red-500'}`} />
+                  <span className="text-sm font-medium">{activeChild?.battery}%</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Battery</p>
+              </div> 
+              <div className="bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <Wifi className={`h-4 w-4 ${activeChild?.isConnected ? 'text-green-500' : 'text-red-500'}`} />
+                  <span className="text-sm font-medium">{activeChild?.isConnected ? 'Connected' : 'Offline'}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Status</p>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-500">Last update: {activeChild?.lastUpdate}</p>
+              <p className="text-sm text-green-600 font-medium">In Safe Zone: {activeChild?.safeZone}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center mb-3">
+              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">ACTIONS</span>
+              <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+            </div>
+            <button onClick={() => setCurrentScreen('messaging')} className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
+              <MessageCircle className="h-5 w-5" />
+              <span className="font-medium">Enviar Mensaje</span>
+            </button>
+            <button onClick={handleCheckMessages} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+              checkStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
+            }`}>
+              {checkStatus === 'sending' ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                  <span className="font-medium">Enviando Check...</span>
+                </>
+              ) : checkStatus === 'waiting' ? (
+                <>
+                  <Clock className="h-5 w-5 animate-pulse" />
+                  <span className="font-medium">Aguardando {activeChild?.name}...</span>
+                </>
+              ) : checkStatus === 'success' ? (
+                <>
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="font-medium">Check OK!</span>
+                  <span className="ml-auto text-xs bg-green-200 px-2 py-1 rounded">{checkRequestTime}</span>
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="h-5 w-5" />
+                  <span className="font-medium">Checa Status</span>
+                </>
+              )}
+            </button>
+            <button onClick={() => setCurrentScreen('safezones')} className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
+              <Shield className="h-5 w-5" />
+              <span className="font-medium">Gestionar Zonas Seguras</span>
+            </button>
+            <button 
+              onClick={handleGetCurrentLocation}
+              className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors"
+            >
+              <span>??</span>
+              <span className="font-medium">Probar GPS</span>
+            </button>
+            <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="font-medium">Emergencia</span>
+            </button>
+          </div>
+        </>
+      )}
+      
+      <button 
+        onClick={() => setCurrentScreen('addchild')}
+        className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200"
+      >
+        <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">+</div>
+        <span className="font-medium">Agregar Nuevo Hijo</span>
+      </button>
+    </div>
+
+    {showPasswordModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+          <div className="text-center mb-4">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Shield className="h-6 w-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Verifica??o de Seguran?a</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {activeChild?.name} est®¢ respondendo. Digite a senha familiar:
+            </p>
+          </div>
+          <div>
+            <input
+              type="password"
+              value={passwordCheck}
+              onChange={(e) => setPasswordCheck(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+              placeholder="Digite a senha"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg"
+              autoFocus
+            />
+            {passwordError && (
+              <p className="text-red-600 text-sm mt-2 text-center">{passwordError}</p>
+            )}
+            <div className="flex space-x-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordCheck('');
+                  setPasswordError('');
+                  setCheckStatus('idle');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handlePasswordSubmit}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Verificar
+              </button>
+            </div>
+          </div>
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-600 text-center">
+              Senhas de teste: 1234, emma, jake
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
   </div>
 );
 };
