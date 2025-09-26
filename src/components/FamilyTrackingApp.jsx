@@ -28,35 +28,43 @@ import { supabase } from '../services/supabaseClient.js';
 
 // Parte 1 - Login Screen
 const LoginScreen = ({ onLogin }) => {
-  console.log('=== LoginScreen se está renderizando ===');
-  console.log('Props recibidas:', { onLogin });
-  const [email, setEmail] = useState('test@email.com');
-  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen p-6">
-      <h1>TEST - LoginScreen</h1>
+      <h1 className="text-2xl font-bold mb-4">FamilyCare</h1>
       
       <input
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4"
         placeholder="Email"
+        className="w-full px-4 py-3 border rounded-lg mb-4"
+      />
+      
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder="Password"
+        className="w-full px-4 py-3 border rounded-lg mb-4"
       />
       
       <button
+        onClick={() => onLogin(email, password)}
         className="w-full py-3 bg-blue-600 text-white rounded-lg mb-4"
-        onClick={() => alert('Login button works')}
       >
-        Login
+        Iniciar Sesión
       </button>
       
-      {/* BOTÓN DE RESET - VERSIÓN SUPER SIMPLE */}
-      {/* REEMPLAZA la sección del botón de reset con esto: */}
-	  <div style={{backgroundColor: 'red', color: 'white', padding: '20px', margin: '20px 0'}}>
-	    <h2>BOTÓN DE RESET DEBERÍA ESTAR AQUÍ</h2>
-	    <button onClick={() => alert('Test')}>CLICK AQUÍ</button>
-	  </div>
+      <button
+        onClick={() => alert(`Reset para: ${email}`)}
+        className="w-full py-3 bg-red-500 text-white rounded-lg"
+      >
+        BOTÓN DE RESET - DEBERÍA APARECER
+      </button>
     </div>
   );
 };
