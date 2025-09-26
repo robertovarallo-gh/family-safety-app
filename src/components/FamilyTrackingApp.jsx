@@ -663,10 +663,6 @@ Para testing desde celular:
       setUser(null);
       setChildren([]);
       setSafeZones([]);
-	  
-	  console.log('ANTES de setCurrentScreen - currentScreen actual:', currentScreen);
-      setCurrentScreen('login');
-	  console.log('DESPU¨¦S de setCurrentScreen - deber¨ªa ser login');
       
       console.log('Logout exitoso - redirigiendo a login');
       
