@@ -1,200 +1,252 @@
-// contexts/AuthContext.jsx - MIGRADO A SUPABASE
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../services/supabaseClient';
+import React, { createContext, useContext, useEffect, useState } from 'react'
+import { supabase } from '../config/supabaseClient'
 
 // Crear el contexto
-const AuthContext = createContext();
+const AuthContext = createContext({})
 
-// Hook para usar el contexto
+// Hook personalizado para usar el contexto
 export const useAuth = () => {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (!context) {
-    throw new Error('useAuth debe ser usado dentro de AuthProvider');
+    throw new Error('useAuth must be used within AuthProvider')
   }
-  return context;
-};
+  return context
+}
 
-// Provider del contexto
+// Provider del contexto de autenticación
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [session, setSession] = useState(null)
 
-  // Verificar autenticación al cargar
   useEffect(() => {
-    // Obtener sesión actual
+    console.log('AuthProvider: Initializing...')
+
+    // Función para ocultar elementos UI de Supabase
+    const hideSupabaseUI = () => {
+      const supabaseSelectors = [
+        '[data-supabase]', 
+        '.supabase-auth-ui', 
+        '.sb-auth-container',
+        '.supabase-ui-auth',
+        '.sbui-auth',
+        '.auth-widget',
+        '.sbui-container',
+        '.supabase-auth-widget'
+      ]
+      
+      supabaseSelectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector)
+        elements.forEach(element => {
+          element.style.display = 'none'
+          element.style.visibility = 'hidden'
+          element.style.opacity = '0'
+        })
+      })
+    }
+
+    // Ejecutar inmediatamente
+    hideSupabaseUI()
+
+    // Observer para elementos que se creen dinámicamente
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(() => {
+        hideSupabaseUI()
+      })
+    })
+
+    observer.observe(document.body, { 
+      childList: true, 
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'data-supabase']
+    })
+
+    // Obtener sesión inicial
     const getInitialSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('AuthProvider: Getting initial session...')
+        const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('Error obteniendo sesión:', error);
-        } else if (session) {
-          setSession(session);
-          setUser(session.user);
-          setIsAuthenticated(true);
+          console.error('AuthProvider: Session error:', error)
+        } else {
+          console.log('AuthProvider: Initial session:', session)
+          setSession(session)
+          setUser(session?.user ?? null)
         }
       } catch (error) {
-        console.error('Error en getInitialSession:', error);
+        console.error('AuthProvider: Auth initialization error:', error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    getInitialSession();
+    getInitialSession()
 
-    // Escuchar cambios de autenticación
+    // Escuchar cambios de estado de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
+        console.log('AuthProvider: Auth state changed:', event, session)
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
         
-        setSession(session);
-        setUser(session?.user || null);
-        setIsAuthenticated(!!session);
-        setLoading(false);
+        // Ocultar UI de Supabase después de cambios de estado
+        setTimeout(hideSupabaseUI, 100)
+        setTimeout(hideSupabaseUI, 500)
       }
-    );
+    )
 
-    // Cleanup subscription
-    return () => subscription.unsubscribe();
-  }, []);
+    // Cleanup
+    return () => {
+      console.log('AuthProvider: Cleaning up...')
+      subscription?.unsubscribe()
+      observer.disconnect()
+    }
+  }, [])
 
-  // Función de login
-  const login = async (email, password) => {
+  // Función de login personalizada
+  const signIn = async (email, password) => {
     try {
-      setLoading(true);
+      console.log('AuthProvider: Signing in with email:', email)
+      setLoading(true)
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
+        email: email.trim(),
+        password: password,
+      })
+      
       if (error) {
-        throw new Error(error.message);
+        console.error('AuthProvider: Sign in error:', error)
+        throw error
       }
-
-      // No necesitas setear el state aquí, se hace automáticamente por onAuthStateChange
-      return {
-        success: true,
-        user: data.user,
-        session: data.session,
-        token: data.session.access_token
-      };
+      
+      console.log('AuthProvider: Sign in successful:', data)
+      return { data, error: null }
     } catch (error) {
-      console.error('Error en login:', error);
-      throw error;
+      console.error('AuthProvider: Sign in catch error:', error)
+      return { data: null, error }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // Función de registro
-  const register = async (userData) => {
+  // Función de registro personalizada
+  const signUp = async (email, password, userData = {}) => {
     try {
-      setLoading(true);
+      console.log('AuthProvider: Signing up with email:', email)
+      setLoading(true)
       
       const { data, error } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
+        email: email.trim(),
+        password: password,
         options: {
           data: {
-            first_name: userData.firstName,
-            last_name: userData.lastName,
-            phone: userData.phone,
-            family_id: userData.familyId
+            full_name: userData.fullName || '',
+            role: 'parent', // Por defecto será padre/madre
+            ...userData
           }
         }
-      });
-
+      })
+      
       if (error) {
-        throw new Error(error.message);
+        console.error('AuthProvider: Sign up error:', error)
+        throw error
       }
-
-      return {
-        success: true,
-        user: data.user,
-        session: data.session,
-        needsEmailConfirmation: !data.session // Si no hay sesión, necesita confirmación
-      };
+      
+      console.log('AuthProvider: Sign up successful:', data)
+      return { data, error: null }
     } catch (error) {
-      console.error('Error en registro:', error);
-      throw error;
+      console.error('AuthProvider: Sign up catch error:', error)
+      return { data: null, error }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // Función de logout
-  const logout = async () => {
+  // Función de logout personalizada
+  const signOut = async () => {
     try {
-      setLoading(true);
+      console.log('AuthProvider: Signing out...')
+      setLoading(true)
       
-      const { error } = await supabase.auth.signOut();
-      
+      const { error } = await supabase.auth.signOut()
       if (error) {
-        console.error('Error en logout:', error);
+        console.error('AuthProvider: Sign out error:', error)
+        throw error
       }
       
-      // El state se limpia automáticamente por onAuthStateChange
+      console.log('AuthProvider: Sign out successful')
     } catch (error) {
-      console.error('Error en logout:', error);
+      console.error('AuthProvider: Sign out catch error:', error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  // Función para reset de password
+  // Función de reset de contraseña
   const resetPassword = async (email) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
-
+      console.log('AuthProvider: Resetting password for email:', email)
+      
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      
       if (error) {
-        throw new Error(error.message);
+        console.error('AuthProvider: Password reset error:', error)
+        throw error
       }
-
-      return { success: true };
+      
+      console.log('AuthProvider: Password reset email sent:', data)
+      return { data, error: null }
     } catch (error) {
-      console.error('Error en reset password:', error);
-      throw error;
+      console.error('AuthProvider: Password reset catch error:', error)
+      return { data: null, error }
     }
-  };
+  }
 
-  // Función para actualizar perfil
+  // Función para actualizar perfil de usuario
   const updateProfile = async (updates) => {
     try {
-      const { error } = await supabase.auth.updateUser({
+      console.log('AuthProvider: Updating profile:', updates)
+      
+      const { data, error } = await supabase.auth.updateUser({
         data: updates
-      });
-
+      })
+      
       if (error) {
-        throw new Error(error.message);
+        console.error('AuthProvider: Update profile error:', error)
+        throw error
       }
-
-      return { success: true };
+      
+      console.log('AuthProvider: Profile updated:', data)
+      return { data, error: null }
     } catch (error) {
-      console.error('Error actualizando perfil:', error);
-      throw error;
+      console.error('AuthProvider: Update profile catch error:', error)
+      return { data: null, error }
     }
-  };
+  }
 
+  // Valores del contexto
   const value = {
     user,
     session,
-    isAuthenticated,
     loading,
-    login,
-    register,
-    logout,
+    signIn,
+    signUp,
+    signOut,
     resetPassword,
-    updateProfile
-  };
+    updateProfile,
+    // Funciones helper
+    isAuthenticated: !!user,
+    userRole: user?.user_metadata?.role || 'parent'
+  }
 
   return (
     <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
