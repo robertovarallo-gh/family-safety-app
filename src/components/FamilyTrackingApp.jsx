@@ -26,34 +26,6 @@ import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  MapPin, 
-  Battery, 
-  Wifi, 
-  MessageCircle, 
-  Shield, 
-  Settings, 
-  Bell, 
-  ArrowLeft, 
-  Clock, 
-  CheckCircle, 
-  AlertTriangle, 
-  Send,
-  Eye,
-  EyeOff,
-  LogOut,
-  Users
-} from 'lucide-react';
-
-// Importaciones de servicios reales
-import { familyService } from "../services/api.js";
-import SafeZonesManager from "./SafeZonesManager.jsx";
-import FamilyMembersService from '../services/FamilyMembersService.js';
-import geolocationService from '../services/GeolocationService.js';
-import locationStorageService from '../services/LocationStorageService.js';
-import { supabase } from '../services/supabaseClient.js';
-
 // Componente LoginScreen - VERSIÓN ÚNICA Y CORREGIDA
 const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
