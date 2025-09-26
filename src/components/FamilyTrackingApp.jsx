@@ -648,6 +648,9 @@ Para testing desde celular:
       console.log('Cerrando sesion...');
       setLoading(true);
       
+	  // Primero cambiar el screen ANTES del signOut
+      setCurrentScreen('login');
+	
       // Limpiar sesion de Supabase
       const { error } = await supabase.auth.signOut();
       
