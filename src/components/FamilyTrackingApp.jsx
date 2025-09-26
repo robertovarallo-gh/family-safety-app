@@ -144,20 +144,15 @@ const LoginScreen = ({ onLogin }) => {
         </form>
 		
 		{/* Agregar botón de reset password */}
-		<div className="mt-4 text-center">
-          <button className="text-sm text-blue-600 underline">
-            TEST - ¿Olvidaste tu contraseña?
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => handlePasswordReset(email)}
+            disabled={loading || !email}
+            className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline"
+          >
+            ¿Olvidaste tu contraseña?
           </button>
-        </div>
-        // <div className="mt-4 text-center">
-        //  <button
-        //    onClick={() => handlePasswordReset(email)}
-        //    disabled={loading || !email}
-        //    className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline"
-        //  >
-        //    ¿Olvidaste tu contraseña?
-        //  </button>
-        // </div>
+         </div>
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700 font-medium mb-2">Usuarios de prueba:</p>
