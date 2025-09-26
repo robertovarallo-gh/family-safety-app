@@ -1,8 +1,8 @@
 // App.jsx
 import React, { useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext.jsx'
-import CustomLoginScreen from './components/CustomLoginScreen'
-import FamilyTrackingApp from './components/FamilyTrackingApp' // Tu componente existente
+import CustomLoginScreen from './components/CustomLoginScreen.jsx'
+import FamilyTrackingApp from './components/FamilyTrackingApp.jsx' // Tu componente existente
 import './styles/supabase-override.css'
 
 // Componente que maneja el contenido según el estado de autenticación
