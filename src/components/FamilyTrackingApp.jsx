@@ -232,7 +232,7 @@ useEffect(() => {
       await loadChildren(userData);
       await loadSafeZones();
     } catch (error) {
-      console.error('⌐ Error cargando datos de la aplicación:', error);
+      console.error('�?Error cargando datos de la aplicación:', error);
     } finally {
       setLoading(false);
     }
@@ -412,7 +412,7 @@ const loadSafeZones = async () => {
         setSafeZones([]);
       }
     } catch (error) {
-      console.error('⌐ Error cargando zonas seguras:', error);
+      console.error('�?Error cargando zonas seguras:', error);
       setSafeZones([]);
     }
   };
@@ -593,7 +593,7 @@ Para testing desde celular:
       console.error('Error durante logout:', error);
       // Fallback: recargar página si falla el logout
       // window.location.reload();
-	  setCurrentScreen('login'); // ← AGREGA ESTA LÍNEA
+	  setCurrentScreen('login'); // �?AGREGA ESTA LÍNEA
     } finally {
       setLoading(false);
     }
@@ -752,8 +752,7 @@ useEffect(() => {
               <svg width="35" height="35" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="17.5" cy="17.5" r="15" fill="#10b981" stroke="#FFFFFF" stroke-width="3"/>
                 <text x="17.5" y="23" text-anchor="middle" fill="white" font-size="14" font-family="Arial">
-                  🛡️
-                </text>
+                  🛡�?                </text>
               </svg>
             `)}`,
             scaledSize: new window.google.maps.Size(35, 35),
@@ -765,7 +764,7 @@ useEffect(() => {
           content: `
             <div style="padding: 10px; font-family: system-ui, -apple-system, sans-serif;">
               <h4 style="margin: 0 0 6px 0; color: #10b981; font-size: 16px; display: flex; align-items: center;">
-                🛡️ ${zone.name}
+                🛡�?${zone.name}
               </h4>
               <p style="margin: 0; color: #6b7280; font-size: 13px;">
                 Radio de seguridad: ${zone.radius || 200} metros
@@ -1043,10 +1042,10 @@ const handleCheckMessages = () => {
             <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
               <h4 className="font-semibold text-indigo-800 mb-2">Modo Testing</h4>
               <ul className="text-sm text-indigo-700 space-y-1">
-                <li>• Se creará solo el registro en la base de datos</li>
-                <li>• No se enviará email real de invitación</li>
-                <li>• Aparecerá inmediatamente en tu lista de familia</li>
-                <li>• Perfecto para testing de funcionalidades</li>
+                <li>�?Se creará solo el registro en la base de datos</li>
+                <li>�?No se enviará email real de invitación</li>
+                <li>�?Aparecerá inmediatamente en tu lista de familia</li>
+                <li>�?Perfecto para testing de funcionalidades</li>
               </ul>
             </div>
 
@@ -1304,11 +1303,26 @@ if (currentScreen === 'login') {
 
 console.log('MOSTRANDO DASHBOARD U OTRA PANTALLA');
 return (
-  <div className="max-w-md mx-auto bg-white min-h-screen p-6">
-    <h1>DASHBOARD OR OTHER SCREEN</h1>
-    <p>currentScreen: {currentScreen}</p>
-    <p>user: {user ? user.email : 'null'}</p>
-    <button onClick={handleLogout}>LOGOUT</button>
+  <div className="max-w-md mx-auto bg-white min-h-screen p-6" style={{backgroundColor: 'lightblue'}}>
+    <h1 style={{fontSize: '24px', color: 'red'}}>DASHBOARD OR OTHER SCREEN</h1>
+    <p style={{fontSize: '18px'}}>currentScreen: {currentScreen}</p>
+    <p style={{fontSize: '18px'}}>user: {user ? user.email : 'null'}</p>
+    <button 
+      onClick={handleLogout}
+      style={{
+        backgroundColor: 'red',
+        color: 'white',
+        padding: '20px',
+        fontSize: '20px',
+        border: 'none',
+        borderRadius: '10px',
+        cursor: 'pointer',
+        width: '100%',
+        marginTop: '20px'
+      }}
+    >
+      LOGOUT BUTTON
+    </button>
   </div>
 );
 };
