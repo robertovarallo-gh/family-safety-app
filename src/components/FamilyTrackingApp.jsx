@@ -592,7 +592,8 @@ Para testing desde celular:
     } catch (error) {
       console.error('Error durante logout:', error);
       // Fallback: recargar página si falla el logout
-      window.location.reload();
+      // window.location.reload();
+	  setCurrentScreen('login'); // ← AGREGA ESTA LÍNEA
     } finally {
       setLoading(false);
     }
