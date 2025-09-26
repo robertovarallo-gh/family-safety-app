@@ -51,101 +51,52 @@ import { supabase } from '../services/supabaseClient.js';
     }
   };
 
-  return (
-    <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
-	  {console.log('=== RENDERIZANDO JSX DEL LOGIN SCREEN ===')}
-      <div className="w-full p-6">
-	          <h1 style={{color: 'red', fontSize: '30px'}}>MI LOGIN PERSONALIZADO</h1>
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <Users className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">FamilyCare</h1>
-          <p className="text-gray-600">Inicia sesi車n para continuar</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="tu@email.com"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Contrase?a</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
-                placeholder="????????"
-                required
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
-                disabled={loading}
-              >
-                {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
-              </button>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-semibold"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Iniciando sesi車n...
-              </div>
-            ) : (
-              'Iniciar Sesi車n'
-            )}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              if (!email) {
-                alert('Por favor ingresa tu email primero');
-                return;
-              }
-              alert(`Se enviar赤a reset password a: ${email}`);
-            }}
-            disabled={loading || !email}
-            className="text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline"
-          >
-            ?Olvidaste tu contrase?a?
-          </button>
-        </div>
-
-        <hr className="my-6 border-gray-200" />
-
-        <div className="bg-blue-50 rounded-lg p-4">
-          <p className="text-sm text-blue-700 font-medium mb-2">Usuarios de prueba:</p>
-          <div className="text-xs text-blue-600 space-y-1">
-            <p><strong>Computadora:</strong> varallo.padre@familywatch.com</p>
-            <p><strong>Celular:</strong> varallo.hijo@familywatch.com</p>
-            <p><strong>Password:</strong> FamilyWatch2024!</p>
-          </div>
-        </div>
-      </div>
+return (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+    backgroundColor: 'red',
+    color: 'white',
+    padding: '20px',
+    fontSize: '24px'
+  }}>
+    <h1 style={{fontSize: '40px', textAlign: 'center'}}>
+      LOGIN SCREEN PERSONALIZADO FUNCIONANDO
+    </h1>
+    <p>Si ves esto, el problema era CSS</p>
+    
+    <div style={{backgroundColor: 'white', color: 'black', padding: '20px', margin: '20px'}}>
+      <h2>FamilyCare</h2>
+      <input 
+        type="email" 
+        placeholder="Email"
+        style={{width: '100%', padding: '10px', margin: '10px 0'}}
+      />
+      <input 
+        type="password" 
+        placeholder="Password"
+        style={{width: '100%', padding: '10px', margin: '10px 0'}}
+      />
+      <button style={{width: '100%', padding: '15px', backgroundColor: 'blue', color: 'white'}}>
+        Iniciar Sesi車n
+      </button>
+      
+      <button style={{
+        width: '100%', 
+        padding: '15px', 
+        backgroundColor: 'yellow', 
+        color: 'black',
+        marginTop: '10px'
+      }}>
+        ?Olvidaste tu contrase?a?
+      </button>
     </div>
-  );
+  </div>
+);
 };
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
