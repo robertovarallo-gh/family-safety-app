@@ -26,7 +26,6 @@ import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 
-// Componente LoginScreen - VERSIÓN ÚNICA Y CORREGIDA
 const LoginScreen = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -51,7 +50,6 @@ const LoginScreen = ({ onLogin }) => {
     }
   };
 
-  // Reset Password
   const handlePasswordReset = async (email) => {
     if (!email) {
       alert('Por favor ingresa tu email primero');
@@ -74,6 +72,8 @@ const LoginScreen = ({ onLogin }) => {
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
       <div className="w-full p-6">
+        
+        {/* HEADER */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
             <Users className="h-10 w-10 text-white" />
@@ -82,11 +82,10 @@ const LoginScreen = ({ onLogin }) => {
           <p className="text-gray-600">Inicia sesión para continuar</p>
         </div>
 
+        {/* FORMULARIO DE LOGIN */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
               value={email}
@@ -99,9 +98,7 @@ const LoginScreen = ({ onLogin }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contraseña
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -127,7 +124,6 @@ const LoginScreen = ({ onLogin }) => {
             </div>
           </div>
 
-          {/* BOTÓN DE LOGIN */}
           <button
             type="submit"
             disabled={loading}
@@ -144,24 +140,24 @@ const LoginScreen = ({ onLogin }) => {
           </button>
         </form>
 
-        {/* BOTÓN DE RESET PASSWORD - BIEN POSICIONADO */}
-        <div className="mt-4 text-center">
+        {/* BOTÓN DE RESET PASSWORD - FUERA DEL FORMULARIO */}
+        <div className="mt-6 text-center">
           <button
             onClick={() => handlePasswordReset(email)}
             disabled={loading || !email}
-            className="text-sm text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline font-medium"
+            className="text-blue-600 hover:text-blue-800 underline disabled:text-gray-400 disabled:no-underline transition-colors"
           >
             ¿Olvidaste tu contraseña?
           </button>
           {!email && (
-            <p className="text-xs text-gray-400 mt-1">
-              (Ingresa tu email primero)
+            <p className="text-xs text-gray-400 mt-2">
+              Ingresa tu email primero para poder restablecer
             </p>
           )}
         </div>
 
-        {/* SEPARADOR VISUAL */}
-        <div className="mt-6 mb-6 border-t border-gray-200"></div>
+        {/* SEPARADOR */}
+        <hr className="my-8 border-gray-200" />
 
         {/* USUARIOS DE PRUEBA */}
         <div className="bg-blue-50 rounded-lg p-4">
@@ -172,6 +168,7 @@ const LoginScreen = ({ onLogin }) => {
             <p><strong>Password:</strong> FamilyWatch2024!</p>
           </div>
         </div>
+
       </div>
     </div>
   );
