@@ -28,6 +28,8 @@ import { supabase } from '../services/supabaseClient.js';
 
 // Parte 1 - Login Screen
   const LoginScreen = ({ onLogin }) => {
+	    console.log('=== LOGIN SCREEN COMPONENT EJECUT¨¢NDOSE ===');
+		console.log('Props onLogin:', typeof onLogin);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,9 @@ import { supabase } from '../services/supabaseClient.js';
 
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen flex items-center justify-center">
+	  {console.log('=== RENDERIZANDO JSX DEL LOGIN SCREEN ===')}
       <div className="w-full p-6">
+	          <h1 style={{color: 'red', fontSize: '30px'}}>MI LOGIN PERSONALIZADO</h1>
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
             <Users className="h-10 w-10 text-white" />
