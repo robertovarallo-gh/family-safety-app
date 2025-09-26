@@ -9,6 +9,13 @@ import { createClient } from '@supabase/supabase-js';
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRedirectTo: false,
-    detectSessionInUrl: false
+    detectSessionInUrl: false,
+    persistSession: true,
+    flowType: 'implicit'
+  },
+  global: {
+    headers: {
+      'X-Supabase-Auth-UI': 'false'
+    }
   }
 });
