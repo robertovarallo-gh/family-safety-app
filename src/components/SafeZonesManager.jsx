@@ -20,7 +20,7 @@ import {
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDFgYBq7tKtG9LP2w2-1XhFwBUOndyF0rA';
 
 import SafeZonesService from '../services/SafeZonesService';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 // Variables globales para controlar la carga de Google Maps
 let googleMapsPromise = null;
