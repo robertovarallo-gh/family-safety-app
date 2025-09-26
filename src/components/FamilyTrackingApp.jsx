@@ -28,7 +28,8 @@ import { supabase } from '../services/supabaseClient.js';
 
 // Parte 1 - Login Screen
 const LoginScreen = ({ onLogin }) => {
-  console.log('=== LoginScreen RENDERIZANDO ===');
+  console.log('=== LoginScreen se está renderizando ===');
+  console.log('Props recibidas:', { onLogin });
   const [email, setEmail] = useState('test@email.com');
   
   return (
@@ -51,26 +52,11 @@ const LoginScreen = ({ onLogin }) => {
       </button>
       
       {/* BOTÓN DE RESET - VERSIÓN SUPER SIMPLE */}
-      <div style={{backgroundColor: 'red', padding: '20px', margin: '10px 0'}}>
-        <p style={{color: 'white', fontWeight: 'bold'}}>SI VES ESTO ROJO, EL CÓDIGO FUNCIONA</p>
-        <button
-          onClick={() => alert(`Reset password para: ${email}`)}
-          style={{
-            backgroundColor: 'yellow',
-            color: 'black',
-            padding: '10px 20px',
-            fontSize: '16px',
-            border: '2px solid black',
-            cursor: 'pointer'
-          }}
-        >
-          RESET PASSWORD - BOTÓN DE PRUEBA
-        </button>
-      </div>
-      
-      <div className="bg-blue-50 rounded-lg p-4 mt-4">
-        <p>Usuarios de prueba funcionan</p>
-      </div>
+      {/* REEMPLAZA la sección del botón de reset con esto: */}
+	  <div style={{backgroundColor: 'red', color: 'white', padding: '20px', margin: '20px 0'}}>
+	    <h2>BOTÓN DE RESET DEBERÍA ESTAR AQUÍ</h2>
+	    <button onClick={() => alert('Test')}>CLICK AQUÍ</button>
+	  </div>
     </div>
   );
 };
