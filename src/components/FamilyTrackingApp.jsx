@@ -953,9 +953,13 @@ const handleCheckMessages = () => {
 // Parte 7 del FamilyTrackingApp.jsx - Renders condicionales (Login, Loading, Add Child)
 
 // 1. Pantalla de login
-  console.log('Checking login screen condition:', currentScreen === 'login', 'currentScreen:', currentScreen);
+  console.log('=== VERIFICANDO PANTALLA ACTUAL ===');
+  console.log('currentScreen:', currentScreen);
+  console.log('loading:', loading);
+  console.log('user:', user);
+
   if (currentScreen === 'login') {
-	console.log('RENDERING LOGIN SCREEN');
+	console.log('DEBER¨ªA MOSTRAR NUESTRO LOGIN PERSONALIZADO');
     return <LoginScreen onLogin={handleLogin} />;
   }
 
