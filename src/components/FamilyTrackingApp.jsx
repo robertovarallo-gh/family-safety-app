@@ -642,13 +642,13 @@ Para testing desde celular:
     }
   };
 
-// FunciÃ³n de logout real - CORREGIDA
+// Funcion de logout real - CORREGIDA
   const handleLogout = async () => {
     try {
-      console.log('Cerrando sesiÃ³n...');
+      console.log('Cerrando sesion...');
       setLoading(true);
       
-      // Limpiar sesiÃ³n de Supabase
+      // Limpiar sesion de Supabase
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -660,7 +660,10 @@ Para testing desde celular:
       setUser(null);
       setChildren([]);
       setSafeZones([]);
+	  
+	  console.log('ANTES de setCurrentScreen - currentScreen actual:', currentScreen);
       setCurrentScreen('login');
+	  console.log('DESPU¨¦S de setCurrentScreen - deber¨ªa ser login');
       
       console.log('Logout exitoso - redirigiendo a login');
       
