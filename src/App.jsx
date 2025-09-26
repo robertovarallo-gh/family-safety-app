@@ -1,6 +1,6 @@
 // App.jsx
 import React, { useEffect } from 'react'
-import { AuthProvider, useAuth } from './context/authcontext'
+import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import CustomLoginScreen from './components/CustomLoginScreen'
 import FamilyTrackingApp from './components/FamilyTrackingApp' // Tu componente existente
 import './styles/supabase-override.css'
