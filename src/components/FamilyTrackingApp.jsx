@@ -176,30 +176,43 @@ const FamilyTrackingApp = () => {
 // Parte 3 del FamilyTrackingApp.jsx - useEffect hooks y carga de datos
 
 // Autenticación real con Supabase
-  useEffect(() => {
-    const checkAuth = async () => {
-      setLoading(true);
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          console.log('Usuario autenticado:', session.user.email);
-          setUser(session.user);
-          await loadAppData(session.user);
-        } else {
-          console.log('Sin sesión - redirigir a login');
-          setCurrentScreen('login');
-        }
-      } catch (error) {
-        console.error('Error verificando auth:', error);
+// Reemplaza tu useEffect de autenticación con este:
+useEffect(() => {
+  const checkAuth = async () => {
+    setLoading(true);
+    try {
+      console.log('Verificando autenticación...');
+      
+      // Limpiar tokens corruptos si hay error
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.log('Error de sesión, limpiando tokens:', error.message);
+        await supabase.auth.signOut(); // Esto limpia los tokens corruptos
         setCurrentScreen('login');
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
-    
-    checkAuth();
-  }, []);
+      
+      if (session?.user) {
+        console.log('Usuario autenticado:', session.user.email);
+        setUser(session.user);
+        await loadAppData(session.user);
+      } else {
+        console.log('Sin sesión - mostrando login');
+        setCurrentScreen('login');
+      }
+    } catch (error) {
+      console.error('Error verificando auth:', error);
+      // Si hay cualquier error, ir a login y limpiar tokens
+      await supabase.auth.signOut();
+      setCurrentScreen('login');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  checkAuth();
+}, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
