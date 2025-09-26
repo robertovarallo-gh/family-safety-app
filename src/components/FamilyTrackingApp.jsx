@@ -28,6 +28,7 @@ import { supabase } from '../services/supabaseClient.js';
 
 // Parte 1 - Login Screen
 const LoginScreen = ({ onLogin }) => {
+  console.log('=== LoginScreen RENDERIZANDO ===');
   const [email, setEmail] = useState('test@email.com');
   
   return (
@@ -113,6 +114,12 @@ const FamilyTrackingApp = () => {
   });
   const [addChildLoading, setAddChildLoading] = useState(false);
   const [addChildError, setAddChildError] = useState('');
+
+  // AGREGA ESTOS CONSOLE.LOGS AQUÍ:
+  console.log('=== DEBUG ===');
+  console.log('currentScreen:', currentScreen);
+  console.log('loading:', loading);
+  console.log('user:', user);
 
   const familyMembers = [
     { name: "Mom - Sarah", phone: "+57 (311) 123-4567" },
