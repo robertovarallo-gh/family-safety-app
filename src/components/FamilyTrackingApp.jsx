@@ -28,7 +28,7 @@ import { supabase } from '../services/supabaseClient.js';
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
 const FamilyTrackingApp = () => {
-  console.log('🚀 FamilyTrackingApp iniciando...');
+  console.log('馃殌 FamilyTrackingApp iniciando...');
 
   // Estados principales
   const [selectedChild, setSelectedChild] = useState(0);
@@ -50,41 +50,29 @@ const FamilyTrackingApp = () => {
   const [emergencyType, setEmergencyType] = useState('');
   const [alertStartTime, setAlertStartTime] = useState(null);
 
-  // Estados para agregar hijos
-  const [newChild, setNewChild] = useState({
-    name: '',
-    apellido: '',
-    age: '',
-    email: '',
-    phone: '',
-    gender: '',
-    emergency_contact: '',
-    notes: '',
-    birthDate: ''
-  });
-  const [addChildLoading, setAddChildLoading] = useState(false);
-  const [addChildError, setAddChildError] = useState('');
+  // Estados para agregar miembros
+  const [memberFormData, setMemberFormData] = useState({
+  first_name: '',
+  last_name: '',
+  email: '',
+  relationship: '',
+  birth_date: '',
+  phone: '',
+  gender: '',
+  notes: ''
+});
+const [formLoading, setFormLoading] = useState(false);
+const [formError, setFormError] = useState('');
+const [formSuccess, setFormSuccess] = useState('');
 
-  // AGREGA ESTOS CONSOLE.LOGS AQUÍ:
-  console.log('=== DEBUG ===');
-  console.log('currentScreen:', currentScreen);
-  console.log('loading:', loading);
-  console.log('user:', user);
 
-  const familyMembers = [
-    { name: "Mom - Sarah", phone: "+57 (311) 123-4567" },
-    { name: "Dad - Michael", phone: "+57 (312) 987-6543" },
-    { name: "Grandma - Mary", phone: "+57 (313) 456-7890" },
-    { name: "Uncle John", phone: "+57 (314) 321-0987" }
-  ];
-
-  // Función para obtener GPS y guardar en base de datos
+  // Funci贸n para obtener GPS y guardar en base de datos
   const handleGetCurrentLocation = async () => {
     try {
-      console.log('Solicitando ubicación GPS...');
+      console.log('Solicitando ubicaci贸n GPS...');
       
       const locationData = await geolocationService.getCurrentPosition();
-      console.log('Ubicación obtenida:', locationData);
+      console.log('Ubicaci贸n obtenida:', locationData);
   
       // Obtener usuario actual (no hardcodeado)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -100,7 +88,7 @@ const FamilyTrackingApp = () => {
         .single();
       
       if (memberError || !memberData) {
-        throw new Error('No se encontró tu registro en family_members');
+        throw new Error('No se encontr贸 tu registro en family_members');
       }
       
       console.log('Miembro encontrado:', memberData);
@@ -117,9 +105,9 @@ const FamilyTrackingApp = () => {
         await loadChildren();
         
         alert(`GPS guardado exitosamente!
-        Ubicación: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
-        Precisión: ${locationData.accuracy}m
-        Guardado en base de datos: Sí`);
+        Ubicaci贸n: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
+        Precisi贸n: ${locationData.accuracy}m
+        Guardado en base de datos: S铆`);
       } else {
         throw new Error(saveResult.error);
       }
@@ -132,19 +120,19 @@ const FamilyTrackingApp = () => {
   
 // Parte 3 del FamilyTrackingApp.jsx - useEffect hooks y carga de datos
 
-// Autenticación real con Supabase
-// Reemplaza tu useEffect de autenticación con este:
+// Autenticaci贸n real con Supabase
+// Reemplaza tu useEffect de autenticaci贸n con este:
 useEffect(() => {
   const checkAuth = async () => {
     setLoading(true);
     try {
-      console.log('Verificando autenticación...');
+      console.log('Verificando autenticaci贸n...');
       
       // Limpiar tokens corruptos si hay error
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.log('Error de sesión, limpiando tokens:', error.message);
+        console.log('Error de sesi贸n, limpiando tokens:', error.message);
         await supabase.auth.signOut(); // Esto limpia los tokens corruptos
         setCurrentScreen('login');
         return;
@@ -155,7 +143,7 @@ useEffect(() => {
         setUser(session.user);
         await loadAppData(session.user);
       } else {
-        console.log('Sin sesión - mostrando login');
+        console.log('Sin sesi贸n - mostrando login');
         setCurrentScreen('login');
       }
     } catch (error) {
@@ -188,7 +176,7 @@ useEffect(() => {
       await loadChildren(userData);
       await loadSafeZones();
     } catch (error) {
-      console.error('�?Error cargando datos de la aplicación:', error);
+      console.error('鈱?Error cargando datos de la aplicaci贸n:', error);
     } finally {
       setLoading(false);
     }
@@ -204,7 +192,7 @@ useEffect(() => {
 	  console.log('family_id original del metadata:', familyId);
       
       if (!familyId) {
-        console.log('Usuario sin family_id, creando familia automáticamente...');
+        console.log('Usuario sin family_id, creando familia autom谩ticamente...');
         
         // Crear family_id basado en el user_id
         familyId = userData.id;
@@ -239,7 +227,7 @@ useEffect(() => {
       if (!membersResponse.success || !membersResponse.members?.length) {
         console.log('No hay miembros familiares registrados');
         
-        // Crear automáticamente el primer miembro familiar (el usuario actual)
+        // Crear autom谩ticamente el primer miembro familiar (el usuario actual)
         console.log('Creando miembro familiar para el usuario actual...');
         
         const createMemberResult = await FamilyMembersService.createFamilyMember({
@@ -256,7 +244,7 @@ useEffect(() => {
         
         if (createMemberResult.success) {
           console.log('Miembro familiar creado exitosamente');
-          // Recargar después de crear el miembro
+          // Recargar despu茅s de crear el miembro
           setTimeout(() => loadChildren(userData), 1000);
           return;
         } else {
@@ -268,38 +256,38 @@ useEffect(() => {
       
       console.log('Miembros cargados:', membersResponse.members);
       
-      // Para cada miembro, obtener su última ubicación real
+      // Para cada miembro, obtener su 煤ltima ubicaci贸n real
       const formattedMembers = [];
       
       for (const member of membersResponse.members) {
-        // Obtener última ubicación real de la base de datos
+        // Obtener 煤ltima ubicaci贸n real de la base de datos
         const locationResult = await locationStorageService.getLatestLocation(member.id);
         
-        let coordinates = { lat: 4.6951, lng: -74.0787 }; // Coordenadas por defecto (Bogotá)
-        let location = "Ubicación no disponible";
-        let lastUpdate = "Sin actualización";
+        let coordinates = { lat: 4.6951, lng: -74.0787 }; // Coordenadas por defecto (Bogot谩)
+        let location = "Ubicaci贸n no disponible";
+        let lastUpdate = "Sin actualizaci贸n";
         let isConnected = false;
         
         if (locationResult.success && locationResult.location) {
-          // Usar ubicación real de la base de datos
+          // Usar ubicaci贸n real de la base de datos
           coordinates = {
             lat: parseFloat(locationResult.location.latitude),
             lng: parseFloat(locationResult.location.longitude)
           };
           
-          location = locationResult.location.address || "Ubicación GPS actualizada";
+          location = locationResult.location.address || "Ubicaci贸n GPS actualizada";
           
           const updateTime = new Date(locationResult.location.timestamp);
           lastUpdate = updateTime.toLocaleString();
           
-          // Considerar "conectado" si la última ubicación es de menos de 1 hora
+          // Considerar "conectado" si la 煤ltima ubicaci贸n es de menos de 1 hora
           const oneHourAgo = new Date();
           oneHourAgo.setHours(oneHourAgo.getHours() - 1);
           isConnected = updateTime > oneHourAgo;
           
-          console.log(`Ubicación real para ${member.first_name}:`, coordinates);
+          console.log(`Ubicaci贸n real para ${member.first_name}:`, coordinates);
         } else {
-          console.log(`Sin ubicación GPS para ${member.first_name}, usando coordenadas por defecto`);
+          console.log(`Sin ubicaci贸n GPS para ${member.first_name}, usando coordenadas por defecto`);
         }
         
         formattedMembers.push({
@@ -307,28 +295,28 @@ useEffect(() => {
           name: `${member.first_name} ${member.last_name}`,
           age: member.age || 0,
           location: location,
-          address: member.address || "Bogotá, Colombia", 
+          address: member.address || "Bogot谩, Colombia", 
           distance: "Calculando...",
           lastUpdate: lastUpdate,
           battery: locationResult.location?.battery_level || 85,
           isConnected: isConnected,
-          avatar: member.role === 'niño' ? '👶' : member.role === 'adolescente' ? '🧑' : member.role === 'adulto' ? '👨' : '👴',
+          avatar: member.role === 'ni帽o' ? '馃懚' : member.role === 'adolescente' ? '馃' : member.role === 'adulto' ? '馃懆' : '馃懘',
           photo: member.photo_url || "/api/placeholder/48/48",
           safeZone: "Verificando zona...",
           messagingStatus: "online",
-          coordinates: coordinates, // UBICACIÓN REAL del GPS
+          coordinates: coordinates, // UBICACI脫N REAL del GPS
           role: member.role,
           relationship: member.relationship,
           phone: member.phone,
           emergency_contact: member.emergency_contact,
-          // Información adicional de la ubicación real
+          // Informaci贸n adicional de la ubicaci贸n real
           hasRealLocation: locationResult.success && locationResult.location,
           locationAccuracy: locationResult.location?.accuracy || null,
           messages: [
             { 
               id: 1, 
               sender: 'parent', 
-              message: `Hola ${member.first_name}! ¿Cómo estás?`, 
+              message: `Hola ${member.first_name}! 驴C贸mo est谩s?`, 
               timestamp: '14:30', 
               verified: true 
             }
@@ -345,7 +333,7 @@ useEffect(() => {
     }
   };
   
-// Parte 4 del FamilyTrackingApp.jsx - Funciones de configuración y formularios
+// Parte 4 del FamilyTrackingApp.jsx - Funciones de configuraci贸n y formularios
 
 const loadSafeZones = async () => {
     try {
@@ -368,12 +356,12 @@ const loadSafeZones = async () => {
         setSafeZones([]);
       }
     } catch (error) {
-      console.error('�?Error cargando zonas seguras:', error);
+      console.error('鈱?Error cargando zonas seguras:', error);
       setSafeZones([]);
     }
   };
 
-  // Función para calcular edad
+  // Funcion para calcular edad
   const calculateAge = (birthDate) => {
     if (!birthDate) return 0;
     const today = new Date();
@@ -387,106 +375,154 @@ const loadSafeZones = async () => {
     
     return age;
   };
+  
+  // Función para determinar el role basado en la edad
+  const determineRole = (age) => {
+    if (age === null) return 'adulto';
+    if (age < 13) return 'niño';
+    if (age < 18) return 'adolescente';
+    if (age >= 65) return 'adulto_mayor';
+    return 'adulto';
+};
 
-  const handleAddChild = async (e) => {
-    e.preventDefault();
-    setAddChildLoading(true);
-    setAddChildError('');
+  // Función para asignar permisos automáticamente según parentesco
+const getDefaultPermissions = (relationship, role) => {
+  const basePermissions = ['view_own_location', 'send_messages'];
+  
+  if (['padre', 'madre'].includes(relationship)) {
+    return ['view_all', 'manage_family', 'emergency_contact', 'manage_settings', 'invite_members'];
+  }
+  
+  if (['abuelo', 'abuela'].includes(relationship)) {
+    return [...basePermissions, 'view_family', 'emergency_contact'];
+  }
+  
+  if (['tio', 'tia', 'hermano', 'hermana'].includes(relationship) && role === 'adulto') {
+    return [...basePermissions, 'view_family', 'emergency_contact'];
+  }
+  
+  if (['hijo', 'hija'].includes(relationship) && role === 'adulto') {
+    return [...basePermissions, 'view_family'];
+  }
+  
+  if (['hijo', 'hija'].includes(relationship)) {
+    return basePermissions; // Solo básicos para menores
+  }
+  
+  if (['cuidador'].includes(relationship)) {
+    return [...basePermissions, 'view_family', 'emergency_contact'];
+  }
+  
+  return basePermissions; // Default para otros (amigos, primos, etc.)
+};
 
-    try {
-      // Validaciones existentes
-      if (!newChild.name.trim()) {
-        throw new Error('El nombre es requerido');
-      }
-      if (!newChild.apellido.trim()) {
-        throw new Error('El apellido es requerido');
-      }
-      if (!newChild.email.trim()) {
-        throw new Error('El email es requerido');
-      }
-      if (!newChild.birthDate) {
-        throw new Error('La fecha de nacimiento es requerida');
-      }
-
-      const calculatedAge = calculateAge(newChild.birthDate);
-      if (calculatedAge < 1) {
-        throw new Error('La fecha de nacimiento no puede ser futura o muy reciente');
-      }
-      if (calculatedAge > 25) {
-        throw new Error('La edad no puede ser mayor a 25 años');
-      }
-
-      // Obtener usuario actual
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      // 1. Crear usuario en Supabase Auth con credenciales reales
-      const temporaryPassword = 'FamilyWatch2024!';
-      
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newChild.email,
-        password: temporaryPassword,
-        options: {
-          data: {
-            first_name: newChild.name,
-            last_name: newChild.apellido,
-            family_id: currentUser.user_metadata.family_id,
-            role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto'
-          }
-        }
-      });
-
-      if (authError) {
-        throw new Error(`Error creando usuario: ${authError.message}`);
-      }
-
-      if (!authData.user) {
-        throw new Error('No se pudo crear el usuario');
-      }
-
-      // 2. Crear miembro familiar vinculado al nuevo usuario
-      const memberResponse = await FamilyMembersService.createFamilyMember({
-        firstName: newChild.name,
-        lastName: newChild.apellido,
-        email: newChild.email,
-        user_id: authData.user.id, // ID del nuevo usuario creado
-        role: calculatedAge < 13 ? 'niño' : calculatedAge < 18 ? 'adolescente' : 'adulto',
-        age: calculatedAge,
-        relationship: 'Hijo/a',
-        phone: newChild.phone,
-        emergencyContact: true
-      }, currentUser.user_metadata.family_id, currentUser.id);
-
-      if (!memberResponse.success) {
-        throw new Error(`Error creando miembro familiar: ${memberResponse.message}`);
-      }
-
-      // Recargar datos y limpiar formulario
-      await loadChildren();
-      resetAddChildForm();
-      setCurrentScreen('dashboard');
-      
-      // Mostrar credenciales al usuario
-      alert(`${newChild.name} ${newChild.apellido} fue agregado exitosamente!
-
-🔐 CREDENCIALES DE ACCESO:
-📧 Email: ${newChild.email}
-🔑 Password: ${temporaryPassword}
-
-Para testing desde celular:
-1. Abre: https://family-safety-app.vercel.app
-2. Usa estas credenciales para login
-3. El usuario debe cambiar su contraseña después del primer login`);
-
-    } catch (error) {
-      console.error('Error agregando hijo:', error);
-      setAddChildError(error.message);
-    } finally {
-      setAddChildLoading(false);
-    }
+  // 3. FUNCIONES DE MANEJO (AQUÍ VA)
+  const handleMemberInputChange = (field, value) => {
+    setMemberFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
+
+  // Función para manejar el envío del formulario
+const handleAddMemberSubmit = async (e) => {
+  e.preventDefault();
+  setFormError('');
+  setFormLoading(true);
+
+  try {
+    // Validaciones básicas
+    if (!memberFormData.first_name.trim() || !memberFormData.last_name.trim()) {
+      throw new Error('Nombre y apellido son requeridos');
+    }
+    
+    if (!memberFormData.email.trim()) {
+      throw new Error('Email es requerido');
+    }
+    
+    if (!memberFormData.relationship) {
+      throw new Error('Parentesco es requerido');
+    }
+    
+    if (!memberFormData.birth_date) {
+      throw new Error('Fecha de nacimiento es requerida');
+    }
+
+    // Calcular edad, determinar role y asignar permisos
+    const age = calculateAge(memberFormData.birth_date);
+    const role = determineRole(age);
+    const permissions = getDefaultPermissions(memberFormData.relationship, role);
+
+    // Obtener el family_id del usuario actual
+    const { data: currentUserData, error: userError } = await supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (userError || !currentUserData) {
+      throw new Error('No se pudo obtener la información de la familia');
+    }
+
+    // Crear el nuevo miembro familiar
+    const { data, error } = await supabase
+      .from('family_members')
+      .insert({
+        first_name: memberFormData.first_name.trim(),
+        last_name: memberFormData.last_name.trim(),
+        email: memberFormData.email.trim(),
+        relationship: memberFormData.relationship,
+        phone: memberFormData.phone.trim() || null,
+        birth_date: memberFormData.birth_date,
+        age: age,
+        role: role,
+        family_id: currentUserData.family_id,
+        status: 'pending', // Pendiente hasta que se registre
+        permissions: permissions, // Permisos automáticos según parentesco
+        settings: {
+          gender: memberFormData.gender || null,
+          notes: memberFormData.notes.trim() || null
+        }
+      })
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    console.log('Miembro familiar creado:', data);
+    
+    // Mensaje de éxito
+    setFormSuccess(`¡Invitación enviada a ${memberFormData.first_name} ${memberFormData.last_name}!`);
+    
+    // Limpiar formulario
+    setMemberFormData({
+      first_name: '',
+      last_name: '',
+      email: '',
+      relationship: '',
+      birth_date: '',
+      phone: '',
+      gender: '',
+      notes: ''
+    });
+
+    // Regresar al dashboard después de 2 segundos
+    setTimeout(() => {
+      setCurrentScreen('dashboard');
+      setFormSuccess('');
+    }, 2000);
+
+  } catch (error) {
+    console.error('Error al agregar miembro:', error);
+    setFormError(error.message || 'Error al enviar la invitación');
+  } finally {
+    setFormLoading(false);
+  }
+};
+
+
 
   const resetAddChildForm = () => {
     setNewChild({
@@ -502,7 +538,7 @@ Para testing desde celular:
     setAddChildError('');
   };
 
-  // Función de login real
+  // Funci贸n de login real
   const handleLogin = async (email, password) => {
     try {
       setLoading(true);
@@ -537,7 +573,7 @@ Para testing desde celular:
       
       if (error) {
         console.error('Error en logout:', error);
-        // Aún así, limpiar estado local
+        // A煤n as铆, limpiar estado local
       }
       
       // Limpiar estado local
@@ -549,9 +585,9 @@ Para testing desde celular:
       
     } catch (error) {
       console.error('Error durante logout:', error);
-      // Fallback: recargar página si falla el logout
+      // Fallback: recargar p谩gina si falla el logout
       // window.location.reload();
-	  setCurrentScreen('login'); // �?AGREGA ESTA LÍNEA
+	  setCurrentScreen('login'); // 鈫?AGREGA ESTA L脥NEA
     } finally {
       setLoading(false);
     }
@@ -637,7 +673,7 @@ useEffect(() => {
           <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
             <circle cx="25" cy="25" r="20" fill="#3B82F6" stroke="#FFFFFF" stroke-width="4"/>
             <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
-              ${activeChild.avatar || '👤'}
+              ${activeChild.avatar || '馃懁'}
             </text>
           </svg>
         `)}`,
@@ -651,28 +687,28 @@ useEffect(() => {
       content: `
         <div style="padding: 12px; min-width: 220px; font-family: system-ui, -apple-system, sans-serif;">
           <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || '👤'}</span>
+            <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || '馃懁'}</span>
             <h3 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">
               ${activeChild.name}
             </h3>
           </div>
           <div style="space-y: 4px;">
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">📍</span>
-              ${activeChild.location || 'Ubicación no disponible'}
+              <span style="margin-right: 6px;">馃搷</span>
+              ${activeChild.location || 'Ubicaci贸n no disponible'}
             </p>
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">🔋</span>
-              Batería: ${activeChild.battery || 0}%
+              <span style="margin-right: 6px;">馃攱</span>
+              Bater铆a: ${activeChild.battery || 0}%
             </p>
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">🕐</span>
+              <span style="margin-right: 6px;">馃晲</span>
               ${activeChild.lastUpdate || 'Hace un momento'}
             </p>
           </div>
           <div style="margin-top: 10px; padding: 6px 12px; background: ${activeChild.isConnected ? '#10b981' : '#ef4444'}; 
                       color: white; border-radius: 16px; font-size: 12px; text-align: center; font-weight: 500;">
-            ${activeChild.isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
+            ${activeChild.isConnected ? '馃煝 Conectado' : '馃敶 Desconectado'}
           </div>
         </div>
       `
@@ -710,7 +746,7 @@ useEffect(() => {
               <svg width="35" height="35" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="17.5" cy="17.5" r="15" fill="#10b981" stroke="#FFFFFF" stroke-width="3"/>
                 <text x="17.5" y="23" text-anchor="middle" fill="white" font-size="14" font-family="Arial">
-                  🛡�?                </text>
+                  馃洝锔?                </text>
               </svg>
             `)}`,
             scaledSize: new window.google.maps.Size(35, 35),
@@ -722,7 +758,7 @@ useEffect(() => {
           content: `
             <div style="padding: 10px; font-family: system-ui, -apple-system, sans-serif;">
               <h4 style="margin: 0 0 6px 0; color: #10b981; font-size: 16px; display: flex; align-items: center;">
-                🛡�?${zone.name}
+                馃洝锔?${zone.name}
               </h4>
               <p style="margin: 0; color: #6b7280; font-size: 13px;">
                 Radio de seguridad: ${zone.radius || 200} metros
@@ -738,7 +774,7 @@ useEffect(() => {
     }
   };
   
-// Parte 6 del FamilyTrackingApp.jsx - Funciones de interacción (mensajes, emergencias, etc.)
+// Parte 6 del FamilyTrackingApp.jsx - Funciones de interacci贸n (mensajes, emergencias, etc.)
 
 const handleCheckMessages = () => {
     setCheckStatus('sending');
@@ -786,7 +822,7 @@ const handleCheckMessages = () => {
       setNewMessage('');
       
       setTimeout(() => {
-        const responses = ['Tudo bem!', 'Entendi, obrigado!', 'Ok! 👍'];
+        const responses = ['Tudo bem!', 'Entendi, obrigado!', 'Ok! 馃憤'];
         const childResponse = {
           id: Date.now() + 1,
           sender: 'child',
@@ -849,7 +885,7 @@ const handleCheckMessages = () => {
   }
 
 // 3. Pantalla de agregar miembro familiar
-if (currentScreen === 'addchild') {
+  if (currentScreen === 'addchild') {
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
@@ -865,6 +901,16 @@ if (currentScreen === 'addchild') {
       </div>
 
       <div className="p-6">
+        {/* Mensaje de éxito */}
+        {formSuccess && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center">
+              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+              <p className="text-green-800 font-medium">{formSuccess}</p>
+            </div>
+          </div>
+        )}
+
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-800 mb-2">Proceso de invitacion:</h3>
           <ul className="text-sm text-blue-700 space-y-1">
@@ -875,18 +921,35 @@ if (currentScreen === 'addchild') {
           </ul>
         </div>
 
-        <form className="space-y-4">
-          {/* Nombre completo */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Nombre Completo *
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nombre y apellidos del miembro familiar"
-              required
-            />
+        <form onSubmit={handleAddMemberSubmit} className="space-y-4">
+          {/* Nombres separados */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre *
+              </label>
+              <input
+                type="text"
+                value={memberFormData.first_name}
+                onChange={(e) => handleMemberInputChange('first_name', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Nombre"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Apellido *
+              </label>
+              <input
+                type="text"
+                value={memberFormData.last_name}
+                onChange={(e) => handleMemberInputChange('last_name', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Apellido"
+                required
+              />
+            </div>
           </div>
 
           {/* Email */}
@@ -896,6 +959,8 @@ if (currentScreen === 'addchild') {
             </label>
             <input
               type="email"
+              value={memberFormData.email}
+              onChange={(e) => handleMemberInputChange('email', e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="email@ejemplo.com"
               required
@@ -911,28 +976,35 @@ if (currentScreen === 'addchild') {
               Parentesco *
             </label>
             <select
+              value={memberFormData.relationship}
+              onChange={(e) => handleMemberInputChange('relationship', e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             >
               <option value="">Selecciona el parentesco</option>
-              <option value="padre">?? Padre</option>
-              <option value="madre">?? Madre</option>
-              <option value="hijo">?? Hijo</option>
-              <option value="hija">?? Hija</option>
-              <option value="abuelo">?? Abuelo</option>
-              <option value="abuela">?? Abuela</option>
-              <option value="tio">????? T��o</option>
-              <option value="tia">????? T��a</option>
-              <option value="hermano">?? Hermano</option>
-              <option value="hermana">?? Hermana</option>
-              <option value="primo">????? Primo</option>
-              <option value="prima">????? Prima</option>
-              <option value="sobrino">?? Sobrino</option>
-              <option value="sobrina">?? Sobrina</option>
-              <option value="amigo">?? Amigo de la familia</option>
-              <option value="cuidador">????? Cuidador/Ni?era</option>
-              <option value="otro">?? Otro</option>
+              <option value="padre">Padre</option>
+              <option value="madre">Madre</option>
+              <option value="hijo">Hijo</option>
+              <option value="hija">Hija</option>
+              <option value="abuelo">Abuelo</option>
+              <option value="abuela">Abuela</option>
+              <option value="tio">Tio</option>
+              <option value="tia">Tia</option>
+              <option value="hermano">Hermano</option>
+              <option value="hermana">Hermana</option>
+              <option value="primo">Primo</option>
+              <option value="prima">Prima</option>
+              <option value="sobrino">Sobrino</option>
+              <option value="sobrina">Sobrina</option>
+              <option value="amigo">Amigo de la familia</option>
+              <option value="cuidador">Cuidador/Ninera</option>
+              <option value="otro">Otro</option>
             </select>
+            {memberFormData.relationship && (
+              <p className="text-xs text-blue-600 mt-1">
+                Permisos que se asignaran: {getDefaultPermissions(memberFormData.relationship, determineRole(calculateAge(memberFormData.birth_date))).join(', ')}
+              </p>
+            )}
           </div>
 
           {/* Fecha de nacimiento */}
@@ -942,13 +1014,15 @@ if (currentScreen === 'addchild') {
             </label>
             <input
               type="date"
+              value={memberFormData.birth_date}
+              onChange={(e) => handleMemberInputChange('birth_date', e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               max="2030-12-31"
               min="1900-01-01"
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Se usara para calcular la edad automaticamente
+              Edad calculada: {memberFormData.birth_date ? calculateAge(memberFormData.birth_date) + ' años' : 'Selecciona fecha'}
             </p>
           </div>
 
@@ -959,6 +1033,8 @@ if (currentScreen === 'addchild') {
             </label>
             <input
               type="tel"
+              value={memberFormData.phone}
+              onChange={(e) => handleMemberInputChange('phone', e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="+57 300 123 4567"
             />
@@ -972,7 +1048,11 @@ if (currentScreen === 'addchild') {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Genero (Opcional)
             </label>
-            <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <select 
+              value={memberFormData.gender}
+              onChange={(e) => handleMemberInputChange('gender', e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
               <option value="">Selecciona (opcional)</option>
               <option value="masculino">Masculino</option>
               <option value="femenino">Femenino</option>
@@ -987,11 +1067,23 @@ if (currentScreen === 'addchild') {
               Notas Adicionales (Opcional)
             </label>
             <textarea
+              value={memberFormData.notes}
+              onChange={(e) => handleMemberInputChange('notes', e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows="3"
               placeholder="Informacion adicional, alergias, condiciones medicas, etc."
-            ></textarea>
+            />
           </div>
+
+          {/* Mensaje de error */}
+          {formError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-600 text-sm flex items-center">
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                {formError}
+              </p>
+            </div>
+          )}
 
           {/* Botones */}
           <div className="flex space-x-3 pt-4">
@@ -999,19 +1091,28 @@ if (currentScreen === 'addchild') {
               type="button"
               onClick={() => setCurrentScreen('dashboard')}
               className="flex-1 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+              disabled={formLoading}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium"
+              disabled={formLoading}
+              className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
             >
-              Enviar Invitacion
+              {formLoading ? (
+                <span className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Enviando...
+                </span>
+              ) : (
+                'Enviar Invitacion'
+              )}
             </button>
           </div>
         </form>
 
-        {/* Informaci��n adicional */}
+        {/* Información adicional */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <h4 className="font-semibold text-gray-800 mb-2">Como funciona?</h4>
           <div className="text-sm text-gray-600 space-y-2">
@@ -1025,10 +1126,11 @@ if (currentScreen === 'addchild') {
     </div>
   );
 }
-  
-// Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajería
 
-// Pantalla de confirmación de emergencia
+  
+// Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajer铆a
+
+// Pantalla de confirmaci贸n de emergencia
   if (showEmergencyConfirmation) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -1323,7 +1425,7 @@ return (
                 <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">MAPA</span>
                 Live Location
               </h3>
-              <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicaci��n no disponible'} ? {activeChild?.distance || 'Distancia no disponible'}</p>
+              <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicación no disponible'} ? {activeChild?.distance || 'Distancia no disponible'}</p>
             </div>
             <div 
               id="dashboard-map"
@@ -1336,7 +1438,7 @@ return (
                   <div className="flex items-center space-x-1">
                     <div className={`w-2 h-2 rounded-full ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
                     <span className={activeChild?.isConnected ? 'text-green-600' : 'text-red-600'}>
-                      {activeChild?.isConnected ? 'En l��nea' : 'Desconectado'}
+                      {activeChild?.isConnected ? 'En línea' : 'Desconectado'}
                     </span>
                   </div>
                   <span className="text-gray-500">
@@ -1466,7 +1568,7 @@ return (
             </div>
             <h3 className="text-lg font-semibold text-gray-900">Verifica??o de Seguran?a</h3>
             <p className="text-sm text-gray-600 mt-1">
-              {activeChild?.name} est�� respondendo. Digite a senha familiar:
+              {activeChild?.name} está respondendo. Digite a senha familiar:
             </p>
           </div>
           <div>
