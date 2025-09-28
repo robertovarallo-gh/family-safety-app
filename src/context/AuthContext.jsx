@@ -133,37 +133,93 @@ export const AuthProvider = ({ children }) => {
   }
 
   // Función de registro personalizada
-  const signUp = async (email, password, userData = {}) => {
-    try {
-      console.log('AuthProvider: Signing up with email:', email)
-      setLoading(true)
-      
-      const { data, error } = await supabase.auth.signUp({
-        email: email.trim(),
-        password: password,
-        options: {
-          data: {
-            full_name: userData.fullName || '',
-            role: 'parent', // Por defecto será padre/madre
-            ...userData
-          }
+// Función de registro personalizada
+const signUp = async (email, password, userData = {}) => {
+  try {
+    console.log('AuthProvider: Signing up with email:', email)
+    setLoading(true)
+    
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password: password,
+      options: {
+        data: {
+          first_name: userData.first_name || '',
+          last_name: userData.last_name || '',
+          role: 'parent'
         }
-      })
-      
-      if (error) {
-        console.error('AuthProvider: Sign up error:', error)
-        throw error
       }
-      
-      console.log('AuthProvider: Sign up successful:', data)
-      return { data, error: null }
-    } catch (error) {
-      console.error('AuthProvider: Sign up catch error:', error)
-      return { data: null, error }
-    } finally {
-      setLoading(false)
+    })
+    
+    if (error) {
+      console.error('AuthProvider: Sign up error:', error)
+      throw error
     }
+
+    // Si el registro fue exitoso Y se confirmó el usuario
+    if (data.user && data.user.id) {
+      console.log('AuthProvider: User created successfully, creating family and member...')
+      
+      try {
+        // Generar código único para la familia (6 caracteres)
+        const familyCode = data.user.id.replace(/-/g, '').substring(0, 6).toUpperCase()
+        
+        // 1. Crear la familia
+        const { data: familyData, error: familyError } = await supabase
+          .from('families')
+          .insert({
+            family_name: `${userData.first_name || 'Usuario'} Family`,
+            family_id: familyCode,
+            admin_id: data.user.id
+          })
+          .select()
+          .single()
+
+        if (familyError) {
+          console.error('Error creating family:', familyError)
+          throw familyError
+        }
+
+        console.log('Family created:', familyData)
+
+        // 2. Crear el miembro familiar
+        const { data: memberData, error: memberError } = await supabase
+          .from('family_members')
+          .insert({
+            user_id: data.user.id,
+            family_id: familyData.id,
+            first_name: userData.first_name || 'Usuario',
+            last_name: userData.last_name || 'Nuevo',
+            email: email.trim(),
+            role: 'adulto'
+          })
+          .select()
+          .single()
+
+        if (memberError) {
+          console.error('Error creating family member:', memberError)
+          throw memberError
+        }
+
+        console.log('Family member created:', memberData)
+        console.log('AuthProvider: Sign up successful with family and member created')
+        
+      } catch (familyError) {
+        console.error('Error creating family/member, but user was created:', familyError)
+        // No fallar el registro completo, solo loggear el error
+        // El usuario se creó exitosamente, la familia se puede crear después manualmente
+      }
+    }
+    
+    return { data, error: null }
+  } catch (error) {
+    console.error('AuthProvider: Sign up catch error:', error)
+    return { data: null, error }
+  } finally {
+    setLoading(false)
   }
+}
+
 
   // Función de logout personalizada
   const signOut = async () => {
