@@ -12,8 +12,6 @@ import {
   CheckCircle, 
   AlertTriangle, 
   Send,
-  Eye,
-  EyeOff,
   LogOut,
   Users
 } from 'lucide-react';
@@ -26,78 +24,6 @@ import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 
-// Parte 1 - Login Screen
-  const LoginScreen = ({ onLogin }) => {
-	    console.log('=== LOGIN SCREEN COMPONENT EJECUT¨¢NDOSE ===');
-		console.log('Props onLogin:', typeof onLogin);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!email || !password) {
-      alert('Por favor ingresa email y contrase?a');
-      return;
-    }
-    setLoading(true);
-    try {
-      await onLogin(email, password);
-    } catch (error) {
-      console.error('Error en login:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-return (
-  <div style={{
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 9999,
-    backgroundColor: 'red',
-    color: 'white',
-    padding: '20px',
-    fontSize: '24px'
-  }}>
-    <h1 style={{fontSize: '40px', textAlign: 'center'}}>
-      LOGIN SCREEN PERSONALIZADO FUNCIONANDO
-    </h1>
-    <p>Si ves esto, el problema era CSS</p>
-    
-    <div style={{backgroundColor: 'white', color: 'black', padding: '20px', margin: '20px'}}>
-      <h2>FamilyCare</h2>
-      <input 
-        type="email" 
-        placeholder="Email"
-        style={{width: '100%', padding: '10px', margin: '10px 0'}}
-      />
-      <input 
-        type="password" 
-        placeholder="Password"
-        style={{width: '100%', padding: '10px', margin: '10px 0'}}
-      />
-      <button style={{width: '100%', padding: '15px', backgroundColor: 'blue', color: 'white'}}>
-        Iniciar Sesi¨®n
-      </button>
-      
-      <button style={{
-        width: '100%', 
-        padding: '15px', 
-        backgroundColor: 'yellow', 
-        color: 'black',
-        marginTop: '10px'
-      }}>
-        ?Olvidaste tu contrase?a?
-      </button>
-    </div>
-  </div>
-);
-};
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
@@ -908,15 +834,6 @@ const handleCheckMessages = () => {
 // Parte 7 del FamilyTrackingApp.jsx - Renders condicionales (Login, Loading, Add Child)
 
 // 1. Pantalla de login
-  console.log('=== VERIFICANDO PANTALLA ACTUAL ===');
-  console.log('currentScreen:', currentScreen);
-  console.log('loading:', loading);
-  console.log('user:', user);
-
-  if (currentScreen === 'login') {
-	console.log('DEBER¨ªA MOSTRAR NUESTRO LOGIN PERSONALIZADO');
-    return <LoginScreen onLogin={handleLogin} />;
-  }
 
   // 2. Loading screen
   if (loading) {
@@ -1312,16 +1229,6 @@ const handleCheckMessages = () => {
 // Parte 9 y 10 del FamilyTrackingApp.jsx - Dashboard principal
 
 // Dashboard principal
-// CODIGO DE DIAGNOSTICO - REEMPLAZA EL DASHBOARD COMPLETO
-console.log('=== RENDER DECISION ===');
-console.log('currentScreen:', currentScreen);
-console.log('loading:', loading);
-console.log('user:', user);
-
-// 1. Pantalla de login
-if (currentScreen === 'login') {
-  return <LoginScreen onLogin={handleLogin} />;
-}
 
 // 2. Loading screen
 if (loading) {
