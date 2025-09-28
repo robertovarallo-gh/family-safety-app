@@ -10,7 +10,8 @@ const CustomLoginScreen = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [fullName, setFullName] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
@@ -48,7 +49,10 @@ const CustomLoginScreen = () => {
         }
 
         console.log('Attempting signup with email:', email)
-        const { error } = await signUp(email, password, { fullName })
+        const { error } = await signUp(email, password, {
+		  first_name: firstName,
+		  last_name: lastName
+		  })
         if (error) {
           setError(error.message || 'Error al crear cuenta')
         } else {
@@ -101,7 +105,8 @@ const CustomLoginScreen = () => {
     setResetMessage('')
     setPassword('')
     setConfirmPassword('')
-    setFullName('')
+	setFirstName('')
+    setLastName('')
   }
 
   // Mostrar pantalla de reset de contraseña
@@ -199,20 +204,35 @@ const CustomLoginScreen = () => {
 
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nombre completo (solo para registro) */}
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre Completo
-              </label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Tu nombre completo"
-                required
-              />
+          {/* Nombre separados (solo para registro) */}
+            {!isLogin && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre *
+                </label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Tu nombre"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Apellido *
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  placeholder="Tu apellido"
+                  required
+                />
+              </div>
             </div>
           )}
 
