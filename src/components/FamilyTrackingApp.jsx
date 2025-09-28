@@ -868,10 +868,10 @@ if (currentScreen === 'addchild') {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-800 mb-2">Proceso de invitacion:</h3>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>? Se enviara un email de invitacion al miembro</li>
-            <li>? Recibira una contrasena temporal para crear su cuenta</li>
-            <li>? Podra cambiar su contrasena en el primer acceso</li>
-            <li>? Una vez registrado aparecera en tu panel familiar</li>
+            <li>1. Se enviara un email de invitacion al miembro</li>
+            <li>2. Recibira una contrasena temporal para crear su cuenta</li>
+            <li>3. Podra cambiar su contrasena en el primer acceso</li>
+            <li>4. Una vez registrado aparecera en tu panel familiar</li>
           </ul>
         </div>
 
@@ -892,7 +892,7 @@ if (currentScreen === 'addchild') {
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Correo Electr¨®nico *
+              Correo Electronico *
             </label>
             <input
               type="email"
@@ -901,7 +901,7 @@ if (currentScreen === 'addchild') {
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Se enviar¨¢ la invitaci¨®n a este correo
+              Se enviara la invitacion a este correo
             </p>
           </div>
 
@@ -948,14 +948,14 @@ if (currentScreen === 'addchild') {
               required
             />
             <p className="text-xs text-gray-500 mt-1">
-              Se usar¨¢ para calcular la edad autom¨¢ticamente
+              Se usara para calcular la edad automaticamente
             </p>
           </div>
 
-          {/* Tel¨¦fono (opcional) */}
+          {/* Telefono (opcional) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tel¨¦fono (Opcional)
+              Telefono (Opcional)
             </label>
             <input
               type="tel"
@@ -967,10 +967,10 @@ if (currentScreen === 'addchild') {
             </p>
           </div>
 
-          {/* G¨¦nero (opcional) */}
+          {/* Genero (opcional) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              G¨¦nero (Opcional)
+              Genero (Opcional)
             </label>
             <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
               <option value="">Selecciona (opcional)</option>
@@ -989,7 +989,7 @@ if (currentScreen === 'addchild') {
             <textarea
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               rows="3"
-              placeholder="Informaci¨®n adicional, alergias, condiciones m¨¦dicas, etc."
+              placeholder="Informacion adicional, alergias, condiciones medicas, etc."
             ></textarea>
           </div>
 
