@@ -8,6 +8,10 @@ import './styles/supabase-override.css'
 
 const AppContent = () => {
   const { user, loading } = useAuth()
+  
+  // DEBUG: Agregar esto temporalmente
+  console.log('Current pathname:', window.location.pathname)
+  console.log('Current URL:', window.location.href)
 
   if (loading) {
     return (
