@@ -8,15 +8,54 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  // Verificar si hay un token válido en la URL
+  // Verificar y configurar la sesión desde la URL
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.substring(1))
-    const accessToken = hashParams.get('access_token')
-    const refreshToken = hashParams.get('refresh_token')
-    
-    if (!accessToken) {
-      setError('Enlace de reset inválido o expirado')
+    const handleAuthTokens = async () => {
+      try {
+        // Obtener tokens de la URL (pueden estar en hash o query params)
+        let accessToken, refreshToken, tokenType
+
+        // Verificar en hash primero
+        if (window.location.hash) {
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          accessToken = hashParams.get('access_token')
+          refreshToken = hashParams.get('refresh_token')
+          tokenType = hashParams.get('token_type') || 'bearer'
+        }
+
+        // Si no están en hash, verificar en query params
+        if (!accessToken) {
+          const searchParams = new URLSearchParams(window.location.search)
+          accessToken = searchParams.get('access_token')
+          refreshToken = searchParams.get('refresh_token')
+          tokenType = searchParams.get('token_type') || 'bearer'
+        }
+
+        if (!accessToken) {
+          setError('Enlace de reset inválido o expirado')
+          return
+        }
+
+        // Configurar la sesión en Supabase
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken
+        })
+
+        if (error) {
+          console.error('Error setting session:', error)
+          setError('Error al validar el enlace de reset')
+        } else {
+          console.log('Session set successfully:', data)
+        }
+
+      } catch (error) {
+        console.error('Error handling auth tokens:', error)
+        setError('Error al procesar el enlace de reset')
+      }
     }
+
+    handleAuthTokens()
   }, [])
 
   const handleResetPassword = async (e) => {
