@@ -4,10 +4,16 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx'
 import CustomLoginScreen from './components/CustomLoginScreen.jsx'
 import FamilyTrackingApp from './components/FamilyTrackingApp.jsx' // Tu componente existente
 import './styles/supabase-override.css'
+import ResetPasswordPage from './components/ResetPasswordPage.jsx'
 
 // Componente que maneja el contenido según el estado de autenticación
 const AppContent = () => {
   const { user, loading, isAuthenticated } = useAuth()
+
+  // Verificar si estamos en la página de reset
+  if (window.location.pathname === '/reset-password') {
+    return <ResetPasswordPage />
+  }
 
   // Mostrar spinner de carga mientras se verifica la autenticación
   if (loading) {

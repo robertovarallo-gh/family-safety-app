@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext.jsx'
+import { supabase } from '../services/supabaseClient'
 
 const CustomLoginScreen = () => {
   const { signIn, signUp, resetPassword } = useAuth()
@@ -66,27 +67,32 @@ const CustomLoginScreen = () => {
 
   // Manejar reset de contraseña
   const handleResetPassword = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  e.preventDefault()
+  setError('')
+  setLoading(true)
 
-    try {
-      console.log('Attempting password reset for email:', resetEmail)
-      const { error } = await resetPassword(resetEmail)
-      if (error) {
-        setError(error.message || 'Error al enviar email de recuperación')
-      } else {
-        setResetMessage('¡Email de recuperación enviado! Revisa tu bandeja de entrada.')
-        setShowResetPassword(false)
-        setResetEmail('')
-      }
-    } catch (err) {
-      console.error('Password reset error:', err)
-      setError('Error al enviar email de recuperación')
-    } finally {
-      setLoading(false)
+  try {
+    console.log('Attempting password reset for email:', resetEmail)
+    
+    // Usar supabase directamente en lugar de la función del contexto
+    const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+    
+    if (error) {
+      setError(error.message || 'Error al enviar email de recuperación')
+    } else {
+      setResetMessage('¡Email de recuperación enviado! Revisa tu bandeja de entrada.')
+      setShowResetPassword(false)
+      setResetEmail('')
     }
+  } catch (err) {
+    console.error('Password reset error:', err)
+    setError('Error al enviar email de recuperación')
+  } finally {
+    setLoading(false)
   }
+}
 
   // Alternar entre login y registro
   const toggleMode = () => {
