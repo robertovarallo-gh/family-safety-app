@@ -860,18 +860,18 @@ if (currentScreen === 'addchild') {
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-xl font-bold">??????????? Agregar Miembro Familiar</h1>
+          <h1 className="text-xl font-bold">Agregar Miembro Familiar</h1>
         </div>
       </div>
 
       <div className="p-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-blue-800 mb-2">?? Proceso de invitaci車n:</h3>
+          <h3 className="font-semibold text-blue-800 mb-2">Proceso de invitacion:</h3>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>? Se enviar芍 un email de invitaci車n al miembro</li>
-            <li>? Recibir芍 una contrase?a temporal para crear su cuenta</li>
-            <li>? Podr芍 cambiar su contrase?a en el primer acceso</li>
-            <li>? Una vez registrado aparecer芍 en tu panel familiar</li>
+            <li>? Se enviara un email de invitacion al miembro</li>
+            <li>? Recibira una contrasena temporal para crear su cuenta</li>
+            <li>? Podra cambiar su contrasena en el primer acceso</li>
+            <li>? Una vez registrado aparecera en tu panel familiar</li>
           </ul>
         </div>
 
@@ -1006,19 +1006,19 @@ if (currentScreen === 'addchild') {
               type="submit"
               className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium"
             >
-              ?? Enviar Invitaci車n
+              Enviar Invitacion
             </button>
           </div>
         </form>
 
         {/* Informaci車n adicional */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-semibold text-gray-800 mb-2">?? ?C車mo funciona?</h4>
+          <h4 className="font-semibold text-gray-800 mb-2">Como funciona?</h4>
           <div className="text-sm text-gray-600 space-y-2">
-            <p><strong>1.</strong> El miembro recibir芍 un email con un enlace de registro</p>
-            <p><strong>2.</strong> Crear芍 su cuenta con una contrase?a personal</p>
-            <p><strong>3.</strong> Una vez registrado aparecer芍 en tu panel familiar</p>
-            <p><strong>4.</strong> Podr芍s ver su ubicaci車n y comunicarte con 谷l</p>
+            <p><strong>1.</strong> El miembro recibira un email con un enlace de registro</p>
+            <p><strong>2.</strong> Creara su cuenta con una contrasena personal</p>
+            <p><strong>3.</strong> Una vez registrado aparecera en tu panel familiar</p>
+            <p><strong>4.</strong> Podras ver su ubicacion y comunicarte con el</p>
           </div>
         </div>
       </div>
