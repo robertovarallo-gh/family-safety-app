@@ -1,21 +1,14 @@
-// App.jsx
 import React, { useEffect } from 'react'
-import { AuthProvider, useAuth } from './context/AuthContext.jsx'
-import CustomLoginScreen from './components/CustomLoginScreen.jsx'
-import FamilyTrackingApp from './components/FamilyTrackingApp.jsx' // Tu componente existente
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import CustomLoginScreen from './components/CustomLoginScreen'
+import FamilyTrackingApp from './components/FamilyTrackingApp'
+import ResetPasswordPage from './components/ResetPasswordPage'
 import './styles/supabase-override.css'
-import ResetPasswordPage from './components/ResetPasswordPage.jsx'
 
-// Componente que maneja el contenido según el estado de autenticación
 const AppContent = () => {
-  const { user, loading, isAuthenticated } = useAuth()
+  const { user, loading } = useAuth()
 
-  // Verificar si estamos en la página de reset
-  if (window.location.pathname === '/reset-password') {
-    return <ResetPasswordPage />
-  }
-
-  // Mostrar spinner de carga mientras se verifica la autenticación
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
@@ -30,22 +23,28 @@ const AppContent = () => {
     )
   }
 
-  // Log para debugging
-  console.log('AppContent render:', { user, isAuthenticated, loading })
-
-  // Mostrar la app principal si está autenticado, sino mostrar login
   return (
     <div className="custom-auth-form family-auth-container">
-      {isAuthenticated ? (
-        <FamilyTrackingApp user={user} />
-      ) : (
-        <CustomLoginScreen />
-      )}
+      <Routes>
+        {/* Ruta para reset de contraseña - disponible sin autenticación */}
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        
+        {/* Ruta principal - condicional según autenticación */}
+        <Route 
+          path="/" 
+          element={user ? <FamilyTrackingApp /> : <CustomLoginScreen />} 
+        />
+        
+        {/* Ruta catch-all para manejar URLs no encontradas */}
+        <Route 
+          path="*" 
+          element={user ? <FamilyTrackingApp /> : <CustomLoginScreen />} 
+        />
+      </Routes>
     </div>
   )
 }
 
-// Componente principal de la App
 function App() {
   useEffect(() => {
     console.log('App mounted - Initializing FamilyWatch')
@@ -104,9 +103,11 @@ function App() {
 
   return (
     <div className="App">
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <Router>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </Router>
     </div>
   )
 }
