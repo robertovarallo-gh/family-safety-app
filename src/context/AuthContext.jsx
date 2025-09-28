@@ -168,7 +168,7 @@ const signUp = async (email, password, userData = {}) => {
         const { data: familyData, error: familyError } = await supabase
           .from('families')
           .insert({
-            family_name: `${userData.first_name || 'Usuario'} Family`,
+            family_name: `Familia ${userData.last_name || userData.first_name || 'Nueva'}`,
             family_id: familyCode,
             admin_id: data.user.id
           })
