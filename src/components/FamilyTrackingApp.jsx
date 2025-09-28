@@ -848,192 +848,183 @@ const handleCheckMessages = () => {
     );
   }
 
-  // 3. Pantalla de agregar hijo
-  if (currentScreen === 'addchild') {
-    return (
-      <div className="max-w-md mx-auto bg-white min-h-screen">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4">
-          <div className="flex items-center space-x-3 mb-4">
-            <button 
-              onClick={() => setCurrentScreen('dashboard')}
-              className="p-2 hover:bg-indigo-500 rounded-full transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <h1 className="text-xl font-bold">Agregar Nuevo Hijo</h1>
-            <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold ml-auto">
-              MODO TESTING
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6">
-          <form onSubmit={handleAddChild} className="space-y-6">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="font-semibold text-blue-800 mb-2">Informaci√≥n B√°sica</h3>
-              <p className="text-sm text-blue-700">Complete los datos principales del nuevo integrante</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="child-name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre *
-                </label>
-                <input
-                  id="child-name"
-                  type="text"
-                  value={newChild.name}
-                  onChange={(e) => setNewChild({...newChild, name: e.target.value})}
-                  placeholder="Juan Carlos"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  required
-                  disabled={addChildLoading}
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="child-apellido" className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellido *
-                </label>
-                <input
-                  id="child-apellido"
-                  type="text"
-                  value={newChild.apellido}
-                  onChange={(e) => setNewChild({...newChild, apellido: e.target.value})}
-                  placeholder="P√©rez Garc√≠a"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  required
-                  disabled={addChildLoading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="child-email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email *
-              </label>
-              <input
-                id="child-email"
-                type="email"
-                value={newChild.email}
-                onChange={(e) => setNewChild({...newChild, email: e.target.value})}
-                placeholder="hijo@email.com"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                required
-                disabled={addChildLoading}
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                (MODO TESTING - no se enviar√° email real)
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">            
-              <div>
-                <label htmlFor="child-birthdate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Fecha de Nacimiento *
-                </label>
-                <input
-                  id="child-birthdate"
-                  type="date"
-                  value={newChild.birthDate}
-                  onChange={(e) => setNewChild({...newChild, birthDate: e.target.value})}
-                  max={new Date().toISOString().split('T')[0]}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  required
-                  disabled={addChildLoading}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Edad calculada: {newChild.birthDate ? calculateAge(newChild.birthDate) : 0} a√±os
-                </p>
-              </div>
-                            
-              <div>
-                <label htmlFor="child-gender" className="block text-sm font-medium text-gray-700 mb-2">
-                  G√©nero
-                </label>
-                <select
-                  id="child-gender"
-                  value={newChild.gender}
-                  onChange={(e) => setNewChild({...newChild, gender: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  disabled={addChildLoading}
-                >
-                  <option value="">Seleccionar</option>
-                  <option value="male">Masculino</option>
-                  <option value="female">Femenino</option>
-                  <option value="other">Otro</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="child-phone" className="block text-sm font-medium text-gray-700 mb-2">
-                Tel√©fono
-              </label>
-              <input
-                id="child-phone"
-                type="tel"
-                value={newChild.phone}
-                onChange={(e) => setNewChild({...newChild, phone: e.target.value})}
-                placeholder="+57 312 345 6789"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                disabled={addChildLoading}
-              />
-            </div>
-
-            {addChildError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex">
-                  <AlertTriangle className="h-5 w-5 text-red-400" />
-                  <div className="ml-3">
-                    <p className="text-sm text-red-800">{addChildError}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-              <h4 className="font-semibold text-indigo-800 mb-2">Modo Testing</h4>
-              <ul className="text-sm text-indigo-700 space-y-1">
-                <li>‚Ä?Se crear√° solo el registro en la base de datos</li>
-                <li>‚Ä?No se enviar√° email real de invitaci√≥n</li>
-                <li>‚Ä?Aparecer√° inmediatamente en tu lista de familia</li>
-                <li>‚Ä?Perfecto para testing de funcionalidades</li>
-              </ul>
-            </div>
-
-            <div className="flex space-x-4 pt-6">
-              <button
-                type="button"
-                onClick={() => {
-                  resetAddChildForm();
-                  setCurrentScreen('dashboard');
-                }}
-                className="flex-1 px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium"
-                disabled={addChildLoading}
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium disabled:opacity-50"
-                disabled={addChildLoading || !newChild.name || !newChild.apellido || !newChild.email || !newChild.birthDate}
-              >
-                {addChildLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Agregando...
-                  </div>
-                ) : (
-                  'Agregar Hijo'
-                )}
-              </button>
-            </div>
-          </form>
+// 3. Pantalla de agregar miembro familiar
+if (currentScreen === 'addchild') {
+  return (
+    <div className="max-w-md mx-auto bg-white min-h-screen">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+        <div className="flex items-center space-x-3 mb-4">
+          <button 
+            onClick={() => setCurrentScreen('dashboard')}
+            className="p-2 hover:bg-blue-500 rounded-full transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-xl font-bold">??????????? Agregar Miembro Familiar</h1>
         </div>
       </div>
-    );
-  }
+
+      <div className="p-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 className="font-semibold text-blue-800 mb-2">?? Proceso de invitaci®Æn:</h3>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>? Se enviar®¢ un email de invitaci®Æn al miembro</li>
+            <li>? Recibir®¢ una contrase?a temporal para crear su cuenta</li>
+            <li>? Podr®¢ cambiar su contrase?a en el primer acceso</li>
+            <li>? Una vez registrado aparecer®¢ en tu panel familiar</li>
+          </ul>
+        </div>
+
+        <form className="space-y-4">
+          {/* Nombre completo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nombre Completo *
+            </label>
+            <input
+              type="text"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Nombre y apellidos del miembro familiar"
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Correo Electr®Ænico *
+            </label>
+            <input
+              type="email"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="email@ejemplo.com"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Se enviar®¢ la invitaci®Æn a este correo
+            </p>
+          </div>
+
+          {/* Parentesco */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Parentesco *
+            </label>
+            <select
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="">Selecciona el parentesco</option>
+              <option value="padre">?? Padre</option>
+              <option value="madre">?? Madre</option>
+              <option value="hijo">?? Hijo</option>
+              <option value="hija">?? Hija</option>
+              <option value="abuelo">?? Abuelo</option>
+              <option value="abuela">?? Abuela</option>
+              <option value="tio">????? T®™o</option>
+              <option value="tia">????? T®™a</option>
+              <option value="hermano">?? Hermano</option>
+              <option value="hermana">?? Hermana</option>
+              <option value="primo">????? Primo</option>
+              <option value="prima">????? Prima</option>
+              <option value="sobrino">?? Sobrino</option>
+              <option value="sobrina">?? Sobrina</option>
+              <option value="amigo">?? Amigo de la familia</option>
+              <option value="cuidador">????? Cuidador/Ni?era</option>
+              <option value="otro">?? Otro</option>
+            </select>
+          </div>
+
+          {/* Fecha de nacimiento */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Fecha de Nacimiento *
+            </label>
+            <input
+              type="date"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              max="2030-12-31"
+              min="1900-01-01"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Se usar®¢ para calcular la edad autom®¢ticamente
+            </p>
+          </div>
+
+          {/* Tel®¶fono (opcional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tel®¶fono (Opcional)
+            </label>
+            <input
+              type="tel"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="+57 300 123 4567"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Para notificaciones de emergencia por SMS
+            </p>
+          </div>
+
+          {/* G®¶nero (opcional) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              G®¶nero (Opcional)
+            </label>
+            <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="">Selecciona (opcional)</option>
+              <option value="masculino">Masculino</option>
+              <option value="femenino">Femenino</option>
+              <option value="otro">Otro</option>
+              <option value="prefiero_no_decir">Prefiero no decir</option>
+            </select>
+          </div>
+
+          {/* Notas adicionales */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Notas Adicionales (Opcional)
+            </label>
+            <textarea
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              rows="3"
+              placeholder="Informaci®Æn adicional, alergias, condiciones m®¶dicas, etc."
+            ></textarea>
+          </div>
+
+          {/* Botones */}
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setCurrentScreen('dashboard')}
+              className="flex-1 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium"
+            >
+              ?? Enviar Invitaci®Æn
+            </button>
+          </div>
+        </form>
+
+        {/* Informaci®Æn adicional */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <h4 className="font-semibold text-gray-800 mb-2">?? ?C®Æmo funciona?</h4>
+          <div className="text-sm text-gray-600 space-y-2">
+            <p><strong>1.</strong> El miembro recibir®¢ un email con un enlace de registro</p>
+            <p><strong>2.</strong> Crear®¢ su cuenta con una contrase?a personal</p>
+            <p><strong>3.</strong> Una vez registrado aparecer®¢ en tu panel familiar</p>
+            <p><strong>4.</strong> Podr®¢s ver su ubicaci®Æn y comunicarte con ®¶l</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
   
 // Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajer√≠a
 
