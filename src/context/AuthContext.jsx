@@ -164,7 +164,7 @@ const signUp = async (email, password, userData = {}) => {
         // Generar código único para la familia (6 caracteres)
         const familyCode = data.user.id.replace(/-/g, '').substring(0, 6).toUpperCase()
         
-        // 1. Crear la familia
+        // 1. Crear la cuenta familia 
         const { data: familyData, error: familyError } = await supabase
           .from('families')
           .insert({
