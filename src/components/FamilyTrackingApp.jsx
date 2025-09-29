@@ -1407,7 +1407,7 @@ return (
             <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <Users className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">FamilyCare</h1>
+            <h1 className="text-xl font-bold text-gray-900">Family Watch</h1>
             <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
               MODO TESTING
             </div>
@@ -1484,7 +1484,7 @@ return (
             <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
               <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
                 <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">MAPA</span>
-                Live Location
+                Localizacion en tiempo real
               </h3>
               <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicación no disponible'} ? {activeChild?.distance || 'Distancia no disponible'}</p>
             </div>
@@ -1519,7 +1519,7 @@ return (
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex items-center mb-4">
               <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">INFO</span>
-              <h3 className="text-lg font-semibold text-gray-900">Child Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Información del Miembro Familiar</h3>
             </div>              
             <div className="flex items-center space-x-4 mb-4">
               <div className="relative">
