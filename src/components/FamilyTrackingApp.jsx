@@ -235,9 +235,9 @@ useEffect(() => {
           lastName: userData.user_metadata?.last_name || 'Usuario',
           email: userData.email,
           user_id: userData.id,
-          role: 'padre/madre',
-          age: 35,
-          relationship: 'Padre/Madre',
+          role: 'adulto',
+          age: null,
+          relationship: 'padre',
           phone: userData.phone || '',
           emergencyContact: true
         }, familyId, userData.id);
