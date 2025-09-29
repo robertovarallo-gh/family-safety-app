@@ -492,6 +492,38 @@ const handleAddMemberSubmit = async (e) => {
     }
 
     console.log('Miembro familiar creado:', data);
+	
+	    // Enviar invitación por email usando Supabase Auth
+    try {
+      // Generar contraseña temporal
+      const tempPassword = Math.random().toString(36).slice(-12) + '!' + Math.floor(Math.random() * 100);
+      
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: memberFormData.email.trim(),
+        password: tempPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/family-invitation`,
+          data: {
+            first_name: memberFormData.first_name.trim(),
+            last_name: memberFormData.last_name.trim(),
+            invited_by: user.user_metadata.first_name || user.email,
+            temp_password: tempPassword,
+            family_member_id: data.id
+          }
+        }
+      });
+
+      if (authError && !authError.message.includes('already been registered')) {
+        console.error('Error sending invitation email:', authError);
+        throw new Error('Miembro creado pero no se pudo enviar el email de invitación');
+      }
+
+      console.log('Email de invitación enviado:', authData);
+      
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError);
+      // No fallar todo el proceso por el email
+    }
     
     // Mensaje de éxito
     setFormSuccess(`¡Invitación enviada a ${memberFormData.first_name} ${memberFormData.last_name}!`);
@@ -1126,6 +1158,7 @@ const handleCheckMessages = () => {
     </div>
   );
 }
+
 
   
 // Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajer铆a

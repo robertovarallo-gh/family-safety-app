@@ -5,6 +5,7 @@ import CustomLoginScreen from './components/CustomLoginScreen'
 import FamilyTrackingApp from './components/FamilyTrackingApp'
 import ResetPasswordPage from './components/ResetPasswordPage'
 import './styles/supabase-override.css'
+import FamilyInvitationPage from './components/FamilyInvitationPage'
 
 const AppContent = () => {
   const { user, loading } = useAuth()
@@ -33,6 +34,10 @@ const AppContent = () => {
         {/* Ruta para reset de contraseña - disponible sin autenticación */}
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         
+		
+		{/* NUEVA RUTA - Agregar esta línea */}
+        <Route path="/family-invitation" element={<FamilyInvitationPage />} />
+		
         {/* Ruta principal - condicional según autenticación */}
         <Route 
           path="/" 
