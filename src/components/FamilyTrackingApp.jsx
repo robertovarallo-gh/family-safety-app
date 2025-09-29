@@ -189,9 +189,25 @@ useEffect(() => {
       console.log('👤 User ID:', userData?.id);
       console.log('👨‍👩‍👧 Family ID del metadata:', userData?.user_metadata?.family_id);
       
-      // Verificar si el usuario tiene family_id
-      let familyId = userData?.user_metadata?.family_id;
-	  console.log('✅ Family ID final usado:', familyId);
+// PASO 1: Buscar el family_id REAL del usuario en family_members
+	console.log('Buscando family_id real del usuario en BD...');
+	const { data: currentMember, error: memberError } = await supabase
+	  .from('family_members')
+	  .select('family_id')
+	  .eq('user_id', userData.id)
+	  .single();
+
+	let familyId;
+
+	if (currentMember && currentMember.family_id) {
+	  // Si existe en family_members, usar ESE family_id
+	  familyId = currentMember.family_id;
+	  console.log('✅ Family_id encontrado en BD:', familyId);
+	} else {
+	  // Si no existe, usar el del metadata o crear uno nuevo
+	  familyId = userData?.user_metadata?.family_id || userData.id;
+	  console.log('⚠️ Family_id tomado del metadata o generado:', familyId);
+	}
       
       if (!familyId) {
         console.log('Usuario sin family_id, creando familia autom谩ticamente...');
