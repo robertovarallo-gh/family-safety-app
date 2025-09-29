@@ -1443,24 +1443,30 @@ return (
             </button>
           </div>
         </div>
-        {children.length > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Seleccionar miembro familiar
-            </label>
-            <select 
-              value={selectedChild} 
-              onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {children.map((child, index) => (
-                <option key={child.id} value={index}>
-                  {child.name} ({child.relationship})
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
+		{children.length > 0 && (
+		  <div>
+		    <label className="block text-sm font-medium text-gray-700 mb-2">
+			  Seleccionar miembro familiar
+			</label>
+			{children.length > 1 ? (
+			  <select 
+			    value={selectedChild} 
+				onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
+				className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+			  >
+			    {children.map((child, index) => (
+				  <option key={child.id} value={index}>
+				    {child.name} ({child.relationship})
+				  </option>
+				))}
+			  </select>
+			) : (
+			  <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500">
+				Sin miembros cadastrados
+			  </div>
+			)}
+		  </div>
+		)}
       </div>
     </header>
 
