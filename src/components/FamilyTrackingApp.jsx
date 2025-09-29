@@ -227,6 +227,20 @@ useEffect(() => {
       if (!membersResponse.success || !membersResponse.members?.length) {
         console.log('No hay miembros familiares registrados');
         
+		// PASO 1: NUEVO - Verificar si ya existe
+		const { data: existingMember } = await supabase
+  .		  from('family_members')
+  .		  select('*')
+		  .or(`email.eq.${userData.email},user_id.eq.${userData.id}`)
+		  .eq('family_id', familyId)
+		  .maybeSingle();
+
+		if (existingMember) {
+		  console.log('Usuario ya existe como miembro:', existingMember);
+		  setChildren([existingMember]);
+		  return;  // Termina aquí, no continúa
+		}
+		
         // Crear autom谩ticamente el primer miembro familiar (el usuario actual)
         console.log('Creando miembro familiar para el usuario actual...');
         
