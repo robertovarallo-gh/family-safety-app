@@ -1559,8 +1559,8 @@ return (
 
           <div className="space-y-3">
             <div className="flex items-center mb-3">
-              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">ACTIONS</span>
-              <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">Acciones</span>
+              <h3 className="text-lg font-semibold text-gray-900">Acciones rápidas</h3>
             </div>
             <button onClick={() => setCurrentScreen('messaging')} className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
               <MessageCircle className="h-5 w-5" />
@@ -1616,7 +1616,7 @@ return (
         className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200"
       >
         <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">+</div>
-        <span className="font-medium">Agregar Nuevo Hijo</span>
+        <span className="font-medium">Agregar Nuevo Miembro</span>
       </button>
     </div>
 
