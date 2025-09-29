@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '../context/authcontext'
+import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
 
 const FamilyInvitationPage = () => {
