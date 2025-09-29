@@ -228,12 +228,16 @@ useEffect(() => {
         console.log('No hay miembros familiares registrados');
         
 		// PASO 1: NUEVO - Verificar si ya existe
+		console.log('Verificando si usuario existe...');
 		const { data: existingMember } = await supabase
-  .		  from('family_members')
-  .		  select('*')
-		  .or(`email.eq.${userData.email},user_id.eq.${userData.id}`)
-		  .eq('family_id', familyId)
-		  .maybeSingle();
+		    .from('family_members')
+			.select('*')
+			.eq('family_id', familyId)
+			.eq('email', userData.email)
+			.maybeSingle();
+
+		console.log('Resultado verificación:', existingMember);
+		console.log('Error verificación:', checkError);
 
 		if (existingMember) {
 		  console.log('Usuario ya existe como miembro:', existingMember);
