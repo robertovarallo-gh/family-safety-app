@@ -13,6 +13,7 @@ const CustomLoginScreen = () => {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [relationship, setRelationship] = useState('');
   const [error, setError] = useState('')
   
   // Estados para reset de contraseña
@@ -51,7 +52,8 @@ const CustomLoginScreen = () => {
         console.log('Attempting signup with email:', email)
         const { error } = await signUp(email, password, {
 		  first_name: firstName,
-		  last_name: lastName
+		  last_name: lastName,
+		  relationship: relationship
 		  })
         if (error) {
           setError(error.message || 'Error al crear cuenta')
@@ -234,7 +236,39 @@ const CustomLoginScreen = () => {
                 />
               </div>
             </div>
-          )}
+          
+			{/* Relationship */}
+			<div>
+			  <label className="block text-sm font-medium text-gray-700 mb-2">
+				  ¿Cuál es tu relación con la familia? *
+			  </label>
+			  <select
+				value={relationship}
+				onChange={(e) => setRelationship(e.target.value)}
+				className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+				required
+			  >
+			    <option value="">Selecciona tu rol</option>
+			    <option value="padre">Padre</option>
+			    <option value="madre">Madre</option>
+			    <option value="hijo">Hijo</option>
+			    <option value="hija">Hija</option>
+			    <option value="abuelo">Abuelo</option>
+			    <option value="abuela">Abuela</option>
+			    <option value="tio">Tío</option>
+			    <option value="tia">Tía</option>
+			    <option value="hermano">Hermano</option>
+			    <option value="hermana">Hermana</option>
+			    <option value="otro">Otro</option>
+			  </select>
+			  <p className="text-xs text-gray-500 mt-1">
+			    Esto ayuda a configurar los permisos correctos en tu familia
+			  </p>
+			</div>
+  		  </div>
+		)}
+
+
 
           {/* Email */}
           <div>
