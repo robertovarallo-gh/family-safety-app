@@ -236,8 +236,6 @@ const CustomLoginScreen = () => {
                 />
               </div>
             </div>
-          
-			{/* Relationship */}
 			<div>
 			  <label className="block text-sm font-medium text-gray-700 mb-2">
 				  ¿Cuál es tu relación con la familia? *
@@ -267,8 +265,6 @@ const CustomLoginScreen = () => {
 			</div>
   		  </div>
 		)}
-
-
 
           {/* Email */}
           <div>
