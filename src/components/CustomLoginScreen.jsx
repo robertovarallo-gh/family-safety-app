@@ -204,67 +204,70 @@ const CustomLoginScreen = () => {
           </p>
         </div>
 
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nombre separados (solo para registro) */}
-            {!isLogin && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nombre *
-                </label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Tu nombre"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Apellido *
-                </label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Tu apellido"
-                  required
-                />
-              </div>
-            </div>
-			<div>
-			  <label className="block text-sm font-medium text-gray-700 mb-2">
-				  ¿Cuál es tu relación con la familia? *
-			  </label>
-			  <select
-				value={relationship}
-				onChange={(e) => setRelationship(e.target.value)}
-				className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-				required
-			  >
-			    <option value="">Selecciona tu rol</option>
-			    <option value="padre">Padre</option>
-			    <option value="madre">Madre</option>
-			    <option value="hijo">Hijo</option>
-			    <option value="hija">Hija</option>
-			    <option value="abuelo">Abuelo</option>
-			    <option value="abuela">Abuela</option>
-			    <option value="tio">Tío</option>
-			    <option value="tia">Tía</option>
-			    <option value="hermano">Hermano</option>
-			    <option value="hermana">Hermana</option>
-			    <option value="otro">Otro</option>
-			  </select>
-			  <p className="text-xs text-gray-500 mt-1">
-			    Esto ayuda a configurar los permisos correctos en tu familia
-			  </p>
-			</div>
-  		  </div>
-		)}
+{/* Formulario */}
+<form onSubmit={handleSubmit} className="space-y-4">
+  {/* Nombre separados (solo para registro) */}
+  {!isLogin && (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Nombre *
+          </label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            placeholder="Tu nombre"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Apellido *
+          </label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            placeholder="Tu apellido"
+            required
+          />
+        </div>
+      </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          ¿Cuál es tu relación con la familia? *
+        </label>
+        <select
+          value={relationship}
+          onChange={(e) => setRelationship(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          required
+        >
+          <option value="">Selecciona tu rol</option>
+          <option value="padre">Padre</option>
+          <option value="madre">Madre</option>
+          <option value="hijo">Hijo</option>
+          <option value="hija">Hija</option>
+          <option value="abuelo">Abuelo</option>
+          <option value="abuela">Abuela</option>
+          <option value="tio">Tío</option>
+          <option value="tia">Tía</option>
+          <option value="hermano">Hermano</option>
+          <option value="hermana">Hermana</option>
+          <option value="otro">Otro</option>
+        </select>
+        <p className="text-xs text-gray-500 mt-1">
+          Esto ayuda a configurar los permisos correctos en tu familia
+        </p>
+      </div>
+    </div>
+  )}
+
 
           {/* Email */}
           <div>
