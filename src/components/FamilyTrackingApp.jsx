@@ -1157,7 +1157,7 @@ const handleCheckMessages = () => {
       </div>
     </div>
   );
-}
+} 
 
 
   
@@ -1437,20 +1437,20 @@ return (
     </header>
 
     <div className="p-4 space-y-4">
-      {children.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
-          <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No hay miembros familiares</h3>
-          <p className="text-gray-600 mb-6">Agrega el primer miembro de tu familia para comenzar</p>
-          <button 
-            onClick={() => setCurrentScreen('addchild')}
-            className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium"
-          >
-            <Users className="h-5 w-5" />
-            <span>Agregar primer miembro</span>
-          </button>
-        </div>
-      ) : (
+      {children.length <= 1 ? (
+		<div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+		  <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+		  <h3 className="text-lg font-semibold text-gray-900 mb-2">Aun no hay otros miembros</h3>
+		  <p className="text-gray-600 mb-6">Invita a tu familia para comenzar a usar FamilyWatch</p>
+		  <button 
+			onClick={() => setCurrentScreen('addchild')}
+			className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium"
+		  >
+			<Users className="h-5 w-5" />
+			<span>Invitar miembro familiar</span>
+		  </button>
+		</div>
+		) : (
         <>
           <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
             <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
