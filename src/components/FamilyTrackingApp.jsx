@@ -918,6 +918,9 @@ const handleCheckMessages = () => {
 
 // 3. Pantalla de agregar miembro familiar
   if (currentScreen === 'addchild') {
+  console.log('Children count:', children.length);
+  console.log('Children:', children);
+  console.log('Current screen:', currentScreen);
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
@@ -1599,7 +1602,7 @@ return (
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
               <Shield className="h-6 w-6 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Verifica??o de Seguran?a</h3>
+            <h3 className="text-lg font-semibold text-gray-900">Verificao de Seguranca</h3>
             <p className="text-sm text-gray-600 mt-1">
               {activeChild?.name} está respondendo. Digite a senha familiar:
             </p>
