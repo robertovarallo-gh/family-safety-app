@@ -240,6 +240,15 @@ useEffect(() => {
 		if (existingMember) {
 		  console.log('Usuario ya existe como miembro:', existingMember);
 		  setChildren([existingMember]);
+
+		  // Cargar los demás miembros de la familia correcta
+		  const { data: otherMembers } = await supabase
+			.from('family_members')
+			.select('*')
+			.eq('family_id', existingMember.family_id)  // Usar el family_id del miembro
+			.eq('status', 'active');
+    
+		  setChildren(otherMembers || []);
 		  return;  // Termina aquí, no continúa
 		}
 		
