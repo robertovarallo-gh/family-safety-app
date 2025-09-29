@@ -184,12 +184,14 @@ useEffect(() => {
 
   const loadChildren = async (userData = user) => {
     try {
-      console.log('Cargando miembros familiares con ubicaciones reales...');
-      console.log('userData completa:', userData);
+      console.log('🔍 === INICIO loadChildren ===');
+      console.log('📧 Email del usuario:', userData?.email);
+      console.log('👤 User ID:', userData?.id);
+      console.log('👨‍👩‍👧 Family ID del metadata:', userData?.user_metadata?.family_id);
       
       // Verificar si el usuario tiene family_id
       let familyId = userData?.user_metadata?.family_id;
-	  console.log('family_id original del metadata:', familyId);
+	  console.log('✅ Family ID final usado:', familyId);
       
       if (!familyId) {
         console.log('Usuario sin family_id, creando familia autom谩ticamente...');
@@ -219,10 +221,9 @@ useEffect(() => {
       
       // Obtener miembros familiares
       const membersResponse = await FamilyMembersService.getFamilyMembers(familyId);
-	  console.log('DEBUG - family_id usado:', familyId);
-      console.log('DEBUG - respuesta getFamilyMembers:', membersResponse);
-      console.log('DEBUG - members array:', membersResponse.members);
-      console.log('DEBUG - members length:', membersResponse.members?.length);
+	  console.log('📊 Respuesta getFamilyMembers:', membersResponse);
+      console.log('👥 Cantidad de miembros:', membersResponse.members?.length);
+      console.log('📋 Lista de miembros:', membersResponse.members);
       
       if (!membersResponse.success || !membersResponse.members?.length) {
         console.log('No hay miembros familiares registrados');
@@ -247,12 +248,12 @@ useEffect(() => {
 			.select('*')
 			.eq('family_id', existingMember.family_id)  // Usar el family_id del miembro
 			.eq('status', 'active');
-    
+		
 		  setChildren(otherMembers || []);
 		  return;  // Termina aquí, no continúa
 		}
 		
-        // Crear autom谩ticamente el primer miembro familiar (el usuario actual)
+        // Crear automaticamente el primer miembro familiar (el usuario actual)
         console.log('Creando miembro familiar para el usuario actual...');
         
         const createMemberResult = await FamilyMembersService.createFamilyMember({
@@ -285,32 +286,32 @@ useEffect(() => {
       const formattedMembers = [];
       
       for (const member of membersResponse.members) {
-        // Obtener 煤ltima ubicaci贸n real de la base de datos
+        // Obtener ultima ubicacion real de la base de datos
         const locationResult = await locationStorageService.getLatestLocation(member.id);
         
-        let coordinates = { lat: 4.6951, lng: -74.0787 }; // Coordenadas por defecto (Bogot谩)
-        let location = "Ubicaci贸n no disponible";
-        let lastUpdate = "Sin actualizaci贸n";
+        let coordinates = { lat: 4.6951, lng: -74.0787 }; // Coordenadas por defecto (Bogota)
+        let location = "Ubicacion no disponible";
+        let lastUpdate = "Sin actualizacion";
         let isConnected = false;
         
         if (locationResult.success && locationResult.location) {
-          // Usar ubicaci贸n real de la base de datos
+          // Usar ubicacion real de la base de datos
           coordinates = {
             lat: parseFloat(locationResult.location.latitude),
             lng: parseFloat(locationResult.location.longitude)
           };
           
-          location = locationResult.location.address || "Ubicaci贸n GPS actualizada";
+          location = locationResult.location.address || "Ubicacion GPS actualizada";
           
           const updateTime = new Date(locationResult.location.timestamp);
           lastUpdate = updateTime.toLocaleString();
           
-          // Considerar "conectado" si la 煤ltima ubicaci贸n es de menos de 1 hora
+          // Considerar "conectado" si la ultima ubicacion es de menos de 1 hora
           const oneHourAgo = new Date();
           oneHourAgo.setHours(oneHourAgo.getHours() - 1);
           isConnected = updateTime > oneHourAgo;
           
-          console.log(`Ubicaci贸n real para ${member.first_name}:`, coordinates);
+          console.log(`Ubicacion real para ${member.first_name}:`, coordinates);
         } else {
           console.log(`Sin ubicaci贸n GPS para ${member.first_name}, usando coordenadas por defecto`);
         }
@@ -341,7 +342,7 @@ useEffect(() => {
             { 
               id: 1, 
               sender: 'parent', 
-              message: `Hola ${member.first_name}! 驴C贸mo est谩s?`, 
+              message: `Hola ${member.first_name}! 驴Como estas?`, 
               timestamp: '14:30', 
               verified: true 
             }
@@ -349,6 +350,7 @@ useEffect(() => {
         });
       }
       
+	  console.log('✨ formattedMembers final:', formattedMembers);
       setChildren(formattedMembers);
       console.log('Miembros con ubicaciones reales:', formattedMembers);
       
