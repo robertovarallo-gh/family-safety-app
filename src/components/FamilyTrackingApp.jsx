@@ -232,12 +232,10 @@ useEffect(() => {
 		const { data: existingMember } = await supabase
 		    .from('family_members')
 			.select('*')
-			.eq('family_id', familyId)
-			.eq('email', userData.email)
+			.eq('email', userData.email.trim().toLowerCase())
 			.maybeSingle();
 
 		console.log('Resultado verificación:', existingMember);
-		console.log('Error verificación:', checkError);
 
 		if (existingMember) {
 		  console.log('Usuario ya existe como miembro:', existingMember);
