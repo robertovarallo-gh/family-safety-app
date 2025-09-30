@@ -196,6 +196,24 @@ const signUp = async (email, password, userData = {}) => {
 		if (age < 13) role = 'niño';
 		else if (age < 18) role = 'adolescente';
 		else if (age >= 65) role = 'adulto_mayor';
+		
+		// Calcular permisos según relationship y role
+		const relationship = userData.relationship || 'padre';
+		let permissions = ['view_own_location', 'send_messages']; // Permisos base
+
+		if (['padre', 'madre'].includes(relationship)) {
+		  permissions = ['view_all', 'manage_family', 'emergency_contact', 'manage_settings', 'invite_members'];
+		} else if (['abuelo', 'abuela'].includes(relationship)) {
+		  permissions = ['view_own_location', 'send_messages', 'view_family', 'emergency_contact'];
+		} else if (['tio', 'tia', 'hermano', 'hermana'].includes(relationship) && role === 'adulto') {
+		  permissions = ['view_own_location', 'send_messages', 'view_family', 'emergency_contact'];
+		} else if (['hijo', 'hija'].includes(relationship) && role === 'adulto') {
+		  permissions = ['view_own_location', 'send_messages', 'view_family'];
+		} else if (['hijo', 'hija'].includes(relationship)) {
+		  permissions = ['view_own_location', 'send_messages']; // Solo básicos para menores
+		} else if (['cuidador'].includes(relationship)) {
+		  permissions = ['view_own_location', 'send_messages', 'view_family', 'emergency_contact'];
+		}
 
         // 2. Crear el miembro familiar
         const { data: memberData, error: memberError } = await supabase
