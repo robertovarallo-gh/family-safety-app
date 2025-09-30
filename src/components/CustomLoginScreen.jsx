@@ -65,7 +65,20 @@ const CustomLoginScreen = () => {
           setError('')
           // Mensaje de éxito para registro
           setResetMessage('¡Cuenta creada! Revisa tu email para verificar tu cuenta.')
-        }
+		  
+		  // Esperar 3 segundos y cambiar a modo login
+		  setTimeout(() => {
+			setIsLogin(true)
+			setResetMessage('')
+			setFirstName('')
+			setLastName('')
+			setRelationship('')
+			setBirthDate('')
+			setPhone('')
+			setPassword('')
+			setConfirmPassword('')
+		  }, 3000)
+		}
       }
     } catch (err) {
       console.error('Form submission error:', err)
