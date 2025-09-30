@@ -146,7 +146,7 @@ const signUp = async (email, password, userData = {}) => {
         data: {
           first_name: userData.first_name || '',
           last_name: userData.last_name || '',
-          role: 'parent'
+          relationship: userData.relationship || 'padre'
         }
       }
     })
@@ -191,7 +191,8 @@ const signUp = async (email, password, userData = {}) => {
             first_name: userData.first_name || 'Usuario',
             last_name: userData.last_name || 'Nuevo',
             email: email.trim(),
-            role: 'adulto'
+            role: 'adulto',
+			relationship: userData.relationship || 'padre'
           })
           .select()
           .single()
