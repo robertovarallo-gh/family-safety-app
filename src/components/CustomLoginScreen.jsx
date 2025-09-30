@@ -64,12 +64,8 @@ const CustomLoginScreen = () => {
           setError(error.message || 'Error al crear cuenta')
         } else {
           setError('')
-          // Mensaje de éxito para registro
-          setSuccessMessage('¡Cuenta creada exitosamente! Revise tu email para concluir la creacion de la cuenta. Dirigiendo al inicio de sesión...')
-		  
 		  
 		  // Esperar 10 segundos y cambiar a modo login
-		  setTimeout(() => {
 			alert('¡Cuenta creada exitosamente!\n\nAhora puedes iniciar sesión con tu email y contraseña.')
 			
 			setIsLogin(true)
@@ -81,7 +77,6 @@ const CustomLoginScreen = () => {
 			setPhone('')
 			setPassword('')
 			setConfirmPassword('')
-		  }, 10000)
 		}
       }
     } catch (err) {
