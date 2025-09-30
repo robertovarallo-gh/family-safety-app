@@ -182,6 +182,13 @@ const signUp = async (email, password, userData = {}) => {
 
         console.log('Family created:', familyData)
 		
+		console.log('===== DEBUG ANTES DE CALCULAR =====');
+		console.log('userData completo:', userData);
+		console.log('userData.relationship:', userData.relationship);
+		console.log('userData.birth_date:', userData.birth_date);
+		console.log('userData.phone:', userData.phone);
+		console.log('==================================');
+		
 		// Calcular edad
 		const birthDateObj = new Date(userData.birth_date);
 		const today = new Date();
@@ -215,6 +222,8 @@ const signUp = async (email, password, userData = {}) => {
 		  permissions = ['view_own_location', 'send_messages', 'view_family', 'emergency_contact'];
 		}
 
+		console.log('permissions antes de crear miembro', permissions);
+
         // 2. Crear el miembro familiar
         const { data: memberData, error: memberError } = await supabase
           .from('family_members')
@@ -226,9 +235,10 @@ const signUp = async (email, password, userData = {}) => {
             email: email.trim(),
 		    role: role,
 			relationship: userData.relationship || 'padre',
-			birth_date: userData.birth_date || null,  // ← AGREGAR
-			age: age || null,  // ← AGREGAR
-			phone: userData.phone || null  // ← AGREGAR
+			birth_date: userData.birth_date || null,
+			age: age || null,
+			phone: userData.phone || null,
+			permissions: permissions
           })
           .select()
           .single()
