@@ -17,6 +17,7 @@ const CustomLoginScreen = () => {
   const [birthDate, setBirthDate] = useState('')
   const [phone, setPhone] = useState('')
   const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   
   // Estados para reset de contraseña
   const [showResetPassword, setShowResetPassword] = useState(false)
@@ -64,9 +65,9 @@ const CustomLoginScreen = () => {
         } else {
           setError('')
           // Mensaje de éxito para registro
-          setResetMessage('¡Cuenta creada! Revisa tu email para verificar tu cuenta.')
+          setSuccessMessage('¡Cuenta creada exitosamente! Redirigiendo al inicio de sesión...')
 		  
-		  // Esperar 3 segundos y cambiar a modo login
+		  // Esperar 10 segundos y cambiar a modo login
 		  setTimeout(() => {
 			setIsLogin(true)
 			setResetMessage('')
@@ -167,6 +168,16 @@ const CustomLoginScreen = () => {
                 </p>
               </div>
             )}
+
+			{/* Mensaje de éxito - AGREGAR ESTO */}
+			{successMessage && (
+			  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+				<p className="text-green-600 text-sm flex items-center">
+				  <span className="mr-2">✅</span>
+				  {successMessage}
+				</p>
+			  </div>
+			)}
 
             {resetMessage && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
