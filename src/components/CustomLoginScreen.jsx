@@ -13,7 +13,9 @@ const CustomLoginScreen = () => {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [loading, setLoading] = useState(false)
-  const [relationship, setRelationship] = useState('');
+  const [relationship, setRelationship] = useState('')
+  const [birthDate, setBirthDate] = useState('')
+  const [phone, setPhone] = useState('')
   const [error, setError] = useState('')
   
   // Estados para reset de contraseña
@@ -53,7 +55,9 @@ const CustomLoginScreen = () => {
         const { error } = await signUp(email, password, {
 		  first_name: firstName,
 		  last_name: lastName,
-		  relationship: relationship
+		  relationship: relationship,
+		  birth_date: birthDate,  
+		  phone: phone
 		  })
         if (error) {
           setError(error.message || 'Error al crear cuenta')
@@ -109,6 +113,9 @@ const CustomLoginScreen = () => {
     setConfirmPassword('')
 	setFirstName('')
     setLastName('')
+	setRelationship('')
+    setBirthDate('')
+    setPhone('')
   }
 
   // Mostrar pantalla de reset de contraseña
@@ -265,6 +272,42 @@ const CustomLoginScreen = () => {
           Esto ayuda a configurar los permisos correctos en tu familia
         </p>
       </div>
+	  
+	  {/* Fecha de Nacimiento - AGREGAR ESTO */}
+	  <div>
+	    <label className="block text-sm font-medium text-gray-700 mb-2">
+	  	  Fecha de Nacimiento *
+	    </label>
+	    <input
+		  type="date"
+		  value={birthDate}
+		  onChange={(e) => setBirthDate(e.target.value)}
+		  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+		  max={new Date().toISOString().split('T')[0]}
+		  required
+		/>
+		<p className="text-xs text-gray-500 mt-1">
+		  Para calcular tu edad y asignar permisos correctos
+		</p>
+	  </div>
+
+	  {/* Teléfono - AGREGAR ESTO */}
+	  <div>
+	    <label className="block text-sm font-medium text-gray-700 mb-2">
+	  	  Teléfono Celular *
+		</label>
+		<input
+		  type="tel"
+		  value={phone}
+		  onChange={(e) => setPhone(e.target.value)}
+		  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+		  placeholder="+57 300 123 4567"
+		  required
+		/>
+		<p className="text-xs text-gray-500 mt-1">
+		  Para notificaciones de emergencia
+		</p>
+	  </div>	  
     </div>
   )}
 
