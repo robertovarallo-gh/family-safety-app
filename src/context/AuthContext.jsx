@@ -181,6 +181,21 @@ const signUp = async (email, password, userData = {}) => {
         }
 
         console.log('Family created:', familyData)
+		
+		// Calcular edad
+		const birthDateObj = new Date(userData.birth_date);
+		const today = new Date();
+		let age = today.getFullYear() - birthDateObj.getFullYear();
+		const monthDiff = today.getMonth() - birthDateObj.getMonth();
+		if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) {
+		  age--;
+		}
+
+		// Determinar role según edad
+		let role = 'adulto';
+		if (age < 13) role = 'niño';
+		else if (age < 18) role = 'adolescente';
+		else if (age >= 65) role = 'adulto_mayor';
 
         // 2. Crear el miembro familiar
         const { data: memberData, error: memberError } = await supabase
@@ -191,8 +206,11 @@ const signUp = async (email, password, userData = {}) => {
             first_name: userData.first_name || 'Usuario',
             last_name: userData.last_name || 'Nuevo',
             email: email.trim(),
-            role: 'adulto',
-			relationship: userData.relationship || 'padre'
+		    role: role,
+			relationship: userData.relationship || 'padre',
+			birth_date: userData.birth_date || null,  // ← AGREGAR
+			age: age || null,  // ← AGREGAR
+			phone: userData.phone || null  // ← AGREGAR
           })
           .select()
           .single()
