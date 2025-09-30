@@ -77,7 +77,7 @@ const CustomLoginScreen = () => {
 			setPhone('')
 			setPassword('')
 			setConfirmPassword('')
-		  }, 3000)
+		  }, 10000)
 		}
       }
     } catch (err) {
