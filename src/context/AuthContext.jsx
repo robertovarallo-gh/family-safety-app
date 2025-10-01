@@ -169,7 +169,7 @@ const signUp = async (email, password, userData = {}) => {
           .from('families')
           .insert({
             family_name: `Familia ${userData.last_name || userData.first_name || 'Nueva'}`,
-            family_id: familyCode,
+            family_code: familyCode,
             admin_id: data.user.id
           })
           .select()

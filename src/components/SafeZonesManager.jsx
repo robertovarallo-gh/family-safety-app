@@ -508,27 +508,30 @@ const SafeZonesManager = ({ onBack }) => {
   const circleRef = useRef(null);
 
  // AGREGAR ESTE useEffect ANTES del useEffect de loadSafeZones
-  useEffect(() => {
-    const fetchFamilyId = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const { data: memberData, error: memberError } = await supabase
-          .from('family_members')
-          .select('family_id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (memberData && !memberError) {
-          setFamilyId(memberData.family_id);
-        }
-      } catch (error) {
-        console.error('Error obteniendo family_id:', error);
-      }
-    };
+useEffect(() => {
+  const fetchFamilyId = async () => {
+    if (!user?.id) return;
     
-    fetchFamilyId();
-  }, [user?.id]);
+    try {
+      const { data: memberData, error: memberError } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (memberData && !memberError) {
+        console.log('✅ family_id (UUID) obtenido:', memberData.family_id);
+        setFamilyId(memberData.family_id);
+      } else {
+        console.error('Error obteniendo family_id:', memberError);
+      }
+    } catch (error) {
+      console.error('Error obteniendo family_id:', error);
+    }
+  };
+  
+  fetchFamilyId();
+}, [user?.id]);
 
   useEffect(() => {
     if (familyId) {
