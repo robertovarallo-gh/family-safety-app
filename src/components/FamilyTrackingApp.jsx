@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Battery, 
@@ -342,12 +342,12 @@ useEffect(() => {
           lastUpdate: lastUpdate,
           battery: locationResult.location?.battery_level || 85,
           isConnected: isConnected,
-          avatar: member.role === 'ni帽o' ? '馃懚' : member.role === 'adolescente' ? '馃' : member.role === 'adulto' ? '馃懆' : '馃懘',
+          avatar: member.role === 'ni帽o' ? '👦' : member.role === 'adolescente' ? '🧑' : member.role === 'adulto' ? '👨' : '👩',
           photo: member.photo_url || "/api/placeholder/48/48",
           safeZone: "Verificando zona...",
           messagingStatus: "online",
           coordinates: coordinates, // UBICACION REAL del GPS
-          role: member.role,
+          role: member.role, 
           relationship: member.relationship,
           phone: member.phone,
           emergency_contact: member.emergency_contact,
@@ -748,7 +748,7 @@ useEffect(() => {
           <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
             <circle cx="25" cy="25" r="20" fill="#3B82F6" stroke="#FFFFFF" stroke-width="4"/>
             <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
-              ${activeChild.avatar || '馃懁'}
+              ${activeChild.avatar || 'ñ懁'}
             </text>
           </svg>
         `)}`,
@@ -762,28 +762,28 @@ useEffect(() => {
       content: `
         <div style="padding: 12px; min-width: 220px; font-family: system-ui, -apple-system, sans-serif;">
           <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || '馃懁'}</span>
+            <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || 'ñ懁'}</span>
             <h3 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">
               ${activeChild.name}
             </h3>
           </div>
           <div style="space-y: 4px;">
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">馃搷</span>
+              <span style="margin-right: 6px;">ñ搷</span>
               ${activeChild.location || 'Ubicacion no disponible'}
             </p>
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">馃攱</span>
+              <span style="margin-right: 6px;">ñ攱</span>
               Bateria: ${activeChild.battery || 0}%
             </p>
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">馃晲</span>
+              <span style="margin-right: 6px;">ñ晲</span>
               ${activeChild.lastUpdate || 'Hace un momento'}
             </p>
           </div>
           <div style="margin-top: 10px; padding: 6px 12px; background: ${activeChild.isConnected ? '#10b981' : '#ef4444'}; 
                       color: white; border-radius: 16px; font-size: 12px; text-align: center; font-weight: 500;">
-            ${activeChild.isConnected ? '馃煝 Conectado' : '馃敶 Desconectado'}
+            ${activeChild.isConnected ? 'ñ煝 Conectado' : 'ñ敶 Desconectado'}
           </div>
         </div>
       `
@@ -821,7 +821,7 @@ useEffect(() => {
               <svg width="35" height="35" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="17.5" cy="17.5" r="15" fill="#10b981" stroke="#FFFFFF" stroke-width="3"/>
                 <text x="17.5" y="23" text-anchor="middle" fill="white" font-size="14" font-family="Arial">
-                  馃洝锔?                </text>
+                  ñ洝锔?                </text>
               </svg>
             `)}`,
             scaledSize: new window.google.maps.Size(35, 35),
@@ -833,7 +833,7 @@ useEffect(() => {
           content: `
             <div style="padding: 10px; font-family: system-ui, -apple-system, sans-serif;">
               <h4 style="margin: 0 0 6px 0; color: #10b981; font-size: 16px; display: flex; align-items: center;">
-                馃洝锔?${zone.name}
+                ñ洝锔?${zone.name}
               </h4>
               <p style="margin: 0; color: #6b7280; font-size: 13px;">
                 Radio de seguridad: ${zone.radius || 200} metros
@@ -897,7 +897,7 @@ const handleCheckMessages = () => {
       setNewMessage('');
       
       setTimeout(() => {
-        const responses = ['Tudo bem!', 'Entendi, obrigado!', 'Ok! 馃憤'];
+        const responses = ['Tudo bem!', 'Entendi, obrigado!', 'Ok! ñ憤'];
         const childResponse = {
           id: Date.now() + 1,
           sender: 'child',
