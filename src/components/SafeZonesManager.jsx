@@ -579,9 +579,6 @@ useEffect(() => {
 	if (mapInstanceRef.current) {
 		mapInstanceRef.current = null;
 	}
-	if (autocompleteRef.current) {
-		autocompleteRef.current = null;
-	}
 	if (markerRef.current) {
 		markerRef.current = null;
 	}
@@ -620,9 +617,6 @@ const handleEdit = (zone) => {
   // Limpiar referencias del mapa para reinicializar correctamente
   if (mapInstanceRef.current) {
     mapInstanceRef.current = null;
-  }
-  if (autocompleteRef.current) {
-    autocompleteRef.current = null;
   }
   if (markerRef.current) {
     markerRef.current = null;
@@ -716,19 +710,15 @@ const handleEdit = (zone) => {
     setFormErrors([]);
     setShowMap(false);
 	
-	  if (mapInstanceRef.current) {
-    mapInstanceRef.current = null;
-  }
-  if (autocompleteRef.current) {
-    autocompleteRef.current = null;
-  }
-  if (markerRef.current) {
-    markerRef.current = null;
-  }
-  if (circleRef.current) {
-    circleRef.current = null;
-  }
-  
+	if (mapInstanceRef.current) {
+	  mapInstanceRef.current = null;
+	}
+	if (markerRef.current) {
+	  markerRef.current = null;
+	}
+	if (circleRef.current) {
+      circleRef.current = null;
+	}  
   };
 
   const zoneTypes = [
