@@ -1616,7 +1616,13 @@ return (
                 </>
               )}
             </button>
-            <button onClick={() => setCurrentScreen('safezones')} className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
+            <button onClick={() => { 
+				console.log('Botón clickeado');
+				console.log('Estado antes:', currentScreen);
+				setCurrentScreen('safezones')
+				console.log('Estado después:', 'safezones');
+			}} 
+			className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
               <Shield className="h-5 w-5" />
               <span className="font-medium">Gestionar Zonas Seguras</span>
             </button>
