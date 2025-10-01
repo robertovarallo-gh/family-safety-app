@@ -651,9 +651,9 @@ const handleEdit = (zone) => {
 
       let result;
       if (editingZone) {
-        result = await SafeZonesService.updateSafeZone(editingZone.id, zoneData, user.family_id);
+        result = await SafeZonesService.updateSafeZone(editingZone.id, zoneData, familyId);
       } else {
-        result = await SafeZonesService.createSafeZone(zoneData, user.family_id, user.id);
+        result = await SafeZonesService.createSafeZone(zoneData, familyId, user.id);
       }
 
       if (result.success) {
