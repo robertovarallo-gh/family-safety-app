@@ -516,18 +516,19 @@ const SafeZonesManager = ({ onBack }) => {
   const circleRef = useRef(null);
 
   useEffect(() => {
-    if (user?.family_id) {
-      loadSafeZones();
-    }
-  }, [user?.family_id]);
+    const familyId = user?.user_metadata?.family_id;
+	if (familyId) {
+	  loadSafeZones(familyId);
+	}
+  }, [user?.user_metadata?.family_id]);
 
-  const loadSafeZones = async () => {
+  const loadSafeZones = async (familyId) => {
     try {
       setLoading(true);
       setError('');
-      
-      const result = await SafeZonesService.getFamilySafeZones(user.family_id);
-      
+    
+      const result = await SafeZonesService.getFamilySafeZones(familyId);
+    
       if (result.success) {
         setSafeZones(result.zones || []);
       } else {
@@ -540,6 +541,7 @@ const SafeZonesManager = ({ onBack }) => {
       setLoading(false);
     }
   };
+
 
   const handleAddNew = () => {
     setEditingZone(null);
@@ -617,10 +619,12 @@ const handleEdit = (zone) => {
   const handleSave = async (e) => {
     e.preventDefault();
     
-    if (!user?.family_id || !user?.id) {
-      setError('Error de autenticación');
-      return;
-    }
+  if (!user?.user_metadata?.family_id || !user?.id) {
+    setError('Error de autenticación');
+    return;
+  }
+  
+    const familyId = user.user_metadata.family_id;
     
     try {
       setFormLoading(true);
@@ -668,27 +672,28 @@ const handleEdit = (zone) => {
     }
   };
 
-  const handleDelete = async (zone) => {
-    if (!window.confirm(`¿Estás seguro de eliminar la zona "${zone.name}"?`)) {
-      return;
-    }
+	const handleDelete = async (zone) => {
+	  if (!window.confirm(`¿Estás seguro de eliminar la zona "${zone.name}"?`)) {
+		return;
+	  }
 
-    try {
-      setLoading(true);
-      const result = await SafeZonesService.deleteSafeZone(zone.id, user.family_id);
-      
-      if (result.success) {
-        await loadSafeZones();
-      } else {
-        setError(result.message);
-      }
-    } catch (error) {
-      console.error('Error eliminando zona:', error);
-      setError('Error eliminando zona segura');
-    } finally {
-      setLoading(false);
-    }
-  };
+	  try {
+		setLoading(true);
+		const familyId = user.user_metadata.family_id;  // AGREGAR ESTA LÍNEA
+		const result = await SafeZonesService.deleteSafeZone(zone.id, familyId);  // USA familyId AQUÍ
+		
+		if (result.success) {
+		  await loadSafeZones(familyId);  // USA familyId AQUÍ
+		} else {
+		  setError(result.message);
+		}
+	  } catch (error) {
+		console.error('Error eliminando zona:', error);
+		setError('Error eliminando zona segura');
+	  } finally {
+		setLoading(false);
+	  }
+	};
 
   const handleCloseForm = () => {
     setShowAddForm(false);
