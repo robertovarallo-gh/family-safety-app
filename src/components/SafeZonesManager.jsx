@@ -480,6 +480,16 @@ const ensureGoogleMapsLoaded = async () => {
 
 const SafeZonesManager = ({ onBack }) => {
   const { user } = useAuth();
+  
+  // DEBUG - AGREGAR ESTO
+  useEffect(() => {
+    console.log('===== DEBUG SafeZonesManager =====');
+    console.log('User completo:', user);
+    console.log('user.family_id:', user?.family_id);
+    console.log('user.user_metadata:', user?.user_metadata);
+    console.log('==================================');
+  }, [user]);
+  
   const [safeZones, setSafeZones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
