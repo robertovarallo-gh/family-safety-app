@@ -1251,7 +1251,8 @@ const handleCheckMessages = () => {
 
   // Safe Zones screen
   if (currentScreen === 'safezones') {
-    return <SafeZonesManager onBack={() => setCurrentScreen('dashboard')} />;
+	  console.log('🟢 Renderizando SafeZonesManager');
+      return <SafeZonesManager onBack={() => setCurrentScreen('dashboard')} />;
   }
 
   // Emergency screen
