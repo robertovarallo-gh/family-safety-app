@@ -21,6 +21,7 @@ const GOOGLE_MAPS_API_KEY = 'AIzaSyDFgYBq7tKtG9LP2w2-1XhFwBUOndyF0rA';
 
 import SafeZonesService from '../services/SafeZonesService';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../services/supabaseClient';
 
 // Variables globales para controlar la carga de Google Maps
 let googleMapsPromise = null;
@@ -479,20 +480,11 @@ const ensureGoogleMapsLoaded = async () => {
 };
 
 const SafeZonesManager = ({ onBack }) => {
-  const { user } = useAuth();
-  
-  // DEBUG - AGREGAR ESTO
-  useEffect(() => {
-    console.log('===== DEBUG SafeZonesManager =====');
-    console.log('User completo:', user);
-    console.log('user.family_id:', user?.family_id);
-    console.log('user.user_metadata:', user?.user_metadata);
-    console.log('==================================');
-  }, [user]);
-  
+  const { user } = useAuth(); 
   const [safeZones, setSafeZones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [familyId, setFamilyId] = useState(null); 
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingZone, setEditingZone] = useState(null);
   const [formData, setFormData] = useState({
@@ -515,12 +507,34 @@ const SafeZonesManager = ({ onBack }) => {
   const markerRef = useRef(null);
   const circleRef = useRef(null);
 
+ // AGREGAR ESTE useEffect ANTES del useEffect de loadSafeZones
   useEffect(() => {
-    const familyId = user?.user_metadata?.family_id;
-	if (familyId) {
-	  loadSafeZones(familyId);
-	}
-  }, [user?.user_metadata?.family_id]);
+    const fetchFamilyId = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data: memberData, error: memberError } = await supabase
+          .from('family_members')
+          .select('family_id')
+          .eq('user_id', user.id)
+          .single();
+        
+        if (memberData && !memberError) {
+          setFamilyId(memberData.family_id);
+        }
+      } catch (error) {
+        console.error('Error obteniendo family_id:', error);
+      }
+    };
+    
+    fetchFamilyId();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (familyId) {
+      loadSafeZones(familyId);
+    }
+  }, [familyId]);
 
   const loadSafeZones = async (familyId) => {
     try {
