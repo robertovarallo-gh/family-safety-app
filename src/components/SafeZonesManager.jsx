@@ -642,6 +642,21 @@ const handleEdit = (zone) => {
   }
   
     const familyId = user.user_metadata.family_id;
+	
+	  // DEBUG - AGREGAR ESTO
+  console.log('===== DEBUG handleSave =====');
+  console.log('familyId que se va a usar:', familyId);
+  
+    // Verificar si este ID existe en families
+  const { data: familyCheck, error: familyCheckError } = await supabase
+    .from('families')
+    .select('id, family_code, family_name')
+    .eq('id', familyId)
+    .single();
+  
+  console.log('Familia encontrada:', familyCheck);
+  console.log('Error buscando familia:', familyCheckError);
+  console.log('===========================');
     
     try {
       setFormLoading(true);
