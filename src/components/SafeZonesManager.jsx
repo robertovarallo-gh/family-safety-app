@@ -636,27 +636,10 @@ const handleEdit = (zone) => {
   const handleSave = async (e) => {
     e.preventDefault();
     
-  if (!user?.user_metadata?.family_id || !user?.id) {
+  if (!familyId || !user?.id) {
     setError('Error de autenticación');
-    return;
+	return;
   }
-  
-    const familyId = user.user_metadata.family_id;
-	
-	  // DEBUG - AGREGAR ESTO
-  console.log('===== DEBUG handleSave =====');
-  console.log('familyId que se va a usar:', familyId);
-  
-    // Verificar si este ID existe en families
-  const { data: familyCheck, error: familyCheckError } = await supabase
-    .from('families')
-    .select('id, family_code, family_name')
-    .eq('id', familyId)
-    .single();
-  
-  console.log('Familia encontrada:', familyCheck);
-  console.log('Error buscando familia:', familyCheckError);
-  console.log('===========================');
     
     try {
       setFormLoading(true);
