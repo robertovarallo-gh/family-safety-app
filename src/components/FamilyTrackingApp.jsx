@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   MapPin, 
   Battery, 
@@ -28,7 +28,7 @@ import { supabase } from '../services/supabaseClient.js';
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
 const FamilyTrackingApp = () => {
-  console.log('馃殌 FamilyTrackingApp iniciando...');
+  console.log('FamilyTrackingApp iniciando...');
 
   // Estados principales
   const [selectedChild, setSelectedChild] = useState(0);
@@ -66,13 +66,13 @@ const [formError, setFormError] = useState('');
 const [formSuccess, setFormSuccess] = useState('');
 
 
-  // Funci贸n para obtener GPS y guardar en base de datos
+  // Funcion para obtener GPS y guardar en base de datos
   const handleGetCurrentLocation = async () => {
     try {
-      console.log('Solicitando ubicaci贸n GPS...');
+      console.log('Solicitando ubicacion GPS...');
       
       const locationData = await geolocationService.getCurrentPosition();
-      console.log('Ubicaci贸n obtenida:', locationData);
+      console.log('Ubicacion obtenida:', locationData);
   
       // Obtener usuario actual (no hardcodeado)
       const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -88,7 +88,7 @@ const [formSuccess, setFormSuccess] = useState('');
         .single();
       
       if (memberError || !memberData) {
-        throw new Error('No se encontr贸 tu registro en family_members');
+        throw new Error('No se encontro tu registro en family_members');
       }
       
       console.log('Miembro encontrado:', memberData);
@@ -105,9 +105,9 @@ const [formSuccess, setFormSuccess] = useState('');
         await loadChildren();
         
         alert(`GPS guardado exitosamente!
-        Ubicaci贸n: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
-        Precisi贸n: ${locationData.accuracy}m
-        Guardado en base de datos: S铆`);
+        Ubicacion: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
+        Precision: ${locationData.accuracy}m
+        Guardado en base de datos: Si`);
       } else {
         throw new Error(saveResult.error);
       }
@@ -120,19 +120,19 @@ const [formSuccess, setFormSuccess] = useState('');
   
 // Parte 3 del FamilyTrackingApp.jsx - useEffect hooks y carga de datos
 
-// Autenticaci贸n real con Supabase
-// Reemplaza tu useEffect de autenticaci贸n con este:
+// Autenticacion real con Supabase
+// Reemplaza tu useEffect de autenticacion con este:
 useEffect(() => {
   const checkAuth = async () => {
     setLoading(true);
     try {
-      console.log('Verificando autenticaci贸n...');
+      console.log('Verificando autenticacion...');
       
       // Limpiar tokens corruptos si hay error
       const { data: { session }, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.log('Error de sesi贸n, limpiando tokens:', error.message);
+        console.log('Error de sesion, limpiando tokens:', error.message);
         await supabase.auth.signOut(); // Esto limpia los tokens corruptos
         setCurrentScreen('login');
         return;
@@ -143,7 +143,7 @@ useEffect(() => {
         setUser(session.user);
         await loadAppData(session.user);
       } else {
-        console.log('Sin sesi贸n - mostrando login');
+        console.log('Sin sesion - mostrando login');
         setCurrentScreen('login');
       }
     } catch (error) {
@@ -176,7 +176,7 @@ useEffect(() => {
       await loadChildren(userData);
       await loadSafeZones();
     } catch (error) {
-      console.error('鈱?Error cargando datos de la aplicaci贸n:', error);
+      console.error('鈱?Error cargando datos de la aplicacion:', error);
     } finally {
       setLoading(false);
     }
@@ -210,7 +210,7 @@ useEffect(() => {
 	}
       
       if (!familyId) {
-        console.log('Usuario sin family_id, creando familia autom谩ticamente...');
+        console.log('Usuario sin family_id, creando familia automaticamente...');
         
         // Crear family_id basado en el user_id
         familyId = userData.id;
@@ -286,7 +286,7 @@ useEffect(() => {
         
         if (createMemberResult.success) {
           console.log('Miembro familiar creado exitosamente');
-          // Recargar despu茅s de crear el miembro
+          // Recargar despues de crear el miembro
           setTimeout(() => loadChildren(userData), 1000);
           return;
         } else {
@@ -298,7 +298,7 @@ useEffect(() => {
       
       console.log('Miembros cargados:', membersResponse.members);
       
-      // Para cada miembro, obtener su 煤ltima ubicaci贸n real
+      // Para cada miembro, obtener su ultima ubicacion real
       const formattedMembers = [];
       
       for (const member of membersResponse.members) {
@@ -329,7 +329,7 @@ useEffect(() => {
           
           console.log(`Ubicacion real para ${member.first_name}:`, coordinates);
         } else {
-          console.log(`Sin ubicaci贸n GPS para ${member.first_name}, usando coordenadas por defecto`);
+          console.log(`Sin ubicacion GPS para ${member.first_name}, usando coordenadas por defecto`);
         }
         
         formattedMembers.push({
@@ -337,7 +337,7 @@ useEffect(() => {
           name: `${member.first_name} ${member.last_name}`,
           age: member.age || 0,
           location: location,
-          address: member.address || "Bogot谩, Colombia", 
+          address: member.address || "Bogota, Colombia", 
           distance: "Calculando...",
           lastUpdate: lastUpdate,
           battery: locationResult.location?.battery_level || 85,
@@ -346,19 +346,19 @@ useEffect(() => {
           photo: member.photo_url || "/api/placeholder/48/48",
           safeZone: "Verificando zona...",
           messagingStatus: "online",
-          coordinates: coordinates, // UBICACI脫N REAL del GPS
+          coordinates: coordinates, // UBICACION REAL del GPS
           role: member.role,
           relationship: member.relationship,
           phone: member.phone,
           emergency_contact: member.emergency_contact,
-          // Informaci贸n adicional de la ubicaci贸n real
+          // Informacion adicional de la ubicacion real
           hasRealLocation: locationResult.success && locationResult.location,
           locationAccuracy: locationResult.location?.accuracy || null,
           messages: [
             { 
               id: 1, 
               sender: 'parent', 
-              message: `Hola ${member.first_name}! 驴Como estas?`, 
+              message: `Hola ${member.first_name}! ¿Como estas?`, 
               timestamp: '14:30', 
               verified: true 
             }
@@ -376,7 +376,7 @@ useEffect(() => {
     }
   };
   
-// Parte 4 del FamilyTrackingApp.jsx - Funciones de configuraci贸n y formularios
+// Parte 4 del FamilyTrackingApp.jsx - Funciones de configuracion y formularios
 
 const loadSafeZones = async () => {
     try {
@@ -613,7 +613,7 @@ const handleAddMemberSubmit = async (e) => {
     setAddChildError('');
   };
 
-  // Funci贸n de login real
+  // Funcion de login real
   const handleLogin = async (email, password) => {
     try {
       setLoading(true);
@@ -648,7 +648,7 @@ const handleAddMemberSubmit = async (e) => {
       
       if (error) {
         console.error('Error en logout:', error);
-        // A煤n as铆, limpiar estado local
+        // Aun asi, limpiar estado local
       }
       
       // Limpiar estado local
@@ -660,7 +660,7 @@ const handleAddMemberSubmit = async (e) => {
       
     } catch (error) {
       console.error('Error durante logout:', error);
-      // Fallback: recargar p谩gina si falla el logout
+      // Fallback: recargar pagina si falla el logout
       // window.location.reload();
 	  setCurrentScreen('login'); // 鈫?AGREGA ESTA L脥NEA
     } finally {
@@ -770,11 +770,11 @@ useEffect(() => {
           <div style="space-y: 4px;">
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
               <span style="margin-right: 6px;">馃搷</span>
-              ${activeChild.location || 'Ubicaci贸n no disponible'}
+              ${activeChild.location || 'Ubicacion no disponible'}
             </p>
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
               <span style="margin-right: 6px;">馃攱</span>
-              Bater铆a: ${activeChild.battery || 0}%
+              Bateria: ${activeChild.battery || 0}%
             </p>
             <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
               <span style="margin-right: 6px;">馃晲</span>
@@ -849,7 +849,7 @@ useEffect(() => {
     }
   };
   
-// Parte 6 del FamilyTrackingApp.jsx - Funciones de interacci贸n (mensajes, emergencias, etc.)
+// Parte 6 del FamilyTrackingApp.jsx - Funciones de interaccion (mensajes, emergencias, etc.)
 
 const handleCheckMessages = () => {
     setCheckStatus('sending');
@@ -1207,9 +1207,9 @@ const handleCheckMessages = () => {
 
 
   
-// Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajer铆a
+// Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajeria
 
-// Pantalla de confirmaci贸n de emergencia
+// Pantalla de confirmacion de emergencia
   if (showEmergencyConfirmation) {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
