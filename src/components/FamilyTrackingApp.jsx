@@ -41,6 +41,8 @@ const FamilyTrackingApp = () => {
   const [isGPSTracking, setIsGPSTracking] = useState(false);
   const [lastGPSUpdate, setLastGPSUpdate] = useState(null);
   const [gpsError, setGpsError] = useState(null);  
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef({});  
 
   // Estados para funcionalidades
   const [checkStatus, setCheckStatus] = useState('idle');
@@ -708,138 +710,166 @@ useEffect(() => {
     }
   };
 
-  const initializeDashboardMap = (mapContainer) => {
-    if (!window.google || !activeChild) return;
+const initializeDashboardMap = (mapContainer) => {
+  if (!window.google || !activeChild) return;
 
-    const childLocation = {
-      lat: activeChild.coordinates?.lat || 4.6951,
-      lng: activeChild.coordinates?.lng || -74.0787
-    };
-
-    const map = new window.google.maps.Map(mapContainer, {
-      zoom: 15,
-      center: childLocation,
-      mapTypeControl: true,
-      streetViewControl: true,
-      fullscreenControl: false,
-      styles: [
-        {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "off" }]
-        }
-      ]
-    });
-
-    const childMarker = new window.google.maps.Marker({
-      position: childLocation,
-      map: map,
-      title: activeChild.name,
-      icon: {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="25" cy="25" r="20" fill="#3B82F6" stroke="#FFFFFF" stroke-width="4"/>
-            <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
-              ${activeChild.avatar || 'ñ懁'}
-            </text>
-          </svg>
-        `)}`,
-        scaledSize: new window.google.maps.Size(50, 50),
-        anchor: new window.google.maps.Point(25, 25)
-      },
-      animation: window.google.maps.Animation.DROP
-    });
-
-    const infoWindow = new window.google.maps.InfoWindow({
-      content: `
-        <div style="padding: 12px; min-width: 220px; font-family: system-ui, -apple-system, sans-serif;">
-          <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || 'ñ懁'}</span>
-            <h3 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">
-              ${activeChild.name}
-            </h3>
-          </div>
-          <div style="space-y: 4px;">
-            <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">ñ搷</span>
-              ${activeChild.location || 'Ubicacion no disponible'}
-            </p>
-            <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">ñ攱</span>
-              Bateria: ${activeChild.battery || 0}%
-            </p>
-            <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
-              <span style="margin-right: 6px;">ñ晲</span>
-              ${activeChild.lastUpdate || 'Hace un momento'}
-            </p>
-          </div>
-          <div style="margin-top: 10px; padding: 6px 12px; background: ${activeChild.isConnected ? '#10b981' : '#ef4444'}; 
-                      color: white; border-radius: 16px; font-size: 12px; text-align: center; font-weight: 500;">
-            ${activeChild.isConnected ? 'ñ煝 Conectado' : 'ñ敶 Desconectado'}
-          </div>
-        </div>
-      `
-    });
-
-    childMarker.addListener('click', () => {
-      infoWindow.open(map, childMarker);
-    });
-
-    if (safeZones && safeZones.length > 0) {
-      safeZones.forEach((zone) => {
-        const circle = new window.google.maps.Circle({
-          strokeColor: '#10b981',
-          strokeOpacity: 0.8,
-          strokeWeight: 2,
-          fillColor: '#10b981',
-          fillOpacity: 0.15,
-          map: map,
-          center: {
-            lat: zone.coordinates.lat,
-            lng: zone.coordinates.lng
-          },
-          radius: zone.radius || 200
-        });
-
-        const zoneMarker = new window.google.maps.Marker({
-          position: {
-            lat: zone.coordinates.lat,
-            lng: zone.coordinates.lng
-          },
-          map: map,
-          title: zone.name,
-          icon: {
-            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-              <svg width="35" height="35" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="17.5" cy="17.5" r="15" fill="#10b981" stroke="#FFFFFF" stroke-width="3"/>
-                <text x="17.5" y="23" text-anchor="middle" fill="white" font-size="14" font-family="Arial">
-                  ñ洝锔?                </text>
-              </svg>
-            `)}`,
-            scaledSize: new window.google.maps.Size(35, 35),
-            anchor: new window.google.maps.Point(17.5, 17.5)
-          }
-        });
-
-        const zoneInfoWindow = new window.google.maps.InfoWindow({
-          content: `
-            <div style="padding: 10px; font-family: system-ui, -apple-system, sans-serif;">
-              <h4 style="margin: 0 0 6px 0; color: #10b981; font-size: 16px; display: flex; align-items: center;">
-                ñ洝锔?${zone.name}
-              </h4>
-              <p style="margin: 0; color: #6b7280; font-size: 13px;">
-                Radio de seguridad: ${zone.radius || 200} metros
-              </p>
-            </div>
-          `
-        });
-
-        zoneMarker.addListener('click', () => {
-          zoneInfoWindow.open(map, zoneMarker);
-        });
-      });
-    }
+  const childLocation = {
+    lat: activeChild.coordinates?.lat || 4.6951,
+    lng: activeChild.coordinates?.lng || -74.0787
   };
+
+  // Si el mapa ya existe, solo actualizar marcador
+  if (mapInstanceRef.current) {
+    updateMarkerPosition(activeChild.id, childLocation);
+    return;
+  }
+
+  // Crear mapa solo la primera vez
+  const map = new window.google.maps.Map(mapContainer, {
+    zoom: 15,
+    center: childLocation,
+    mapTypeControl: true,
+    streetViewControl: true,
+    fullscreenControl: false,
+    styles: [
+      {
+        featureType: "poi",
+        elementType: "labels",
+        stylers: [{ visibility: "off" }]
+      }
+    ]
+  });
+
+  mapInstanceRef.current = map;
+
+  // Crear marcador inicial
+  createMarker(activeChild.id, childLocation, map);
+
+  // Crear zonas seguras (solo una vez)
+  if (safeZones && safeZones.length > 0) {
+    safeZones.forEach((zone) => {
+      const circle = new window.google.maps.Circle({
+        strokeColor: '#10b981',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#10b981',
+        fillOpacity: 0.15,
+        map: map,
+        center: {
+          lat: zone.coordinates.lat,
+          lng: zone.coordinates.lng
+        },
+        radius: zone.radius || 200
+      });
+
+      const zoneMarker = new window.google.maps.Marker({
+        position: {
+          lat: zone.coordinates.lat,
+          lng: zone.coordinates.lng
+        },
+        map: map,
+        title: zone.name,
+        icon: {
+          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+            <svg width="35" height="35" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="17.5" cy="17.5" r="15" fill="#10b981" stroke="#FFFFFF" stroke-width="3"/>
+              <text x="17.5" y="23" text-anchor="middle" fill="white" font-size="14" font-family="Arial">
+                🛡️
+              </text>
+            </svg>
+          `)}`,
+          scaledSize: new window.google.maps.Size(35, 35),
+          anchor: new window.google.maps.Point(17.5, 17.5)
+        }
+      });
+
+      const zoneInfoWindow = new window.google.maps.InfoWindow({
+        content: `
+          <div style="padding: 10px; font-family: system-ui, -apple-system, sans-serif;">
+            <h4 style="margin: 0 0 6px 0; color: #10b981; font-size: 16px; display: flex; align-items: center;">
+              🛡️${zone.name}
+            </h4>
+            <p style="margin: 0; color: #6b7280; font-size: 13px;">
+              Radio de seguridad: ${zone.radius || 200} metros
+            </p>
+          </div>
+        `
+      });
+
+      zoneMarker.addListener('click', () => {
+        zoneInfoWindow.open(map, zoneMarker);
+      });
+    });
+  }
+};
+
+// Nueva función para crear marcador
+const createMarker = (memberId, location, map) => {
+  const marker = new window.google.maps.Marker({
+    position: location,
+    map: map,
+    title: activeChild.name,
+    icon: {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="25" cy="25" r="20" fill="#3B82F6" stroke="#FFFFFF" stroke-width="4"/>
+          <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
+            ${activeChild.avatar || '👤'}
+          </text>
+        </svg>
+      `)}`,
+      scaledSize: new window.google.maps.Size(50, 50),
+      anchor: new window.google.maps.Point(25, 25)
+    }
+  });
+
+  const infoWindow = new window.google.maps.InfoWindow({
+    content: `
+      <div style="padding: 12px; min-width: 220px; font-family: system-ui, -apple-system, sans-serif;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || '👤'}</span>
+          <h3 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">
+            ${activeChild.name}
+          </h3>
+        </div>
+        <div style="space-y: 4px;">
+          <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
+            <span style="margin-right: 6px;">📍</span>
+            ${activeChild.location || 'Ubicacion no disponible'}
+          </p>
+          <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
+            <span style="margin-right: 6px;">🔋</span>
+            Bateria: ${activeChild.battery || 0}%
+          </p>
+          <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
+            <span style="margin-right: 6px;">🕒</span>
+            ${activeChild.lastUpdate || 'Hace un momento'}
+          </p>
+        </div>
+        <div style="margin-top: 10px; padding: 6px 12px; background: ${activeChild.isConnected ? '#10b981' : '#ef4444'}; 
+                    color: white; border-radius: 16px; font-size: 12px; text-align: center; font-weight: 500;">
+          ${activeChild.isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
+        </div>
+      </div>
+    `
+  });
+
+  marker.addListener('click', () => {
+    infoWindow.open(map, marker);
+  });
+
+  markersRef.current[memberId] = marker;
+};
+
+// Nueva función para actualizar solo la posición
+const updateMarkerPosition = (memberId, newLocation) => {
+  const marker = markersRef.current[memberId];
+  if (marker) {
+    marker.setPosition(newLocation);
+    // Centrar mapa suavemente en la nueva ubicación
+    mapInstanceRef.current.panTo(newLocation);
+  }
+};
   
 // Parte 6 del FamilyTrackingApp.jsx - Funciones de interaccion (mensajes, emergencias, etc.)
 
@@ -1503,7 +1533,7 @@ return (
                 <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">MAPA</span>
                 Localizacion en tiempo real
               </h3>
-              <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicación no disponible'} ? {activeChild?.distance || 'Distancia no disponible'}</p>
+				  <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicación no disponible'}</p>
             </div>
             <div 
               id="dashboard-map"
