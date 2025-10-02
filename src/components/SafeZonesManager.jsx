@@ -669,7 +669,9 @@ const handleEdit = (zone) => {
 
       if (result.success) {
         setShowAddForm(false);
-        await loadSafeZones();
+		const currentFamilyId = familyId;
+		  console.log('🔍 Recargando zonas con familyId:', currentFamilyId);
+        await loadSafeZones(currentFamilyId);
         alert(`Zona "${zoneData.name}" ${editingZone ? 'actualizada' : 'creada'} exitosamente!`);
       } else {
         setError(result.message);
