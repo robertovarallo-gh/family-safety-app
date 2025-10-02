@@ -485,6 +485,7 @@ const SafeZonesManager = ({ onBack }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [familyId, setFamilyId] = useState(null); 
+  const [memberId, setMemberId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingZone, setEditingZone] = useState(null);
   const [formData, setFormData] = useState({
@@ -515,13 +516,14 @@ useEffect(() => {
     try {
       const { data: memberData, error: memberError } = await supabase
         .from('family_members')
-        .select('family_id')
+        .select('id, family_id')
         .eq('user_id', user.id)
         .single();
       
       if (memberData && !memberError) {
         console.log('✅ family_id (UUID) obtenido:', memberData.family_id);
         setFamilyId(memberData.family_id);
+		setMemberId(memberData.id);
       } else {
         console.error('Error obteniendo family_id:', memberError);
       }
@@ -630,8 +632,8 @@ const handleEdit = (zone) => {
   const handleSave = async (e) => {
     e.preventDefault();
     
-  if (!familyId || !user?.id) {
-    setError('Error de autenticación');
+  if (!familyId || !memberId) {
+    setError('Error de autenticación - datos no disponibles');
 	return;
   }
     
@@ -662,7 +664,7 @@ const handleEdit = (zone) => {
       if (editingZone) {
         result = await SafeZonesService.updateSafeZone(editingZone.id, zoneData, familyId);
       } else {
-        result = await SafeZonesService.createSafeZone(zoneData, familyId, user.id);
+        result = await SafeZonesService.createSafeZone(zoneData, familyId, memberId);
       }
 
       if (result.success) {
