@@ -331,7 +331,6 @@ useEffect(() => {
           age: member.age || 0,
           location: location,
           address: member.address || "Bogota, Colombia", 
-          distance: "Calculando...",
           lastUpdate: lastUpdate,
           battery: locationResult.location?.battery_level || 85,
           isConnected: isConnected,
@@ -1549,7 +1548,7 @@ return (
                 <p className="text-gray-600">{activeChild?.age} years old</p>
                 <div className="flex items-center space-x-2 mt-1">
                   <MapPin className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">{activeChild?.location}</span>
+                   
                 </div>
               </div>
             </div>
