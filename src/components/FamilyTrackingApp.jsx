@@ -23,6 +23,7 @@ import FamilyMembersService from '../services/FamilyMembersService.js';
 import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
+import gpsTrackingService from '../services/GPSTrackingService';
 
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
@@ -37,6 +38,9 @@ const FamilyTrackingApp = () => {
   const [safeZones, setSafeZones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [isGPSTracking, setIsGPSTracking] = useState(false);
+  const [lastGPSUpdate, setLastGPSUpdate] = useState(null);
+  const [gpsError, setGpsError] = useState(null);  
 
   // Estados para funcionalidades
   const [checkStatus, setCheckStatus] = useState('idle');
@@ -60,63 +64,10 @@ const FamilyTrackingApp = () => {
   phone: '',
   gender: '',
   notes: ''
-});
-const [formLoading, setFormLoading] = useState(false);
-const [formError, setFormError] = useState('');
-const [formSuccess, setFormSuccess] = useState('');
-
-
-  // Funcion para obtener GPS y guardar en base de datos
-  const handleGetCurrentLocation = async () => {
-    try {
-      console.log('Solicitando ubicacion GPS...');
-      
-      const locationData = await geolocationService.getCurrentPosition();
-      console.log('Ubicacion obtenida:', locationData);
-  
-      // Obtener usuario actual (no hardcodeado)
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) {
-        throw new Error('Usuario no autenticado');
-      }
-      
-      // Buscar el miembro familiar del usuario actual
-      const { data: memberData, error: memberError } = await supabase
-        .from('family_members')
-        .select('id, first_name')
-        .eq('user_id', currentUser.id)  // Usar el user_id real
-        .single();
-      
-      if (memberError || !memberData) {
-        throw new Error('No se encontro tu registro en family_members');
-      }
-      
-      console.log('Miembro encontrado:', memberData);
-      
-      // Guardar en base de datos
-      const saveResult = await locationStorageService.saveLocation(
-        memberData.id, 
-        locationData,
-        { isManual: true }
-      );
-      
-      if (saveResult.success) {
-        // Recargar datos del dashboard
-        await loadChildren();
-        
-        alert(`GPS guardado exitosamente!
-        Ubicacion: ${locationData.latitude.toFixed(6)}, ${locationData.longitude.toFixed(6)}
-        Precision: ${locationData.accuracy}m
-        Guardado en base de datos: Si`);
-      } else {
-        throw new Error(saveResult.error);
-      }
-      
-    } catch (error) {
-      console.error('Error:', error);
-      alert(`Error: ${error.message}`);
-    }
-  };
+  });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState('');
   
 // Parte 3 del FamilyTrackingApp.jsx - useEffect hooks y carga de datos
 
@@ -158,6 +109,48 @@ useEffect(() => {
   
   checkAuth();
 }, []);
+
+// AGREGAR ESTE useEffect AQUÍ - GPS tracking automático
+useEffect(() => {
+  const startAutoTracking = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data: memberData } = await supabase
+        .from('family_members')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (memberData) {
+        console.log('Iniciando tracking automático para member:', memberData.id);
+        
+        gpsTrackingService.startTracking(memberData.id, {
+          intervalMs: 30000, // 30 segundos
+          onLocationUpdate: (location) => {
+            setLastGPSUpdate(new Date());
+            setGpsError(null);
+            loadChildren();
+          },
+          onError: (error) => {
+            setGpsError(error.message);
+          }
+        });
+        
+        setIsGPSTracking(true);
+      }
+    } catch (error) {
+      console.error('Error iniciando tracking:', error);
+    }
+  };
+  
+  startAutoTracking();
+  
+  return () => {
+    gpsTrackingService.stopTracking();
+    setIsGPSTracking(false);
+  };
+}, [user?.id]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -1627,13 +1620,25 @@ return (
               <Shield className="h-5 w-5" />
               <span className="font-medium">Gestionar Zonas Seguras</span>
             </button>
-            <button 
-              onClick={handleGetCurrentLocation}
-              className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors"
-            >
-              <span>??</span>
-              <span className="font-medium">Probar GPS</span>
-            </button>
+			{/* POR este nuevo código: */}
+			<div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+			  <div className="flex items-center justify-between">
+				<div className="flex items-center space-x-2">
+				  <div className={`w-3 h-3 rounded-full ${isGPSTracking ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+				  <span className="text-sm font-medium text-gray-700">
+					GPS Tracking: {isGPSTracking ? 'Activo' : 'Inactivo'}
+				  </span>
+				</div>
+				{lastGPSUpdate && (
+				  <span className="text-xs text-gray-500">
+					Última actualización: {lastGPSUpdate.toLocaleTimeString()}
+				  </span>
+				)}
+			  </div>
+			  {gpsError && (
+				<p className="text-xs text-red-600 mt-1">{gpsError}</p>
+			  )}
+			</div>
             <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
               <AlertTriangle className="h-5 w-5" />
               <span className="font-medium">Emergencia</span>
