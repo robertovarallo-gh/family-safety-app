@@ -50,9 +50,10 @@ class LocationStorageService {
         // timestamp se genera automáticamente en la DB
       };
 
-// Debug para ver exactamente qué se está enviando
-console.log('locationRecord antes de insertar:', JSON.stringify(locationRecord));
-alert(`Debug DB: ${JSON.stringify(locationRecord)}`);
+	// Debug para ver exactamente qué se está enviando
+	  console.log('locationRecord antes de insertar:', JSON.stringify(locationRecord));
+	
+	  //alert(`Debug DB: ${JSON.stringify(locationRecord)}`);
 
       console.log('Guardando ubicación:', locationRecord);
 
