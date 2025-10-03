@@ -140,35 +140,34 @@ class SafeZonesService {
   }
 
   // Eliminar zona segura
-  async deleteSafeZone(zoneId, familyId) {
-    try {
-      if (!familyId) throw new Error('Family ID requerido');
+async deleteSafeZone(zoneId, familyId) {
+  try {
+    if (!familyId) throw new Error('Family ID requerido');
 
-      // Soft delete - marcar como inactiva
-      const { data: deletedZone, error: deleteError } = await supabase
-        .from('safe_zones')
-        .update({ 
-          is_active: false, 
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', zoneId)
-        .eq('family_id', familyId);
+    const { error: deleteError } = await supabase
+      .from('safe_zones')
+      .update({ 
+        is_active: false, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', zoneId)
+      .eq('family_id', familyId);
 
-      if (deleteError) throw deleteError;
+    if (deleteError) throw deleteError;
 
-      return {
-        success: true,
-        message: 'Zona segura eliminada exitosamente'
-      };
+    return {
+      success: true,
+      message: 'Zona segura eliminada exitosamente'
+    };
 
-    } catch (error) {
-      console.error('Error eliminando zona segura:', error);
-      return {
-        success: false,
-        message: error.message || 'Error eliminando zona segura'
-      };
-    }
+  } catch (error) {
+    console.error('Error eliminando zona segura:', error);
+    return {
+      success: false,
+      message: error.message || 'Error eliminando zona segura'
+    };
   }
+}
 
   // Verificar si una ubicación está en alguna zona segura
   async checkLocationInSafeZones(latitude, longitude, familyId) {
