@@ -56,6 +56,10 @@ const FamilyTrackingApp = () => {
   const [emergencyType, setEmergencyType] = useState('');
   const [alertStartTime, setAlertStartTime] = useState(null);
 
+  // Estados para zona detection
+  const [zoneAlerts, setZoneAlerts] = useState([]);
+  const [showZoneAlert, setShowZoneAlert] = useState(false);
+
   // Estados para agregar miembros
   const [memberFormData, setMemberFormData] = useState({
   first_name: '',
@@ -118,21 +122,30 @@ useEffect(() => {
     if (!user?.id) return;
     
     try {
+      // Obtener member_id y family_id
       const { data: memberData } = await supabase
         .from('family_members')
-        .select('id')
+        .select('id, family_id')
         .eq('user_id', user.id)
         .single();
       
       if (memberData) {
         console.log('Iniciando tracking automático para member:', memberData.id);
         
+        // Pasar familyId al servicio
+        gpsTrackingService.familyId = memberData.family_id;
+        
         gpsTrackingService.startTracking(memberData.id, {
-          intervalMs: 30000, // 30 segundos
-          onLocationUpdate: (location) => {
+          intervalMs: 30000,
+          onLocationUpdate: (location, zoneDetection) => {
             setLastGPSUpdate(new Date());
             setGpsError(null);
             loadChildren();
+            
+            // Manejar cambios de zonas
+            if (zoneDetection?.hasChanges) {
+              handleZoneChanges(zoneDetection);
+            }
           },
           onError: (error) => {
             setGpsError(error.message);
@@ -369,6 +382,43 @@ useEffect(() => {
       setChildren([]);
     }
   };
+  
+  const handleZoneChanges = (zoneDetection) => {
+    const alerts = [];
+    
+    // Alertas de entrada
+    zoneDetection.entered?.forEach(zone => {
+      alerts.push({
+        id: Date.now() + Math.random(),
+        type: 'entered',
+        zone: zone,
+        member: activeChild?.name || 'Miembro',
+        timestamp: new Date(),
+        message: `${activeChild?.name || 'Miembro'} entró a ${zone.name}`
+      });
+    });
+    
+    // Alertas de salida
+    zoneDetection.exited?.forEach(zone => {
+      alerts.push({
+        id: Date.now() + Math.random(),
+        type: 'exited',
+        zone: zone,
+        member: activeChild?.name || 'Miembro',
+        timestamp: new Date(),
+        message: `${activeChild?.name || 'Miembro'} salió de ${zone.name}`
+      });
+    });
+    
+    if (alerts.length > 0) {
+      setZoneAlerts(prev => [...alerts, ...prev].slice(0, 10));
+      setShowZoneAlert(true);
+      
+      setTimeout(() => {
+        setShowZoneAlert(false);
+      }, 10000);
+    }
+  };  
   
 // Parte 4 del FamilyTrackingApp.jsx - Funciones de configuracion y formularios
 
@@ -1510,6 +1560,48 @@ return (
 		)}
       </div>
     </header>
+	
+	    {showZoneAlert && zoneAlerts.length > 0 && (
+      <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
+        {zoneAlerts.slice(0, 3).map(alert => (
+          <div 
+            key={alert.id}
+            className={`p-4 rounded-lg shadow-lg border-l-4 bg-white ${
+              alert.type === 'entered' 
+                ? 'border-green-500' 
+                : 'border-orange-500'
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start space-x-3">
+                <div className={`p-2 rounded-full ${
+                  alert.type === 'entered' 
+                    ? 'bg-green-100' 
+                    : 'bg-orange-100'
+                }`}>
+                  {alert.type === 'entered' ? '✅' : '⚠️'}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {alert.type === 'entered' ? 'Entró a zona segura' : 'Salió de zona segura'}
+                  </p>
+                  <p className="text-sm text-gray-600">{alert.message}</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {alert.timestamp.toLocaleTimeString()}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowZoneAlert(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
 
     <div className="p-4 space-y-4">
       {children.length <= 1 ? (

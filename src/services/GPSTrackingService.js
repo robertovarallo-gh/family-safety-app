@@ -1,6 +1,7 @@
 // src/services/GPSTrackingService.js
 import geolocationService from './GeolocationService';
 import locationStorageService from './LocationStorageService';
+import zoneDetectionService from './ZoneDetectionService';
 
 class GPSTrackingService {
   constructor() {
@@ -10,6 +11,8 @@ class GPSTrackingService {
     this.updateIntervalMs = 30000; // 30 segundos por defecto
     this.onLocationUpdate = null;
     this.onError = null;
+	this.familyId = null;
+    this.onZoneChange = null;
   }
 
   // Iniciar tracking automático
@@ -22,9 +25,11 @@ class GPSTrackingService {
     const {
       intervalMs = 30000, // 30 segundos
       onLocationUpdate = null,
-      onError = null
+      onError = null,
+	  onZoneChange = null
     } = options;
 
+	this.onZoneChange = onZoneChange;
     this.updateIntervalMs = intervalMs;
     this.onLocationUpdate = onLocationUpdate;
     this.onError = onError;
@@ -97,6 +102,22 @@ class GPSTrackingService {
       if (saveResult.success) {
         console.log('Ubicación guardada automáticamente:', locationData);
         
+	    const zoneDetection = await zoneDetectionService.detectZoneChanges(
+          memberId,
+          locationData.latitude,
+          locationData.longitude,
+          familyId
+        );
+
+      if (zoneDetection.success && zoneDetection.hasChanges) {
+        console.log('Cambios de zona detectados:', zoneDetection);	
+		
+		// Callback para notificaciones
+        if (this.onZoneChange) {
+          this.onZoneChange(zoneDetection);
+        }
+      }
+		
         // Callback si existe
         if (this.onLocationUpdate) {
           this.onLocationUpdate(locationData);
