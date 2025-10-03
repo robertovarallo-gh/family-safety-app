@@ -760,13 +760,20 @@ useEffect(() => {
     return () => clearInterval(interval);
   }, [isEmergencyActive]);
 
-  useEffect(() => {
-    if (currentScreen === 'dashboard' && activeChild && activeChild.id) {
-      setTimeout(() => {
-        loadDashboardGoogleMap();
-      }, 100);
-    }
-  }, [selectedChild, activeChild, currentScreen]);
+useEffect(() => {
+  // Limpiar referencias del mapa cuando NO estás en dashboard
+  if (currentScreen !== 'dashboard') {
+    mapInstanceRef.current = null;
+    markersRef.current = {};
+  }
+  
+  // Cargar mapa cuando ENTRAS al dashboard
+  if (currentScreen === 'dashboard' && activeChild && activeChild.id) {
+    setTimeout(() => {
+      loadDashboardGoogleMap();
+    }, 100);
+  }
+}, [selectedChild, activeChild, currentScreen]);
 
   const loadDashboardGoogleMap = () => {
     const mapContainer = document.getElementById('dashboard-map');
