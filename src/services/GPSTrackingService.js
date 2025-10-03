@@ -88,48 +88,51 @@ class GPSTrackingService {
   }
 
   // Actualizar ubicación
-  async updateLocation(memberId) {
-    try {
-      console.log('Obteniendo ubicación GPS...');
-      
-      const locationData = await geolocationService.getCurrentPosition();
-      
-      // Guardar en base de datos
-      const saveResult = await locationStorageService.saveLocation(
-        memberId,
-        locationData,
-        { isAutomatic: true }
-      );
+async updateLocation(memberId) {
+  try {
+    console.log('Obteniendo ubicación GPS...');
+    
+    const locationData = await geolocationService.getCurrentPosition();
+    
+    // Guardar en base de datos
+    const saveResult = await locationStorageService.saveLocation(
+      memberId,
+      locationData,
+      { isAutomatic: true }
+    );
 
-      if (saveResult.success) {
-        console.log('Ubicación guardada automáticamente:', locationData);
-        
-	    const zoneDetection = await zoneDetectionService.detectZoneChanges(
+    if (saveResult.success) {
+      console.log('Ubicación guardada automáticamente:', locationData);
+      
+      // Verificar que familyId existe antes de usarlo
+      if (this.familyId) {
+        // Detectar cambios de zonas
+        const zoneDetection = await zoneDetectionService.detectZoneChanges(
           memberId,
           locationData.latitude,
           locationData.longitude,
-          familyId
+          this.familyId
         );
 
-      if (zoneDetection.success && zoneDetection.hasChanges) {
-        console.log('Cambios de zona detectados:', zoneDetection);	
-		
-		// Callback para notificaciones
-        if (this.onZoneChange) {
-          this.onZoneChange(zoneDetection);
+        if (zoneDetection.success && zoneDetection.hasChanges) {
+          console.log('Cambios de zona detectados:', zoneDetection);
+          
+          if (this.onZoneChange) {
+            this.onZoneChange(zoneDetection);
+          }
         }
       }
-		
-        // Callback si existe
-        if (this.onLocationUpdate) {
-          this.onLocationUpdate(locationData);
-        }
+      
+      // Callback de ubicación
+      if (this.onLocationUpdate) {
+        this.onLocationUpdate(locationData);
       }
-    } catch (error) {
-      console.error('Error actualizando ubicación:', error);
-      this.handleError(error);
     }
+  } catch (error) {
+    console.error('Error actualizando ubicación:', error);
+    this.handleError(error);
   }
+}
 
   // Manejar actualización de watchPosition
   async handlePositionUpdate(position, memberId) {
