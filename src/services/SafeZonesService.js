@@ -144,6 +144,10 @@ async deleteSafeZone(zoneId, familyId) {
   try {
     if (!familyId) throw new Error('Family ID requerido');
 
+    console.log('??? Eliminando zona:');
+    console.log('Zone ID:', zoneId);
+    console.log('Family ID:', familyId);
+
     const { error: deleteError } = await supabase
       .from('safe_zones')
       .update({ 

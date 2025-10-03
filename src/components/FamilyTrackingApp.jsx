@@ -179,17 +179,17 @@ useEffect(() => {
     return () => clearInterval(interval);
   }, [children.length, currentScreen]);
 
-  const loadAppData = async (userData) => {
-    try {
-      setLoading(true);
-      await loadSafeZones();
-      await loadChildren(userData);
-    } catch (error) {
-      console.error('Error cargando datos de la aplicacion:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+const loadAppData = async (userData) => {
+  try {
+    setLoading(true);
+    // await loadSafeZones(); // YA NO ES NECESARIO AQUÍ
+    await loadChildren(userData);
+  } catch (error) {
+    console.error('Error cargando datos de la aplicación:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
 const checkMemberInZones = (memberCoordinates, zones) => {
   if (!zones || zones.length === 0) return null;
@@ -228,8 +228,10 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
       console.log('📧 Email del usuario:', userData?.email);
       console.log('👤 User ID:', userData?.id);
       console.log('👨‍👩‍👧 Family ID del metadata:', userData?.user_metadata?.family_id);
+	  console.log('🔍 LoadChildren - SafeZones disponibles:', safeZones?.length || 0);
       
 // PASO 1: Buscar el family_id REAL del usuario en family_members
+    const currentZones = await loadSafeZones();
 	console.log('Buscando family_id real del usuario en BD...');
 	const { data: currentMember, error: memberError } = await supabase
 	  .from('family_members')
@@ -383,7 +385,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
           isConnected: isConnected,
           avatar: member.role === 'ni帽o' ? '👦' : member.role === 'adolescente' ? '🧑' : member.role === 'adulto' ? '👨' : '👩',
           photo: member.photo_url || "/api/placeholder/48/48",
-          safeZone: checkMemberInZones(coordinates, safeZones),
+          safeZone: checkMemberInZones(coordinates, currentZones),
           messagingStatus: "online",
           coordinates: coordinates, // UBICACION REAL del GPS
           role: member.role, 
@@ -457,30 +459,33 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 // Parte 4 del FamilyTrackingApp.jsx - Funciones de configuracion y formularios
 
 const loadSafeZones = async () => {
-    try {
-      const zones = await familyService.getSafeZones();
+  try {
+    const zones = await familyService.getSafeZones();
+    
+    if (zones && Array.isArray(zones) && zones.length > 0) {
+      const formattedZones = zones.map(zone => ({
+        id: zone.id,
+        name: zone.name,
+        coordinates: { 
+          lat: zone.latitude,
+          lng: zone.longitude 
+        },
+        radius: zone.radius,
+        type: zone.type
+      }));
       
-      if (zones && Array.isArray(zones) && zones.length > 0) {
-        const formattedZones = zones.map(zone => ({
-          id: zone.id,
-          name: zone.name,
-          coordinates: { 
-            lat: zone.latitude,
-            lng: zone.longitude 
-          },
-          radius: zone.radius,
-          type: zone.type
-        }));
-        
-        setSafeZones(formattedZones);
-      } else {
-        setSafeZones([]);
-      }
-    } catch (error) {
-      console.error('鈱?Error cargando zonas seguras:', error);
+      setSafeZones(formattedZones);
+      return formattedZones; // RETORNAR las zonas
+    } else {
       setSafeZones([]);
+      return []; // RETORNAR array vacío
     }
-  };
+  } catch (error) {
+    console.error('Error cargando zonas seguras:', error);
+    setSafeZones([]);
+    return []; // RETORNAR array vacío en caso de error
+  }
+};
 
   // Funcion para calcular edad
   const calculateAge = (birthDate) => {
