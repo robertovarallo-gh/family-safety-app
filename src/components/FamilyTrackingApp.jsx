@@ -182,10 +182,10 @@ useEffect(() => {
   const loadAppData = async (userData) => {
     try {
       setLoading(true);
-      await loadChildren(userData);
       await loadSafeZones();
+      await loadChildren(userData);
     } catch (error) {
-      console.error('鈱?Error cargando datos de la aplicacion:', error);
+      console.error('Error cargando datos de la aplicacion:', error);
     } finally {
       setLoading(false);
     }
