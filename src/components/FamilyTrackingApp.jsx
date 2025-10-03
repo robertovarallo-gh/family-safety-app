@@ -191,6 +191,37 @@ useEffect(() => {
     }
   };
 
+const checkMemberInZones = (memberCoordinates, zones) => {
+  if (!zones || zones.length === 0) return null;
+  
+  for (const zone of zones) {
+    const distance = calculateDistance(
+      memberCoordinates.lat,
+      memberCoordinates.lng,
+      zone.coordinates.lat,
+      zone.coordinates.lng
+    );
+    
+    if (distance <= zone.radius) {
+      return zone.name;
+    }
+  }
+  
+  return null;
+};
+
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371000; // metros
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+};
+
   const loadChildren = async (userData = user) => {
     try {
       console.log('🔍 === INICIO loadChildren ===');
@@ -352,7 +383,7 @@ useEffect(() => {
           isConnected: isConnected,
           avatar: member.role === 'ni帽o' ? '👦' : member.role === 'adolescente' ? '🧑' : member.role === 'adulto' ? '👨' : '👩',
           photo: member.photo_url || "/api/placeholder/48/48",
-          safeZone: "Verificando zona...",
+          safeZone: checkMemberInZones(coordinates, safeZones),
           messagingStatus: "online",
           coordinates: coordinates, // UBICACION REAL del GPS
           role: member.role, 
