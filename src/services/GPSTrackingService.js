@@ -24,15 +24,17 @@ class GPSTrackingService {
 
     const {
       intervalMs = 30000, // 30 segundos
+	  familyId = null,
       onLocationUpdate = null,
       onError = null,
 	  onZoneChange = null
     } = options;
 
-	this.onZoneChange = onZoneChange;
+	this.familyId = familyId;
     this.updateIntervalMs = intervalMs;
     this.onLocationUpdate = onLocationUpdate;
     this.onError = onError;
+	this.onZoneChange = onZoneChange;
     this.isTracking = true;
 
     console.log(`Iniciando GPS tracking automático cada ${intervalMs / 1000}s`);

@@ -137,6 +137,7 @@ useEffect(() => {
         
         gpsTrackingService.startTracking(memberData.id, {
           intervalMs: 30000,
+		  familyId: memberData.family_id,
           onLocationUpdate: (location, zoneDetection) => {
             setLastGPSUpdate(new Date());
             setGpsError(null);
