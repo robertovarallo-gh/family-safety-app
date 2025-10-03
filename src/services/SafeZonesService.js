@@ -318,17 +318,17 @@ async deleteSafeZone(zoneId, familyId) {
   }
 
   // Íconos para tipos
-  getTypeIcon(type) {
-    const icons = {
-      'home': '🏠',
-      'school': '🏫',
-      'park': '🌳',
-      'relative': '👨‍👩‍👧‍�?,
-      'activity': '�?,
-      'custom': '📍'
-    };
-    return icons[type] || '📍';
-  }
+getTypeIcon(type) {
+  const icons = {
+    'home': '??',
+    'school': '??',
+    'park': '??',
+    'relative': '???????????',
+    'activity': '?',
+    'custom': '??'
+  };
+  return icons[type] || '??';
+}
 
   // Formatear dirección corta
   formatShortAddress(address) {
