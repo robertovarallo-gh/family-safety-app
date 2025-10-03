@@ -43,7 +43,8 @@ const FamilyTrackingApp = () => {
   const [lastGPSUpdate, setLastGPSUpdate] = useState(null);
   const [gpsError, setGpsError] = useState(null);  
   const mapInstanceRef = useRef(null);
-  const markersRef = useRef({});  
+  const markersRef = useRef({});
+  const zoneCirclesRef = useRef([]);
 
   // Estados para funcionalidades
   const [checkStatus, setCheckStatus] = useState('idle');
@@ -799,47 +800,65 @@ useEffect(() => {
   }
 }, [selectedChild, activeChild, currentScreen]);
 
-  const loadDashboardGoogleMap = () => {
-    const mapContainer = document.getElementById('dashboard-map');
-    if (!mapContainer || !activeChild) return;
-
-    if (window.google && window.google.maps) {
+const loadDashboardGoogleMap = () => {
+  const mapContainer = document.getElementById('dashboard-map');
+  
+  if (!mapContainer || !activeChild) return;
+  
+  console.log('🗺️ Inicializando mapa - Zonas disponibles:', safeZones?.length || 0);
+  
+  if (window.google && window.google.maps) {
+    initializeDashboardMap(mapContainer);
+    return;
+  }
+  if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDFgYBq7tKtG9LP2w2-1XhFwBUOndyF0rA&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      console.log('🗺️ Google Maps cargado - Zonas:', safeZones?.length || 0);
       initializeDashboardMap(mapContainer);
-      return;
-    }
-
-    if (!document.querySelector('script[src*="maps.googleapis.com"]')) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDFgYBq7tKtG9LP2w2-1XhFwBUOndyF0rA&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => initializeDashboardMap(mapContainer);
-      document.head.appendChild(script);
-    } else {
-      const checkGoogleMaps = setInterval(() => {
-        if (window.google && window.google.maps) {
-          clearInterval(checkGoogleMaps);
-          initializeDashboardMap(mapContainer);
-        }
-      }, 100);
-    }
-  };
+    };
+    document.head.appendChild(script);
+  } else {
+    const checkGoogleMaps = setInterval(() => {
+      if (window.google && window.google.maps) {
+        clearInterval(checkGoogleMaps);
+        console.log('🗺️ Retry Google Maps - Zonas:', safeZones?.length || 0);
+        initializeDashboardMap(mapContainer);
+      }
+    }, 100);
+  }
+};
 
 const initializeDashboardMap = (mapContainer) => {
   if (!window.google || !activeChild) return;
+
+  console.log('🎯 Zonas disponibles:', safeZones?.length || 0);
 
   const childLocation = {
     lat: activeChild.coordinates?.lat || 4.6951,
     lng: activeChild.coordinates?.lng || -74.0787
   };
 
-  // Si el mapa ya existe, solo actualizar marcador
+  // Si el mapa ya existe
   if (mapInstanceRef.current) {
     updateMarkerPosition(activeChild.id, childLocation);
+    
+    // Limpiar zonas anteriores
+    zoneCirclesRef.current.forEach(item => {
+      if (item.circle) item.circle.setMap(null);
+      if (item.marker) item.marker.setMap(null);
+    });
+    zoneCirclesRef.current = [];
+    
+    // Redibujar zonas con datos actuales
+    drawSafeZones(mapInstanceRef.current);
     return;
   }
 
-  // Crear mapa solo la primera vez
+  // Crear mapa primera vez
   const map = new window.google.maps.Map(mapContainer, {
     zoom: 15,
     center: childLocation,
@@ -847,76 +866,71 @@ const initializeDashboardMap = (mapContainer) => {
     streetViewControl: true,
     fullscreenControl: false,
     styles: [
-      {
-        featureType: "poi",
-        elementType: "labels",
-        stylers: [{ visibility: "off" }]
-      }
+      { featureType: "poi", elementType: "labels", stylers: [{ visibility: "off" }] }
     ]
   });
 
   mapInstanceRef.current = map;
-
-  // Crear marcador inicial
   createMarker(activeChild.id, childLocation, map);
-
-  // Crear zonas seguras (solo una vez)
-  if (safeZones && safeZones.length > 0) {
-    safeZones.forEach((zone) => {
-      const circle = new window.google.maps.Circle({
-        strokeColor: '#10b981',
-        strokeOpacity: 0.8,
-        strokeWeight: 2,
-        fillColor: '#10b981',
-        fillOpacity: 0.15,
-        map: map,
-        center: {
-          lat: zone.coordinates.lat,
-          lng: zone.coordinates.lng
-        },
-        radius: zone.radius || 200
-      });
-
-      const zoneMarker = new window.google.maps.Marker({
-        position: {
-          lat: zone.coordinates.lat,
-          lng: zone.coordinates.lng
-        },
-        map: map,
-        title: zone.name,
-        icon: {
-          url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-            <svg width="35" height="35" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="17.5" cy="17.5" r="15" fill="#10b981" stroke="#FFFFFF" stroke-width="3"/>
-              <text x="17.5" y="23" text-anchor="middle" fill="white" font-size="14" font-family="Arial">
-                🛡️
-              </text>
-            </svg>
-          `)}`,
-          scaledSize: new window.google.maps.Size(35, 35),
-          anchor: new window.google.maps.Point(17.5, 17.5)
-        }
-      });
-
-      const zoneInfoWindow = new window.google.maps.InfoWindow({
-        content: `
-          <div style="padding: 10px; font-family: system-ui, -apple-system, sans-serif;">
-            <h4 style="margin: 0 0 6px 0; color: #10b981; font-size: 16px; display: flex; align-items: center;">
-              🛡️${zone.name}
-            </h4>
-            <p style="margin: 0; color: #6b7280; font-size: 13px;">
-              Radio de seguridad: ${zone.radius || 200} metros
-            </p>
-          </div>
-        `
-      });
-
-      zoneMarker.addListener('click', () => {
-        zoneInfoWindow.open(map, zoneMarker);
-      });
-    });
-  }
+  drawSafeZones(map);
 };
+
+// Nueva función para dibujar zonas
+const drawSafeZones = (map) => {
+  console.log('🎨 Dibujando zonas:', safeZones?.length || 0);
+  
+  if (!safeZones || safeZones.length === 0) {
+    console.log('⚠️ No hay zonas para dibujar');
+    return;
+  }
+
+  safeZones.forEach((zone) => {
+    console.log('✏️ Dibujando zona:', zone.name);
+    
+    const circle = new window.google.maps.Circle({
+      strokeColor: '#10b981',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#10b981',
+      fillOpacity: 0.15,
+      map: map,
+      center: { lat: zone.coordinates.lat, lng: zone.coordinates.lng },
+      radius: zone.radius || 200
+    });
+
+    const zoneMarker = new window.google.maps.Marker({
+      position: { lat: zone.coordinates.lat, lng: zone.coordinates.lng },
+      map: map,
+      title: zone.name,
+      icon: {
+        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+          <svg width="35" height="35" viewBox="0 0 35 35" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="17.5" cy="17.5" r="15" fill="#10b981" stroke="#FFFFFF" stroke-width="3"/>
+            <text x="17.5" y="23" text-anchor="middle" fill="white" font-size="14">🛡️</text>
+          </svg>
+        `)}`,
+        scaledSize: new window.google.maps.Size(35, 35),
+        anchor: new window.google.maps.Point(17.5, 17.5)
+      }
+    });
+
+    const infoWindow = new window.google.maps.InfoWindow({
+      content: `
+        <div style="padding: 10px; font-family: system-ui;">
+          <h4 style="margin: 0 0 6px 0; color: #10b981;">🛡️${zone.name}</h4>
+          <p style="margin: 0; color: #6b7280; font-size: 13px;">
+            Radio: ${zone.radius || 200}m
+          </p>
+        </div>
+      `
+    });
+
+    zoneMarker.addListener('click', () => infoWindow.open(map, zoneMarker));
+    
+    zoneCirclesRef.current.push({ circle, marker: zoneMarker });
+  });
+};
+
 
 // Nueva función para crear marcador
 const createMarker = (memberId, location, map) => {
