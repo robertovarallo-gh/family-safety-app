@@ -1646,12 +1646,11 @@ return (
                     Actualizado: {activeChild?.lastUpdate || 'Hace un momento'}
                   </span>
                 </div>
-                {activeChild?.safeZone && activeChild.safeZone !== "Zona desconocida" && (
-                  <div className="flex items-center space-x-1 text-green-600">
-                    <span className="text-green-500">???</span>
-                    <span className="font-medium">En zona segura</span>
-                  </div>
-                )}
+				{activeChild?.safeZone && activeChild.safeZone !== "Verificando zona..." && (
+				  <div className="flex items-center space-x-1 text-green-600">
+					<span className="font-medium">En zona segura: {activeChild.safeZone}</span>
+				  </div>
+				)}
               </div>
             </div>
           </div>
