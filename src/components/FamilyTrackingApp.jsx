@@ -124,7 +124,6 @@ useEffect(() => {
     if (!user?.id) return;
     
     try {
-      // Obtener member_id y family_id
       const { data: memberData } = await supabase
         .from('family_members')
         .select('id, family_id')
@@ -134,21 +133,15 @@ useEffect(() => {
       if (memberData) {
         console.log('Iniciando tracking automático para member:', memberData.id);
         
-        // Pasar familyId al servicio
         gpsTrackingService.familyId = memberData.family_id;
         
         gpsTrackingService.startTracking(memberData.id, {
           intervalMs: 30000,
-		  familyId: memberData.family_id,
+          familyId: memberData.family_id,
           onLocationUpdate: (location) => {
             setLastGPSUpdate(new Date());
             setGpsError(null);
             loadChildren();
-            
-            // Manejar cambios de zonas
-            if (zoneDetection?.hasChanges) {
-              handleZoneChanges(zoneDetection);
-            }
           },
           onError: (error) => {
             setGpsError(error.message);
@@ -169,6 +162,7 @@ useEffect(() => {
     setIsGPSTracking(false);
   };
 }, [user?.id]);
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -1767,10 +1761,6 @@ return (
                 </div>
                 <p className="text-xs text-gray-500 mt-1">Status</p>
               </div>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-500">Last update: {activeChild?.lastUpdate}</p>
-              <p className="text-sm text-green-600 font-medium">In Safe Zone: {activeChild?.safeZone}</p>
             </div>
           </div>
 
