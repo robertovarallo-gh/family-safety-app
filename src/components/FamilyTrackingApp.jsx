@@ -415,6 +415,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
     }
   };
   
+  /*
   const handleZoneChanges = (zoneDetection) => {
     const alerts = [];
     
@@ -451,6 +452,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
       }, 10000);
     }
   };  
+  */
   
 // Parte 4 del FamilyTrackingApp.jsx - Funciones de configuracion y formularios
 
