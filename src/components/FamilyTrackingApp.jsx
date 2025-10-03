@@ -24,6 +24,7 @@ import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 import gpsTrackingService from '../services/GPSTrackingService';
+import SafeZonesService from '../services/SafeZonesService';
 
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
