@@ -137,31 +137,30 @@ async updateLocation(memberId) {
 }
 
   // Manejar actualización de watchPosition
-  async handlePositionUpdate(position, memberId) {
-    const locationData = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      accuracy: position.coords.accuracy,
-      altitude: position.coords.altitude,
-      altitudeAccuracy: position.coords.altitudeAccuracy,
-      heading: position.coords.heading,
-      speed: position.coords.speed,
-      timestamp: new Date(position.timestamp).toISOString()
-    };
+async handlePositionUpdate(position, memberId) {
+  const locationData = {
+    latitude: position.coords.latitude,
+    longitude: position.coords.longitude,
+    accuracy: position.coords.accuracy,
+    altitude: position.coords.altitude,
+    altitudeAccuracy: position.coords.altitudeAccuracy,
+    heading: position.coords.heading,
+    speed: position.coords.speed,
+    timestamp: new Date(position.timestamp).toISOString()
+  };
 
-    // Solo guardar si la precisión es razonable (< 100m)
-    if (locationData.accuracy < 100) {
-      await locationStorageService.saveLocation(
-        memberId,
-        locationData,
-        { isAutomatic: true, fromWatch: true }
-      );
+  if (locationData.accuracy < 100) {
+    await locationStorageService.saveLocation(
+      memberId,
+      locationData,
+      { isAutomatic: true, fromWatch: true }
+    );
 
-      if (this.onLocationUpdate) {
-        this.onLocationUpdate(locationData);
-      }
+    if (this.onLocationUpdate) {
+      this.onLocationUpdate(locationData); // ← SIN zoneDetection
     }
   }
+}
 
   // Manejar errores
   handleError(error) {
