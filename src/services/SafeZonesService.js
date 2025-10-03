@@ -152,9 +152,7 @@ class SafeZonesService {
           updated_at: new Date().toISOString() 
         })
         .eq('id', zoneId)
-        .eq('family_id', familyId)
-        .select()
-        .single();
+        .eq('family_id', familyId);
 
       if (deleteError) throw deleteError;
 
@@ -326,8 +324,8 @@ class SafeZonesService {
       'home': '🏠',
       'school': '🏫',
       'park': '🌳',
-      'relative': '👨‍👩‍👧‍👦',
-      'activity': '⚽',
+      'relative': '👨‍👩‍👧‍�?,
+      'activity': '�?,
       'custom': '📍'
     };
     return icons[type] || '📍';
