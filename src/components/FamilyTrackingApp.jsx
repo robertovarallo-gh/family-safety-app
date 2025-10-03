@@ -460,10 +460,26 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 const loadSafeZones = async () => {
   try {
-    const zones = await familyService.getSafeZones();
+    // Obtener family_id del usuario actual
+    const { data: memberData } = await supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!memberData?.family_id) {
+      console.log('⚠️ No se encontró family_id para el usuario');
+      setSafeZones([]);
+      return [];
+    }
+
+    console.log('🔍 Cargando zonas para family_id:', memberData.family_id);
     
-    if (zones && Array.isArray(zones) && zones.length > 0) {
-      const formattedZones = zones.map(zone => ({
+    // Pasar el family_id correcto
+    const zones = await SafeZonesService.getFamilySafeZones(memberData.family_id);
+    
+    if (zones?.success && zones.zones && Array.isArray(zones.zones) && zones.zones.length > 0) {
+      const formattedZones = zones.zones.map(zone => ({
         id: zone.id,
         name: zone.name,
         coordinates: { 
@@ -474,16 +490,18 @@ const loadSafeZones = async () => {
         type: zone.type
       }));
       
+      console.log('✅ Zonas cargadas:', formattedZones.length);
       setSafeZones(formattedZones);
-      return formattedZones; // RETORNAR las zonas
+      return formattedZones;
     } else {
+      console.log('⚠️ No hay zonas para esta familia');
       setSafeZones([]);
-      return []; // RETORNAR array vacío
+      return [];
     }
   } catch (error) {
     console.error('Error cargando zonas seguras:', error);
     setSafeZones([]);
-    return []; // RETORNAR array vacío en caso de error
+    return [];
   }
 };
 
