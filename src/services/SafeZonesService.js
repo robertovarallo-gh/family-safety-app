@@ -161,15 +161,15 @@ async deleteSafeZone(zoneId, familyId) {
     };
 
   } catch (error) {
-    console.error('Error eliminando zona segura:', error);
-    return {
-      success: false,
-      message: error.message || 'Error eliminando zona segura'
-    };
-  }
+      console.error('Error eliminando zona segura:', error);
+      return {
+        success: false,
+        message: error.message || 'Error eliminando zona segura'
+      };
+    }
 }
 
-  // Verificar si una ubicación está en alguna zona segura
+  // Verificar si una ubicacion esta en alguna zona segura
   async checkLocationInSafeZones(latitude, longitude, familyId) {
     try {
       const zonesResult = await this.getFamilySafeZones(familyId);
