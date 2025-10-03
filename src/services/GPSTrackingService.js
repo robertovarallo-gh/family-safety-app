@@ -105,7 +105,8 @@ async updateLocation(memberId) {
       console.log('Ubicación guardada automáticamente:', locationData);
       
       // Verificar que familyId existe antes de usarlo
-      if (this.familyId) {
+      /* 
+	    if (this.familyId) {
         // Detectar cambios de zonas
         const zoneDetection = await zoneDetectionService.detectZoneChanges(
           memberId,
@@ -121,7 +122,8 @@ async updateLocation(memberId) {
             this.onZoneChange(zoneDetection);
           }
         }
-      }
+      } 
+	  */
       
       // Callback de ubicación
       if (this.onLocationUpdate) {
