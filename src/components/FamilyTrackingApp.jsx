@@ -25,6 +25,7 @@ import locationStorageService from '../services/LocationStorageService.js';
 import { supabase } from '../services/supabaseClient.js';
 import gpsTrackingService from '../services/GPSTrackingService';
 import SafeZonesService from '../services/SafeZonesService';
+import realtimeLocationService from '../services/RealtimeLocationService';
 
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
@@ -165,17 +166,41 @@ useEffect(() => {
   };
 }, [user?.id]);
 
+// Suscripción a cambios en tiempo real
+useEffect(() => {
+  const setupRealtime = async () => {
+    if (!user?.id) return;
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (children.length > 0 && currentScreen === 'dashboard') {
-        console.log('Auto-refresh: Actualizando ubicaciones...');
-        loadChildren();
+    try {
+      // Obtener family_id
+      const { data: memberData } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (memberData?.family_id) {
+        console.log('Configurando Realtime para familia:', memberData.family_id);
+
+        // Suscribirse a cambios
+        realtimeLocationService.subscribe(memberData.family_id, (newLocation) => {
+          console.log('Cambio de ubicación detectado - recargando children');
+          loadChildren(); // Recargar cuando alguien actualice ubicación
+        });
       }
-    }, 30000); // 30 segundos
-    
-    return () => clearInterval(interval);
-  }, [children.length, currentScreen]);
+    } catch (error) {
+      console.error('Error configurando Realtime:', error);
+    }
+  };
+
+  setupRealtime();
+
+  // Cleanup
+  return () => {
+    realtimeLocationService.unsubscribe();
+  };
+}, [user?.id]);
+
 
 const loadAppData = async (userData) => {
   try {
