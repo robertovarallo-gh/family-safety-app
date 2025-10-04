@@ -217,8 +217,23 @@ async getCurrentPosition() {
 
     navigator.geolocation.getCurrentPosition(
       async (position) => {
-        // Obtener batería
-        const batteryInfo = await this.getBatteryLevel();
+        // Obtener batería directamente aquí
+        let batteryLevel = null;
+        let batteryAvailable = false;
+        
+        // Detectar iOS
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        if (!isIOS && 'getBattery' in navigator) {
+          try {
+            const battery = await navigator.getBattery();
+            batteryLevel = Math.round(battery.level * 100);
+            batteryAvailable = true;
+            console.log('Batería obtenida:', batteryLevel);
+          } catch (error) {
+            console.log('Error obteniendo batería:', error);
+          }
+        }
         
         resolve({
           latitude: position.coords.latitude,
@@ -229,8 +244,8 @@ async getCurrentPosition() {
           heading: position.coords.heading,
           speed: position.coords.speed,
           timestamp: new Date(position.timestamp).toISOString(),
-          battery_level: batteryInfo.level, // null si no disponible
-          battery_available: batteryInfo.available
+          battery_level: batteryLevel,
+          battery_available: batteryAvailable
         });
       },
       (error) => {
@@ -244,7 +259,6 @@ async getCurrentPosition() {
     );
   });
 }
-
 
   /**
    * Manejo de errores de geolocalización
