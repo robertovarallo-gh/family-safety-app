@@ -46,34 +46,6 @@ class GeolocationService {
    * @param {Object} options - Opciones de geolocalización
    * @returns {Promise<Object>} Datos de ubicación
    */
-  async getCurrentPosition(options = {}) {
-    const defaultOptions = {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 60000 // Cache por 1 minuto
-    };
-
-    const finalOptions = { ...defaultOptions, ...options };
-
-    return new Promise((resolve, reject) => {
-      if (!this.isSupported()) {
-        reject(new Error('Geolocalización no soportada'));
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const locationData = this.formatPositionData(position);
-          this.lastKnownPosition = locationData;
-          resolve(locationData);
-        },
-        (error) => {
-          reject(this.handleGeolocationError(error));
-        },
-        finalOptions
-      );
-    });
-  }
 
   /**
    * Iniciar tracking continuo de ubicación
@@ -206,27 +178,27 @@ class GeolocationService {
 		  };
 	    }
 
-  // Intentar obtener batería en otros dispositivos
-  if ('getBattery' in navigator) {
-    try {
-      const battery = await navigator.getBattery();
-      const level = Math.round(battery.level * 100);
+    // Intentar obtener batería en otros dispositivos
+    if ('getBattery' in navigator) {
+      try {
+        const battery = await navigator.getBattery();
+        const level = Math.round(battery.level * 100);
       
-      return { 
-        success: true, 
-        level: level, 
-        available: true 
-      };
-    } catch (error) {
-      console.log('Battery API no disponible:', error);
-      return { 
-        success: false, 
-        level: null, 
-        available: false,
-        reason: 'Navegador no soporta Battery API'
-      };
+        return { 
+          success: true, 
+          level: level, 
+          available: true 
+        };
+      } catch (error) {
+        console.log('Battery API no disponible:', error);
+        return { 
+          success: false, 
+          level: null, 
+          available: false,
+          reason: 'Navegador no soporta Battery API'
+        };
+      }
     }
-  }
 
   return { 
     success: false, 
