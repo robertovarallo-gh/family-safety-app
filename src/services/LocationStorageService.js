@@ -38,8 +38,9 @@ async saveLocation(userId, locationData, options = {}) {
       address: options.address || null,
     };
 
-    console.log('locationRecord antes de insertar:', JSON.stringify(locationRecord));
-    console.log('Guardando ubicación:', locationRecord);
+	console.log('🔋 DEBUG - locationData completo:', locationData);
+	console.log('🔋 DEBUG - battery_level que se va a guardar:', locationData.battery_level);
+	console.log('🔋 DEBUG - locationRecord final:', locationRecord);
     
     const { data, error } = await supabase
       .from('user_locations')
