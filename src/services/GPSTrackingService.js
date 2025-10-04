@@ -138,6 +138,21 @@ async updateLocation(memberId) {
 
   // Manejar actualización de watchPosition
 async handlePositionUpdate(position, memberId) {
+  
+  // Obtener batería igual que en getCurrentPosition
+  let batteryLevel = null;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  
+  if (!isIOS && 'getBattery' in navigator) {
+    try {
+      const battery = await navigator.getBattery();
+      batteryLevel = Math.round(battery.level * 100);
+      console.log('Batería en watchPosition:', batteryLevel);
+    } catch (error) {
+      console.log('Error obteniendo batería en watch:', error);
+    }
+  }
+  
   const locationData = {
     latitude: position.coords.latitude,
     longitude: position.coords.longitude,
