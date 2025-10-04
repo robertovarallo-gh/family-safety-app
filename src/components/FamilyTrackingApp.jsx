@@ -57,6 +57,8 @@ const FamilyTrackingApp = () => {
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
   const [emergencyType, setEmergencyType] = useState('');
   const [alertStartTime, setAlertStartTime] = useState(null);
+  // Detectar si es iOS
+  const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
   // Estados para zona detection
   const [zoneAlerts, setZoneAlerts] = useState([]);
@@ -1087,6 +1089,31 @@ const handleCheckMessages = () => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
   
+  const handleLowBatteryAlert = async () => {
+  if (!window.confirm('¿Notificar a tu familia que tu batería está baja?')) {
+    return;
+  }
+  
+  try {
+    // Guardar alerta de batería baja en la BD
+    const { error } = await supabase
+      .from('user_locations')
+      .update({ 
+        battery_level: 10,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id);
+    
+    if (!error) {
+      alert('✅ Familia notificada: Tu batería está baja');
+      await loadChildren();
+    }
+  } catch (error) {
+    console.error('Error notificando batería baja:', error);
+    alert('Error enviando alerta');
+  }
+};
+  
 // Parte 7 del FamilyTrackingApp.jsx - Renders condicionales (Login, Loading, Add Child)
 
 // 1. Pantalla de login
@@ -1729,8 +1756,7 @@ return (
 
           <div className="bg-white rounded-xl shadow-sm border p-6">
             <div className="flex items-center mb-4">
-              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">INFO</span>
-              <h3 className="text-lg font-semibold text-gray-900">Información del Miembro Familiar</h3>
+              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">INFO del Miembro Familiar</span>
             </div>              
             <div className="flex items-center space-x-4 mb-4">
               <div className="relative">
@@ -1741,19 +1767,28 @@ return (
                 <h2 className="text-xl font-semibold text-gray-900">{activeChild?.name}</h2>
                 <p className="text-gray-600">{activeChild?.age} years old</p>
                 <div className="flex items-center space-x-2 mt-1">
-                  <MapPin className="h-4 w-4 text-gray-400" />
-                   
+                  <MapPin className="h-4 w-4 text-gray-400" />                   
                 </div>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center space-x-2">
-                  <Battery className={`h-4 w-4 ${activeChild?.battery > 20 ? 'text-green-500' : 'text-red-500'}`} />
-                  <span className="text-sm font-medium">{activeChild?.battery}%</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Battery</p>
-              </div> 
+			  <div className="bg-gray-50 rounded-lg p-3">
+				<div className="flex items-center space-x-2">
+				  <Battery className={`h-4 w-4 ${
+					activeChild.battery === null 
+					  ? 'text-gray-400' 
+					  : activeChild.battery > 20 
+					    ? 'text-green-500' 
+					    : 'text-red-500'
+				  }`} />
+				  <span className="text-sm font-medium">
+				    {activeChild.battery === null ? 'N/D' : `${activeChild.battery}%`}
+				  </span>
+			    </div>
+			    <p className="text-xs text-gray-500 mt-1">
+				  {activeChild.battery === null ? 'No disponible' : 'Battery'}
+			    </p>
+			  </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <div className="flex items-center space-x-2">
                   <Wifi className={`h-4 w-4 ${activeChild?.isConnected ? 'text-green-500' : 'text-red-500'}`} />
@@ -1769,35 +1804,47 @@ return (
               <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">Acciones</span>
               <h3 className="text-lg font-semibold text-gray-900">Acciones rápidas</h3>
             </div>
-            <button onClick={() => setCurrentScreen('messaging')} className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
+ 
+			{/* Botón solo para iOS */}
+			{isIOSDevice && (
+			  <button 
+				onClick={handleLowBatteryAlert}
+				className="w-full flex items-center space-x-3 px-4 py-3 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg transition-colors"
+			  >
+				<Battery className="h-5 w-5" />
+				<span className="font-medium">Mi batería está baja</span>
+			  </button>
+			)}
+			
+			<button onClick={() => setCurrentScreen('messaging')} className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
               <MessageCircle className="h-5 w-5" />
               <span className="font-medium">Enviar Mensaje</span>
             </button>
             <button onClick={handleCheckMessages} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               checkStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
-            }`}>
-              {checkStatus === 'sending' ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-                  <span className="font-medium">Enviando Check...</span>
-                </>
-              ) : checkStatus === 'waiting' ? (
-                <>
-                  <Clock className="h-5 w-5 animate-pulse" />
-                  <span className="font-medium">Aguardando {activeChild?.name}...</span>
-                </>
-              ) : checkStatus === 'success' ? (
-                <>
-                  <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">Check OK!</span>
-                  <span className="ml-auto text-xs bg-green-200 px-2 py-1 rounded">{checkRequestTime}</span>
-                </>
-              ) : (
-                <>
-                  <MessageCircle className="h-5 w-5" />
-                  <span className="font-medium">Checa Status</span>
-                </>
-              )}
+              }`}>
+                {checkStatus === 'sending' ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                      <span className="font-medium">Enviando Check...</span>
+                    </>
+                ) : checkStatus === 'waiting' ? (
+                    <>
+                      <Clock className="h-5 w-5 animate-pulse" />
+                      <span className="font-medium">Aguardando {activeChild?.name}...</span>
+                    </>
+                ) : checkStatus === 'success' ? (
+                    <>
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="font-medium">Check OK!</span>
+                      <span className="ml-auto text-xs bg-green-200 px-2 py-1 rounded">{checkRequestTime}</span>
+                    </>
+                ) : (
+                    <>
+                      <MessageCircle className="h-5 w-5" />
+                      <span className="font-medium">Checa Status</span>
+                    </>
+                )}
             </button>
             <button onClick={() => { 
 				console.log('Botón clickeado');

@@ -188,17 +188,91 @@ class GeolocationService {
    * Obtener nivel de batería si está disponible
    * @returns {Promise<number|null>} Nivel de batería o null
    */
-  async getBatteryLevel() {
+   
+  // Detectar iOS
+	isIOS() {
+	  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+	}
+
+	// Obtener nivel de batería con detección de disponibilidad
+	  async getBatteryLevel() {
+		// iOS no soporta Battery API
+		if (this.isIOS()) {
+		  return { 
+			success: false, 
+			level: null, 
+			available: false,
+			reason: 'iOS no permite acceso a batería por restricciones de privacidad'
+		  };
+	    }
+
+  // Intentar obtener batería en otros dispositivos
+  if ('getBattery' in navigator) {
     try {
-      if ('getBattery' in navigator) {
-        const battery = await navigator.getBattery();
-        return Math.round(battery.level * 100);
-      }
-      return null;
+      const battery = await navigator.getBattery();
+      const level = Math.round(battery.level * 100);
+      
+      return { 
+        success: true, 
+        level: level, 
+        available: true 
+      };
     } catch (error) {
-      return null;
+      console.log('Battery API no disponible:', error);
+      return { 
+        success: false, 
+        level: null, 
+        available: false,
+        reason: 'Navegador no soporta Battery API'
+      };
     }
   }
+
+  return { 
+    success: false, 
+    level: null, 
+    available: false,
+    reason: 'Battery API no disponible en este navegador'
+  };
+}
+
+async getCurrentPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocalización no soportada'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        // Obtener batería
+        const batteryInfo = await this.getBatteryLevel();
+        
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+          altitude: position.coords.altitude,
+          altitudeAccuracy: position.coords.altitudeAccuracy,
+          heading: position.coords.heading,
+          speed: position.coords.speed,
+          timestamp: new Date(position.timestamp).toISOString(),
+          battery_level: batteryInfo.level, // null si no disponible
+          battery_available: batteryInfo.available
+        });
+      },
+      (error) => {
+        reject(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+    );
+  });
+}
+
 
   /**
    * Manejo de errores de geolocalización

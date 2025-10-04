@@ -17,75 +17,58 @@ class LocationStorageService {
    * @param {Object} options - Opciones adicionales
    * @returns {Promise<Object>} Resultado de la operación
    */
-  async saveLocation(userId, locationData, options = {}) {
-    try {
-      // Validar datos requeridos
-      if (!userId || !locationData) {
-        throw new Error('userId y locationData son requeridos');
-      }
-
-      if (!locationData.latitude || !locationData.longitude) {
-        throw new Error('Coordenadas de latitud y longitud son requeridas');
-      }
-
-    let batteryLevel = null;
-    try {
-      if ('getBattery' in navigator) {
-        const battery = await navigator.getBattery();
-        batteryLevel = Math.round(battery.level * 100);
-      }
-    } catch (error) {
-      console.log('Battery API no disponible');
+async saveLocation(userId, locationData, options = {}) {
+  try {
+    // Validar datos requeridos
+    if (!userId || !locationData) {
+      throw new Error('userId y locationData son requeridos');
+    }
+    if (!locationData.latitude || !locationData.longitude) {
+      throw new Error('Coordenadas de latitud y longitud son requeridas');
     }
 
-      // Preparar datos para inserción
-      const locationRecord = {
-        user_id: userId,
-        latitude: locationData.latitude,
-        longitude: locationData.longitude,
-        accuracy: locationData.accuracy || null,
-        battery_level: batteryLevel,
-        is_manual: options.isManual !== undefined ? options.isManual : true,
-        address: options.address || null,
-        // timestamp se genera automáticamente en la DB
-      };
+    // Preparar datos para inserción
+    const locationRecord = {
+      user_id: userId,
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+      accuracy: locationData.accuracy || null,
+      battery_level: locationData.battery_level, // Viene de GeolocationService
+      is_manual: options.isManual !== undefined ? options.isManual : true,
+      address: options.address || null,
+    };
 
-	// Debug para ver exactamente qué se está enviando
-	  console.log('locationRecord antes de insertar:', JSON.stringify(locationRecord));
-	
-	  //alert(`Debug DB: ${JSON.stringify(locationRecord)}`);
-
-      console.log('Guardando ubicación:', locationRecord);
-
-      const { data, error } = await supabase
-        .from('user_locations')
-        .insert([locationRecord])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error guardando ubicación:', error);
-        return { success: false, error: error.message };
-      }
-
-      this.lastStoredLocation = data;
+    console.log('locationRecord antes de insertar:', JSON.stringify(locationRecord));
+    console.log('Guardando ubicación:', locationRecord);
+    
+    const { data, error } = await supabase
+      .from('user_locations')
+      .insert([locationRecord])
+      .select()
+      .single();
       
-      console.log('Ubicación guardada exitosamente:', data);
-      
-      return { 
-        success: true, 
-        location: data,
-        message: 'Ubicación guardada correctamente'
-      };
-
-    } catch (error) {
-      console.error('Error en saveLocation:', error);
-      return { 
-        success: false, 
-        error: error.message 
-      };
+    if (error) {
+      console.error('Error guardando ubicación:', error);
+      return { success: false, error: error.message };
     }
+    
+    this.lastStoredLocation = data;
+    console.log('Ubicación guardada exitosamente:', data);
+    
+    return { 
+      success: true, 
+      location: data,
+      message: 'Ubicación guardada correctamente'
+    };
+  } catch (error) {
+    console.error('Error en saveLocation:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
   }
+}
+
 
   /**
    * Obtener la ubicación más reciente de un usuario
