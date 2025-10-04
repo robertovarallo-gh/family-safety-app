@@ -379,7 +379,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
           location: location,
           address: member.address || "Bogota, Colombia", 
           lastUpdate: lastUpdate,
-          battery: locationResult.location?.battery_level || 85,
+          battery: locationResult.location?.battery_level,
           isConnected: isConnected,
           avatar: member.role === 'ni帽o' ? '👦' : member.role === 'adolescente' ? '🧑' : member.role === 'adulto' ? '👨' : '👩',
           photo: member.photo_url || "/api/placeholder/48/48",
