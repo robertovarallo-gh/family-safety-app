@@ -1624,16 +1624,7 @@ return (
               <Users className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-xl font-bold text-gray-900">Family Watch</h1>
-			
-			{/* AGREGAR ESTO - Debug temporal */}
-			{activeChild && (
-			  <div className="bg-yellow-100 border border-yellow-400 p-2 mt-2 text-xs rounded">
-				<p><strong>DEBUG Battery:</strong> {activeChild?.battery === null ? 'NULL' : activeChild?.battery}</p>
-				<p><strong>DEBUG hasRealLocation:</strong> {activeChild?.hasRealLocation ? 'Sí' : 'No'}</p>
-				<p><strong>DEBUG locationAccuracy:</strong> {activeChild?.locationAccuracy || 'N/A'}</p>
-			  </div>
-			)}
-			
+						
             <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
               MODO TESTING
             </div>
