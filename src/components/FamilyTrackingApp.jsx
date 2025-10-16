@@ -821,6 +821,42 @@ useEffect(() => {
   }
 }, [selectedChild, activeChild, currentScreen]);
 
+// Realtime updates para ubicaciones
+// Realtime updates para ubicaciones
+useEffect(() => {
+  if (!activeChild?.id) return;
+
+  console.log('🔄 Activando Realtime para:', activeChild.name);
+
+  // Polling cada 30 segundos como backup
+  const interval = setInterval(() => {
+    loadChildren();
+  }, 30000);
+  
+  // Subscription de Realtime
+  const subscription = supabase
+    .channel('location-updates-web')
+    .on('postgres_changes', 
+      { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'user_locations' 
+      }, 
+      (payload) => {
+        console.log('📍 Nueva ubicación detectada:', payload.new);
+        // Recargar todos los children para actualizar ubicaciones
+        loadChildren();
+      }
+    )
+    .subscribe();
+  
+  return () => {
+    console.log('🔌 Desconectando Realtime');
+    clearInterval(interval);
+    subscription.unsubscribe();
+  };
+}, [activeChild?.id]);
+
 const loadDashboardGoogleMap = () => {
   const mapContainer = document.getElementById('dashboard-map');
   
