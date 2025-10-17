@@ -824,9 +824,9 @@ useEffect(() => {
 // Realtime updates para ubicaciones
 // Realtime updates para ubicaciones
 useEffect(() => {
-  if (!activeChild?.id) return;
+  if (!user?.id) return;
 
-  console.log('🔄 Activando Realtime para:', activeChild.name);
+  console.log('🔄 Activando Realtime para family');
 
   // Polling cada 30 segundos como backup
   const interval = setInterval(() => {
@@ -855,7 +855,7 @@ useEffect(() => {
     clearInterval(interval);
     subscription.unsubscribe();
   };
-}, [activeChild?.id]);
+}, [user?.id]);
 
 const loadDashboardGoogleMap = () => {
   const mapContainer = document.getElementById('dashboard-map');
