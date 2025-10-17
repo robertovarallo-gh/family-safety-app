@@ -830,6 +830,7 @@ useEffect(() => {
 
   // Polling cada 30 segundos como backup
   const interval = setInterval(() => {
+    console.log('⏰ Polling: recargando children');
     loadChildren();
   }, 30000);
   
