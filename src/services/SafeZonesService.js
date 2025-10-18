@@ -303,7 +303,7 @@ async deleteSafeZone(zoneId, familyId) {
       updated_at: zone.updated_at,
       // Propiedades calculadas
       typeLabel: this.getTypeLabel(zone.type),
-      typeIcon: this.getTypeIcon(zone.type),
+      typeIcon: '📍',
       radiusFormatted: this.formatDistance(zone.coordinates.radius || 100)
     };
   }
@@ -322,17 +322,9 @@ async deleteSafeZone(zoneId, familyId) {
   }
 
   // Íconos para tipos
-getTypeIcon(type) {
-  const icons = {
-    'home': '??',
-    'school': '??',
-    'park': '??',
-    'relative': '???????????',
-    'activity': '?',
-    'custom': '??'
-  };
-  return icons[type] || '??';
-}
+  getTypeIcon(type) {
+    return '📍';
+  }
 
   // Formatear dirección corta
   formatShortAddress(address) {

@@ -956,7 +956,7 @@ const handleDelete = async (zone) => {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-lg">{zone.typeIcon}</span>
+                      <span className="text-lg">📍</span>
                       <h3 className="font-medium text-gray-900">{zone.name}</h3>
                       <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                         {zone.typeLabel}
@@ -974,7 +974,7 @@ const handleDelete = async (zone) => {
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-1">
                           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span>Radio: {zone.radiusFormatted || `${zone.radius}m`}</span>
+                          <span> Radio:  {zone.radiusFormatted || `${zone.radius}m`}</span>
                         </div>
                         
                         <div className="flex items-center space-x-1">
@@ -1001,18 +1001,6 @@ const handleDelete = async (zone) => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
-                  </div>
-                </div>
-
-                <div className="mt-3 h-24 bg-gradient-to-br from-green-100 via-green-200 to-blue-200 rounded-lg relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                      <span className="text-xs text-white">📍</span>
-                    </div>
-                    <div className="absolute w-16 h-16 border-2 border-green-500 border-dashed rounded-full opacity-50"></div>
-                  </div>
-                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                    {zone.radiusFormatted || `${zone.radius}m`}
                   </div>
                 </div>
               </div>
