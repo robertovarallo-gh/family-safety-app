@@ -40,4 +40,4 @@ class BatteryAlertService {
   }
 }
 
-export default new BatteryAlertService();
+export default new BatteryAlertService(); 
