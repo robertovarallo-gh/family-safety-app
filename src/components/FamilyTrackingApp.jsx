@@ -26,7 +26,8 @@ import { supabase } from '../services/supabaseClient.js';
 import gpsTrackingService from '../services/GPSTrackingService';
 import SafeZonesService from '../services/SafeZonesService';
 import realtimeLocationService from '../services/RealtimeLocationService';
-
+import ZoneDetectionService from '../services/ZoneDetectionService';
+import BatteryAlertService from '../services/BatteryAlertService';
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
@@ -58,6 +59,8 @@ const FamilyTrackingApp = () => {
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
   const [emergencyType, setEmergencyType] = useState('');
   const [alertStartTime, setAlertStartTime] = useState(null);
+  const [batteryAlerts, setBatteryAlerts] = useState([]);
+
   // Detectar si es iOS
   const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
@@ -121,7 +124,7 @@ useEffect(() => {
   checkAuth();
 }, []);
 
-// AGREGAR ESTE useEffect AQUÍ - GPS tracking automático
+// 1 AGREGAR ESTE useEffect AQUÍ - GPS tracking automático
 useEffect(() => {
   const startAutoTracking = async () => {
     if (!user?.id) return;
@@ -166,7 +169,7 @@ useEffect(() => {
   };
 }, [user?.id]);
 
-// Suscripción a cambios en tiempo real
+// 2 Suscripción a cambios en tiempo real
 useEffect(() => {
   const setupRealtime = async () => {
     if (!user?.id) return;
@@ -201,6 +204,118 @@ useEffect(() => {
   };
 }, [user?.id]);
 
+// 3 Listener realtime para eventos de zona de TODA la familia
+useEffect(() => {
+  if (!user?.user_metadata?.family_id) return;
+
+  console.log('🔔 Iniciando listener de eventos de zona...');
+
+  const zoneEventsSubscription = supabase
+    .channel('zone-events-realtime')
+    .on('postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'zone_events'
+      },
+      async (payload) => {
+        console.log('🔔 Nuevo evento de zona recibido:', payload);
+        
+        // Obtener info del miembro
+        const { data: member } = await supabase
+          .from('family_members')
+          .select('first_name, last_name, family_id')
+          .eq('id', payload.new.member_id)
+          .single();
+        
+        // Solo mostrar si es de la misma familia
+        if (member?.family_id === user.user_metadata.family_id) {
+          const memberName = `${member.first_name} ${member.last_name}`;
+          const zoneName = payload.new.metadata?.zone_name || 'zona desconocida';
+          const eventType = payload.new.event_type;
+          
+          console.log(`✅ Evento de familia: ${memberName} ${eventType} ${zoneName}`);
+          
+          // Agregar alerta al banner
+          setZoneAlerts(prev => [{
+            id: Date.now(),
+            type: eventType,
+            memberName: memberName,
+            zoneName: zoneName,
+            timestamp: new Date()
+          }, ...prev].slice(0, 5));
+        }
+      }
+    )
+    .subscribe();
+
+  // AGREGAR este segundo listener de batería
+  // Listener de batería baja
+  const batteryAlertsSubscription = supabase
+    .channel('battery-alerts-realtime')
+    .on('postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'battery_alerts'
+      },
+      async (payload) => {
+        console.log('🔋 Nueva alerta de batería:', payload);
+        
+        const { data: member } = await supabase
+          .from('family_members')
+          .select('first_name, last_name, family_id')
+          .eq('id', payload.new.member_id)
+          .single();
+        
+        if (member?.family_id === user.user_metadata.family_id) {
+          const memberName = `${member.first_name} ${member.last_name}`;
+          
+          setBatteryAlerts(prev => [{
+            id: Date.now(),
+            memberName: memberName,
+            batteryLevel: payload.new.battery_level,
+            timestamp: new Date()
+          }, ...prev].slice(0, 5));
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    console.log('🔕 Cerrando listener de eventos de zona');
+    zoneEventsSubscription.unsubscribe();
+    batteryAlertsSubscription.unsubscribe();
+  };
+}, [user?.user_metadata?.family_id]);
+
+// Detectar batería baja
+useEffect(() => {
+  const checkBatteryLevels = async () => {
+    for (const child of children) {
+      if (child.location?.battery_level <= 20) {
+        const result = await BatteryAlertService.checkAndAlertLowBattery(
+          child.id,
+          child.location.battery_level,
+          child.name
+        );
+
+        if (result.alerted) {
+          setBatteryAlerts(prev => [{
+            id: Date.now(),
+            memberName: child.name,
+            batteryLevel: child.location.battery_level,
+            timestamp: new Date()
+          }, ...prev].slice(0, 5));
+        }
+      }
+    }
+  };
+
+  if (children.length > 0) {
+    checkBatteryLevels();
+  }
+}, [children.map(c => `${c.id}-${c.location?.battery_level}`).join(',')]);
 
 const loadAppData = async (userData) => {
   try {
@@ -254,7 +369,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 	  console.log('🔍 LoadChildren - SafeZones disponibles:', safeZones?.length || 0);
       
 // PASO 1: Buscar el family_id REAL del usuario en family_members
-    const currentZones = await loadSafeZones();
+  const currentZones = await loadSafeZones();
 	console.log('Buscando family_id real del usuario en BD...');
 	const { data: currentMember, error: memberError } = await supabase
 	  .from('family_members')
@@ -302,7 +417,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
       
       // Obtener miembros familiares
       const membersResponse = await FamilyMembersService.getFamilyMembers(familyId);
-	  console.log('📊 Respuesta getFamilyMembers:', membersResponse);
+	    console.log('📊 Respuesta getFamilyMembers:', membersResponse);
       console.log('👥 Cantidad de miembros:', membersResponse.members?.length);
       console.log('📋 Lista de miembros:', membersResponse.members);
       
@@ -822,7 +937,6 @@ useEffect(() => {
 }, [selectedChild, activeChild, currentScreen]);
 
 // Realtime updates para ubicaciones
-// Realtime updates para ubicaciones
 useEffect(() => {
   if (!user?.id) return;
 
@@ -857,6 +971,46 @@ useEffect(() => {
     subscription.unsubscribe();
   };
 }, [user?.id]);
+
+// Detectar cambios de zona
+useEffect(() => {
+  const checkZoneChanges = async () => {
+    if (!activeChild?.location || !user?.user_metadata?.family_id) return;
+
+    const result = await ZoneDetectionService.detectZoneChanges(
+      activeChild.id,
+      activeChild.location.latitude,
+      activeChild.location.longitude,
+      user.user_metadata.family_id
+    );
+
+    if (result.success && result.hasChanges) {
+      // Agregar alertas para entradas
+      result.entered?.forEach(zone => {
+        setZoneAlerts(prev => [{
+          id: Date.now() + Math.random(),
+          type: 'entered',
+          memberName: activeChild.name,
+          zoneName: zone.name,
+          timestamp: new Date()
+        }, ...prev].slice(0, 5));
+      });
+
+      // Agregar alertas para salidas
+      result.exited?.forEach(zone => {
+        setZoneAlerts(prev => [{
+          id: Date.now() + Math.random(),
+          type: 'exited',
+          memberName: activeChild.name,
+          zoneName: zone.name,
+          timestamp: new Date()
+        }, ...prev].slice(0, 5));
+      });
+    }
+  };
+
+  checkZoneChanges();
+}, [activeChild?.location?.latitude, activeChild?.location?.longitude]);
 
 const loadDashboardGoogleMap = () => {
   const mapContainer = document.getElementById('dashboard-map');
@@ -992,6 +1146,8 @@ const drawSafeZones = (map) => {
 
 // Nueva función para crear marcador
 const createMarker = (memberId, location, map) => {
+  const isLowBattery = activeChild?.battery <= 20;
+
   const marker = new window.google.maps.Marker({
     position: location,
     map: map,
@@ -999,7 +1155,7 @@ const createMarker = (memberId, location, map) => {
     icon: {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
         <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="25" cy="25" r="20" fill="#3B82F6" stroke="#FFFFFF" stroke-width="4"/>
+          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#ef4444' : '#3B82F6'}" stroke="#FFFFFF" stroke-width="4"/>
           <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
             ${activeChild.avatar || '👤'}
           </text>
@@ -1723,6 +1879,44 @@ return (
 		)}
       </div>
     </header>
+
+    {/* Banner de alertas - AGREGAR AQUÍ */}
+    {zoneAlerts.length > 0 && (
+      <div className="bg-white border-b border-gray-200 py-2">
+        <div className="max-w-md mx-auto px-4 space-y-2">
+          {zoneAlerts.map(alert => (
+            <div 
+              key={alert.id}
+              className={`flex items-center p-3 rounded-lg border-l-4 ${
+                alert.type === 'entered' 
+                  ? 'bg-green-50 border-green-500' 
+                  : 'bg-red-50 border-red-500'
+              }`}
+            >
+              <span className="text-2xl mr-3">
+                {alert.type === 'entered' ? '✅' : '⚠️'}
+              </span>
+              <div className="flex-1">
+                <p className="text-sm text-gray-800">
+                  <span className="font-bold">{alert.memberName}</span>
+                  {alert.type === 'entered' ? ' entró a ' : ' salió de '}
+                  <span className="font-semibold text-blue-600">{alert.zoneName}</span>
+                </p>
+                <p className="text-xs text-gray-500">
+                  {alert.timestamp.toLocaleTimeString()}
+                </p>
+              </div>
+              <button
+                onClick={() => setZoneAlerts(prev => prev.filter(a => a.id !== alert.id))}
+                className="text-gray-400 hover:text-gray-600 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
 	
 	    {showZoneAlert && zoneAlerts.length > 0 && (
       <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
