@@ -47,6 +47,7 @@ const FamilyTrackingApp = () => {
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
   const zoneCirclesRef = useRef([]);
+  
 
   // Estados para funcionalidades
   const [checkStatus, setCheckStatus] = useState('idle');
@@ -907,7 +908,15 @@ const handleAddMemberSubmit = async (e) => {
     }
   };
 
-  const activeChild = children[selectedChild] || children[0];
+  const activeChild = children.length > 0 && selectedChild >= 0 && selectedChild < children.length 
+  ? children[selectedChild] 
+  : children[0];
+
+  console.log('🐛 DEBUG activeChild:', {
+    totalChildren: children.length,
+    selectedIndex: selectedChild,
+    activeChildName: activeChild?.name
+  });
   
 // Parte 5 del FamilyTrackingApp.jsx - useEffect adicionales y funciones de mapas
 
