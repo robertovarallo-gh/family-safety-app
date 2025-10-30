@@ -1858,16 +1858,16 @@ return (
 		    <label className="block text-sm font-medium text-gray-700 mb-2">
 			  Seleccionar miembro familiar
 			</label>
-			{children.length > 1 ? (
+			{children.length > 0 ? (
 			  <select 
 			    value={selectedChild} 
-				onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
-				className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+				  onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
+				  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 			  >
 			    {children.map((child, index) => (
-				  <option key={child.id} value={index}>
-				    {child.name} ({child.relationship})
-				  </option>
+				    <option key={child.id} value={index}>
+				      {child.name} ({child.relationship})
+				    </option>
 				))}
 			  </select>
 			) : (
