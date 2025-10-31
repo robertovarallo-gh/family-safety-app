@@ -47,7 +47,6 @@ const FamilyTrackingApp = () => {
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
   const zoneCirclesRef = useRef([]);
-  
 
   // Estados para funcionalidades
   const [checkStatus, setCheckStatus] = useState('idle');
@@ -908,15 +907,7 @@ const handleAddMemberSubmit = async (e) => {
     }
   };
 
-  const activeChild = children.length > 0 && selectedChild >= 0 && selectedChild < children.length 
-  ? children[selectedChild] 
-  : children[0];
-
-  console.log('🐛 DEBUG activeChild:', {
-    totalChildren: children.length,
-    selectedIndex: selectedChild,
-    activeChildName: activeChild?.name
-  });
+  const activeChild = children[selectedChild] || children[0];
   
 // Parte 5 del FamilyTrackingApp.jsx - useEffect adicionales y funciones de mapas
 
@@ -1057,6 +1048,7 @@ const initializeDashboardMap = (mapContainer) => {
   if (!window.google || !activeChild) return;
 
   console.log('🎯 Zonas disponibles:', safeZones?.length || 0);
+  console.log('👥 Total miembros a mostrar:', children.length);
 
   const childLocation = {
     lat: activeChild.coordinates?.lat || 4.6951,
@@ -1065,7 +1057,23 @@ const initializeDashboardMap = (mapContainer) => {
 
   // Si el mapa ya existe
   if (mapInstanceRef.current) {
-    updateMarkerPosition(activeChild.id, childLocation);
+    // ✨ NUEVO: Limpiar todos los marcadores anteriores
+    Object.values(markersRef.current).forEach(marker => {
+      if (marker) marker.setMap(null);
+    });
+    markersRef.current = {};
+    
+    // Actualizar marcadores para TODOS los miembros
+    children.forEach(child => {
+      const location = {
+        lat: child.coordinates?.lat || 4.6951,
+        lng: child.coordinates?.lng || -74.0787
+      };
+      createMarker(child.id, location, mapInstanceRef.current, child);
+    });
+    
+    // Centrar en el miembro seleccionado
+    mapInstanceRef.current.setCenter(childLocation);
     
     // Limpiar zonas anteriores
     zoneCirclesRef.current.forEach(item => {
@@ -1092,7 +1100,16 @@ const initializeDashboardMap = (mapContainer) => {
   });
 
   mapInstanceRef.current = map;
-  createMarker(activeChild.id, childLocation, map);
+  
+  // ✨ NUEVO: Crear marcadores para TODOS los miembros
+  children.forEach(child => {
+    const location = {
+      lat: child.coordinates?.lat || 4.6951,
+      lng: child.coordinates?.lng || -74.0787
+    };
+    createMarker(child.id, location, map, child);
+  });
+  
   drawSafeZones(map);
 };
 
@@ -1154,19 +1171,22 @@ const drawSafeZones = (map) => {
 
 
 // Nueva función para crear marcador
-const createMarker = (memberId, location, map) => {
-  const isLowBattery = activeChild?.battery <= 20;
+const createMarker = (memberId, location, map, childData = null) => {
+  // Usar childData si se pasa, sino usar activeChild
+  const child = childData || activeChild;
+  const isLowBattery = child?.battery <= 20;
+  const isSelected = child?.id === activeChild?.id;
 
   const marker = new window.google.maps.Marker({
     position: location,
     map: map,
-    title: activeChild.name,
+    title: child.name,
     icon: {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
         <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#ef4444' : '#3B82F6'}" stroke="#FFFFFF" stroke-width="4"/>
+          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#ef4444' : (isSelected ? '#3B82F6' : '#6b7280')}" stroke="#FFFFFF" stroke-width="${isSelected ? '4' : '3'}"/>
           <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
-            ${activeChild.avatar || '👤'}
+            ${child.avatar || '👤'}
           </text>
         </svg>
       `)}`,
@@ -1179,28 +1199,28 @@ const createMarker = (memberId, location, map) => {
     content: `
       <div style="padding: 12px; min-width: 220px; font-family: system-ui, -apple-system, sans-serif;">
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || '👤'}</span>
+          <span style="font-size: 24px; margin-right: 8px;">${child.avatar || '👤'}</span>
           <h3 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">
-            ${activeChild.name}
+            ${child.name}
           </h3>
         </div>
         <div style="space-y: 4px;">
           <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
             <span style="margin-right: 6px;">📍</span>
-            ${activeChild.location || 'Ubicacion no disponible'}
+            ${child.location || 'Ubicacion no disponible'}
           </p>
           <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
             <span style="margin-right: 6px;">🔋</span>
-            Bateria: ${activeChild.battery || 0}%
+            Bateria: ${child.battery || 0}%
           </p>
           <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
             <span style="margin-right: 6px;">🕒</span>
-            ${activeChild.lastUpdate || 'Hace un momento'}
+            ${child.lastUpdate || 'Hace un momento'}
           </p>
         </div>
-        <div style="margin-top: 10px; padding: 6px 12px; background: ${activeChild.isConnected ? '#10b981' : '#ef4444'}; 
+        <div style="margin-top: 10px; padding: 6px 12px; background: ${child.isConnected ? '#10b981' : '#ef4444'}; 
                     color: white; border-radius: 16px; font-size: 12px; text-align: center; font-weight: 500;">
-          ${activeChild.isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
+          ${child.isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
         </div>
       </div>
     `
@@ -1867,16 +1887,16 @@ return (
 		    <label className="block text-sm font-medium text-gray-700 mb-2">
 			  Seleccionar miembro familiar
 			</label>
-			{children.length > 0 ? (
+			{children.length > 1 ? (
 			  <select 
 			    value={selectedChild} 
-				  onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
-				  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+				onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
+				className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 			  >
 			    {children.map((child, index) => (
-				    <option key={child.id} value={index}>
-				      {child.name} ({child.relationship})
-				    </option>
+				  <option key={child.id} value={index}>
+				    {child.name} ({child.relationship})
+				  </option>
 				))}
 			  </select>
 			) : (
