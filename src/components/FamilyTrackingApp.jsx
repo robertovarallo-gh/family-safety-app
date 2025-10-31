@@ -206,6 +206,11 @@ useEffect(() => {
 
 // 3 Listener realtime para eventos de zona de TODA la familia
 useEffect(() => {
+  
+  console.log('👤 USER completo:', user);
+  console.log('📋 user_metadata:', user?.user_metadata);
+  console.log('👨‍👩‍👧 family_id:', user?.user_metadata?.family_id);
+  
   if (!user?.user_metadata?.family_id) return;
 
   console.log('🔔 Iniciando listener de eventos de zona...');
