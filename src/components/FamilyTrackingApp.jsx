@@ -28,6 +28,7 @@ import SafeZonesService from '../services/SafeZonesService';
 import realtimeLocationService from '../services/RealtimeLocationService';
 import ZoneDetectionService from '../services/ZoneDetectionService';
 import BatteryAlertService from '../services/BatteryAlertService';
+import ZoneEventsService from '../services/ZoneEventsService';  // ✨ NUEVO
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
@@ -67,6 +68,7 @@ const FamilyTrackingApp = () => {
   // Estados para zona detection
   const [zoneAlerts, setZoneAlerts] = useState([]);
   const [showZoneAlert, setShowZoneAlert] = useState(false);
+  const [lastZoneStates, setLastZoneStates] = useState({}); // ✨ Para rastrear cambios de zona
 
   // Estados para agregar miembros
   const [memberFormData, setMemberFormData] = useState({
@@ -206,11 +208,6 @@ useEffect(() => {
 
 // 3 Listener realtime para eventos de zona de TODA la familia
 useEffect(() => {
-  
-  console.log('👤 USER completo:', user);
-  console.log('📋 user_metadata:', user?.user_metadata);
-  console.log('👨‍👩‍👧 family_id:', user?.user_metadata?.family_id);
-  
   if (!user?.user_metadata?.family_id) return;
 
   console.log('🔔 Iniciando listener de eventos de zona...');
@@ -321,6 +318,106 @@ useEffect(() => {
     checkBatteryLevels();
   }
 }, [children.map(c => `${c.id}-${c.location?.battery_level}`).join(',')]);
+
+// ✨ NUEVO: Detectar cambios de zona LOCALMENTE (como en móvil)
+useEffect(() => {
+  if (!children.length || !safeZones.length) return;
+
+  console.log('🔍 Verificando cambios de zona - Miembros:', children.length, 'Zonas:', safeZones.length);
+
+  const checkZoneChanges = async () => {
+    for (const member of children) {
+      if (!member.coordinates) continue;
+
+      const previousZone = lastZoneStates[member.id];
+      const currentZone = member.safeZone;
+
+      console.log(`👤 ${member.name}: anterior="${previousZone}", actual="${currentZone}"`);
+
+      // Inicializar si es la primera vez
+      if (previousZone === undefined) {
+        setLastZoneStates(prev => ({
+          ...prev,
+          [member.id]: currentZone
+        }));
+        continue;
+      }
+
+      // Detectar cambio
+      if (previousZone !== currentZone) {
+        console.log(`🚨 CAMBIO DETECTADO para ${member.name}`);
+
+        // Salió de zona anterior
+        if (previousZone && !currentZone) {
+          const prevZone = safeZones.find(z => z.name === previousZone);
+          if (prevZone) {
+            console.log(`📤 ${member.name} SALIÓ de ${previousZone}`);
+
+            // Guardar evento en BD
+            const result = await ZoneEventsService.saveZoneEvent(
+              member.id,
+              prevZone.id,
+              'exited',
+              member.name,
+              previousZone
+            );
+
+            if (result.success) {
+              console.log('✅ Evento de SALIDA guardado');
+            }
+
+            // Mostrar alerta local inmediatamente
+            setZoneAlerts(prev => [{
+              id: Date.now(),
+              type: 'exited',
+              memberName: member.name,
+              zoneName: previousZone,
+              timestamp: new Date()
+            }, ...prev].slice(0, 5));
+          }
+        }
+
+        // Entró a zona nueva
+        if (currentZone && !previousZone) {
+          const currZone = safeZones.find(z => z.name === currentZone);
+          if (currZone) {
+            console.log(`📥 ${member.name} ENTRÓ a ${currentZone}`);
+
+            // Guardar evento en BD
+            const result = await ZoneEventsService.saveZoneEvent(
+              member.id,
+              currZone.id,
+              'entered',
+              member.name,
+              currentZone
+            );
+
+            if (result.success) {
+              console.log('✅ Evento de ENTRADA guardado');
+            }
+
+            // Mostrar alerta local inmediatamente
+            setZoneAlerts(prev => [{
+              id: Date.now(),
+              type: 'entered',
+              memberName: member.name,
+              zoneName: currentZone,
+              timestamp: new Date()
+            }, ...prev].slice(0, 5));
+          }
+        }
+
+        // Actualizar estado
+        setLastZoneStates(prev => ({
+          ...prev,
+          [member.id]: currentZone
+        }));
+      }
+    }
+  };
+
+  checkZoneChanges();
+}, [children, safeZones]);
 
 const loadAppData = async (userData) => {
   try {
@@ -1053,7 +1150,6 @@ const initializeDashboardMap = (mapContainer) => {
   if (!window.google || !activeChild) return;
 
   console.log('🎯 Zonas disponibles:', safeZones?.length || 0);
-  console.log('👥 Total miembros a mostrar:', children.length);
 
   const childLocation = {
     lat: activeChild.coordinates?.lat || 4.6951,
@@ -1062,23 +1158,7 @@ const initializeDashboardMap = (mapContainer) => {
 
   // Si el mapa ya existe
   if (mapInstanceRef.current) {
-    // ✨ NUEVO: Limpiar todos los marcadores anteriores
-    Object.values(markersRef.current).forEach(marker => {
-      if (marker) marker.setMap(null);
-    });
-    markersRef.current = {};
-    
-    // Actualizar marcadores para TODOS los miembros
-    children.forEach(child => {
-      const location = {
-        lat: child.coordinates?.lat || 4.6951,
-        lng: child.coordinates?.lng || -74.0787
-      };
-      createMarker(child.id, location, mapInstanceRef.current, child);
-    });
-    
-    // Centrar en el miembro seleccionado
-    mapInstanceRef.current.setCenter(childLocation);
+    updateMarkerPosition(activeChild.id, childLocation);
     
     // Limpiar zonas anteriores
     zoneCirclesRef.current.forEach(item => {
@@ -1105,16 +1185,7 @@ const initializeDashboardMap = (mapContainer) => {
   });
 
   mapInstanceRef.current = map;
-  
-  // ✨ NUEVO: Crear marcadores para TODOS los miembros
-  children.forEach(child => {
-    const location = {
-      lat: child.coordinates?.lat || 4.6951,
-      lng: child.coordinates?.lng || -74.0787
-    };
-    createMarker(child.id, location, map, child);
-  });
-  
+  createMarker(activeChild.id, childLocation, map);
   drawSafeZones(map);
 };
 
@@ -1176,22 +1247,19 @@ const drawSafeZones = (map) => {
 
 
 // Nueva función para crear marcador
-const createMarker = (memberId, location, map, childData = null) => {
-  // Usar childData si se pasa, sino usar activeChild
-  const child = childData || activeChild;
-  const isLowBattery = child?.battery <= 20;
-  const isSelected = child?.id === activeChild?.id;
+const createMarker = (memberId, location, map) => {
+  const isLowBattery = activeChild?.battery <= 20;
 
   const marker = new window.google.maps.Marker({
     position: location,
     map: map,
-    title: child.name,
+    title: activeChild.name,
     icon: {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
         <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#ef4444' : (isSelected ? '#3B82F6' : '#6b7280')}" stroke="#FFFFFF" stroke-width="${isSelected ? '4' : '3'}"/>
+          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#ef4444' : '#3B82F6'}" stroke="#FFFFFF" stroke-width="4"/>
           <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
-            ${child.avatar || '👤'}
+            ${activeChild.avatar || '👤'}
           </text>
         </svg>
       `)}`,
@@ -1204,28 +1272,28 @@ const createMarker = (memberId, location, map, childData = null) => {
     content: `
       <div style="padding: 12px; min-width: 220px; font-family: system-ui, -apple-system, sans-serif;">
         <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 24px; margin-right: 8px;">${child.avatar || '👤'}</span>
+          <span style="font-size: 24px; margin-right: 8px;">${activeChild.avatar || '👤'}</span>
           <h3 style="margin: 0; color: #1f2937; font-size: 18px; font-weight: 600;">
-            ${child.name}
+            ${activeChild.name}
           </h3>
         </div>
         <div style="space-y: 4px;">
           <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
             <span style="margin-right: 6px;">📍</span>
-            ${child.location || 'Ubicacion no disponible'}
+            ${activeChild.location || 'Ubicacion no disponible'}
           </p>
           <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
             <span style="margin-right: 6px;">🔋</span>
-            Bateria: ${child.battery || 0}%
+            Bateria: ${activeChild.battery || 0}%
           </p>
           <p style="margin: 4px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center;">
             <span style="margin-right: 6px;">🕒</span>
-            ${child.lastUpdate || 'Hace un momento'}
+            ${activeChild.lastUpdate || 'Hace un momento'}
           </p>
         </div>
-        <div style="margin-top: 10px; padding: 6px 12px; background: ${child.isConnected ? '#10b981' : '#ef4444'}; 
+        <div style="margin-top: 10px; padding: 6px 12px; background: ${activeChild.isConnected ? '#10b981' : '#ef4444'}; 
                     color: white; border-radius: 16px; font-size: 12px; text-align: center; font-weight: 500;">
-          ${child.isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
+          ${activeChild.isConnected ? '🟢 Conectado' : '🔴 Desconectado'}
         </div>
       </div>
     `
