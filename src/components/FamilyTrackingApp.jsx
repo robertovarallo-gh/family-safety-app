@@ -28,7 +28,6 @@ import SafeZonesService from '../services/SafeZonesService';
 import realtimeLocationService from '../services/RealtimeLocationService';
 import ZoneDetectionService from '../services/ZoneDetectionService';
 import BatteryAlertService from '../services/BatteryAlertService';
-import ZoneEventsService from '../services/ZoneEventsService';  // ✨ NUEVO
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
@@ -354,12 +353,16 @@ useEffect(() => {
             console.log(`📤 ${member.name} SALIÓ de ${previousZone}`);
 
             // Guardar evento en BD
-            const result = await ZoneEventsService.saveZoneEvent(
+            const result = await ZoneDetectionService.logZoneEvent(
               member.id,
               prevZone.id,
               'exited',
-              member.name,
-              previousZone
+              {
+                latitude: member.coordinates.lat,
+                longitude: member.coordinates.lng,
+                zone_name: previousZone,
+                member_name: member.name
+              }
             );
 
             if (result.success) {
@@ -384,12 +387,16 @@ useEffect(() => {
             console.log(`📥 ${member.name} ENTRÓ a ${currentZone}`);
 
             // Guardar evento en BD
-            const result = await ZoneEventsService.saveZoneEvent(
+            const result = await ZoneDetectionService.logZoneEvent(
               member.id,
               currZone.id,
               'entered',
-              member.name,
-              currentZone
+              {
+                latitude: member.coordinates.lat,
+                longitude: member.coordinates.lng,
+                zone_name: currentZone,
+                member_name: member.name
+              }
             );
 
             if (result.success) {
