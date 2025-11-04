@@ -276,6 +276,8 @@ useEffect(() => {
 
   // AGREGAR este segundo listener de batería
   // Listener de batería baja
+  console.log('🔋 Iniciando listener de alertas de batería...');
+  
   const batteryAlertsSubscription = supabase
     .channel('battery-alerts-realtime')
     .on('postgres_changes',
@@ -285,7 +287,7 @@ useEffect(() => {
         table: 'battery_alerts'
       },
       async (payload) => {
-        console.log('🔋 Nueva alerta de batería:', payload);
+        console.log('🔋 Nueva alerta de batería recibida:', payload);
         
         const { data: member } = await supabase
           .from('family_members')
@@ -293,8 +295,14 @@ useEffect(() => {
           .eq('id', payload.new.member_id)
           .single();
         
+        console.log('🔋 Miembro encontrado:', member);
+        console.log('🔋 Family ID del miembro:', member?.family_id);
+        console.log('🔋 Family ID del usuario:', user.user_metadata.family_id);
+        
         if (member?.family_id === user.user_metadata.family_id) {
           const memberName = `${member.first_name} ${member.last_name}`;
+          
+          console.log('✅ Agregando alerta de batería para:', memberName);
           
           setBatteryAlerts(prev => [{
             id: Date.now(),
@@ -302,6 +310,8 @@ useEffect(() => {
             batteryLevel: payload.new.battery_level,
             timestamp: new Date()
           }, ...prev].slice(0, 5));
+        } else {
+          console.log('⚠️ Alerta de batería ignorada - diferente familia');
         }
       }
     )
