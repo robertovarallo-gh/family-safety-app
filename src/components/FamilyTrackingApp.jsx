@@ -2018,7 +2018,7 @@ return (
       </div>
     </header>
 
-    {/* Banner de alertas - AGREGAR AQUÍ */}
+    {/* Banner de alertas de zona */}
     {zoneAlerts.length > 0 && (
       <div className="bg-white border-b border-gray-200 py-2">
         <div className="max-w-md mx-auto px-4 space-y-2">
@@ -2046,6 +2046,40 @@ return (
               </div>
               <button
                 onClick={() => setZoneAlerts(prev => prev.filter(a => a.id !== alert.id))}
+                className="text-gray-400 hover:text-gray-600 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Banner de alertas de batería baja */}
+    {batteryAlerts.length > 0 && (
+      <div className="bg-white border-b border-gray-200 py-2">
+        <div className="max-w-md mx-auto px-4 space-y-2">
+          {batteryAlerts.map(alert => (
+            <div 
+              key={alert.id}
+              className="flex items-center p-3 rounded-lg border-l-4 bg-red-50 border-red-500"
+            >
+              <span className="text-2xl mr-3">
+                ⚠️
+              </span>
+              <div className="flex-1">
+                <p className="text-sm text-gray-800">
+                  <span className="font-bold">{alert.memberName}</span>
+                  {' tiene batería baja: '}
+                  <span className="font-semibold text-red-600">{alert.batteryLevel}%</span>
+                </p>
+                <p className="text-xs text-gray-500">
+                  {alert.timestamp.toLocaleTimeString()}
+                </p>
+              </div>
+              <button
+                onClick={() => setBatteryAlerts(prev => prev.filter(a => a.id !== alert.id))}
                 className="text-gray-400 hover:text-gray-600 ml-2"
               >
                 ✕
