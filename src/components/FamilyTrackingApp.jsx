@@ -84,6 +84,30 @@ const FamilyTrackingApp = () => {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   
+// ✨ Función helper para agregar alertas sin duplicados
+const addZoneAlert = (newAlert) => {
+  setZoneAlerts(prev => {
+    // Verificar si ya existe una alerta similar en los últimos 10 segundos
+    const isDuplicate = prev.some(alert => {
+      const timeDiff = Math.abs(new Date() - alert.timestamp);
+      return (
+        alert.memberName === newAlert.memberName &&
+        alert.zoneName === newAlert.zoneName &&
+        alert.type === newAlert.type &&
+        timeDiff < 10000 // 10 segundos
+      );
+    });
+
+    if (isDuplicate) {
+      console.log('⚠️ Alerta duplicada detectada, ignorando:', newAlert);
+      return prev;
+    }
+
+    console.log('✅ Nueva alerta agregada:', newAlert);
+    return [newAlert, ...prev].slice(0, 5);
+  });
+};
+  
 // Parte 3 del FamilyTrackingApp.jsx - useEffect hooks y carga de datos
 
 // Autenticacion real con Supabase
@@ -237,14 +261,14 @@ useEffect(() => {
           
           console.log(`✅ Evento de familia: ${memberName} ${eventType} ${zoneName}`);
           
-          // Agregar alerta al banner
-          setZoneAlerts(prev => [{
+          // Agregar alerta al banner (con protección anti-duplicados)
+          addZoneAlert({
             id: Date.now(),
             type: eventType,
             memberName: memberName,
             zoneName: zoneName,
             timestamp: new Date()
-          }, ...prev].slice(0, 5));
+          });
         }
       }
     )
@@ -369,14 +393,14 @@ useEffect(() => {
               console.log('✅ Evento de SALIDA guardado');
             }
 
-            // Mostrar alerta local inmediatamente
-            setZoneAlerts(prev => [{
+            // Mostrar alerta local inmediatamente (con protección anti-duplicados)
+            addZoneAlert({
               id: Date.now(),
               type: 'exited',
               memberName: member.name,
               zoneName: previousZone,
               timestamp: new Date()
-            }, ...prev].slice(0, 5));
+            });
           }
         }
 
@@ -403,14 +427,14 @@ useEffect(() => {
               console.log('✅ Evento de ENTRADA guardado');
             }
 
-            // Mostrar alerta local inmediatamente
-            setZoneAlerts(prev => [{
+            // Mostrar alerta local inmediatamente (con protección anti-duplicados)
+            addZoneAlert({
               id: Date.now(),
               type: 'entered',
               memberName: member.name,
               zoneName: currentZone,
               timestamp: new Date()
-            }, ...prev].slice(0, 5));
+            });
           }
         }
 
@@ -1081,45 +1105,8 @@ useEffect(() => {
   };
 }, [user?.id]);
 
-// Detectar cambios de zona
-useEffect(() => {
-  const checkZoneChanges = async () => {
-    if (!activeChild?.location || !user?.user_metadata?.family_id) return;
-
-    const result = await ZoneDetectionService.detectZoneChanges(
-      activeChild.id,
-      activeChild.location.latitude,
-      activeChild.location.longitude,
-      user.user_metadata.family_id
-    );
-
-    if (result.success && result.hasChanges) {
-      // Agregar alertas para entradas
-      result.entered?.forEach(zone => {
-        setZoneAlerts(prev => [{
-          id: Date.now() + Math.random(),
-          type: 'entered',
-          memberName: activeChild.name,
-          zoneName: zone.name,
-          timestamp: new Date()
-        }, ...prev].slice(0, 5));
-      });
-
-      // Agregar alertas para salidas
-      result.exited?.forEach(zone => {
-        setZoneAlerts(prev => [{
-          id: Date.now() + Math.random(),
-          type: 'exited',
-          memberName: activeChild.name,
-          zoneName: zone.name,
-          timestamp: new Date()
-        }, ...prev].slice(0, 5));
-      });
-    }
-  };
-
-  checkZoneChanges();
-}, [activeChild?.location?.latitude, activeChild?.location?.longitude]);
+// ❌ useEffect viejo ELIMINADO - Causaba alertas duplicadas
+// Ahora usamos el nuevo useEffect (línea ~345) que detecta para TODOS los miembros
 
 const loadDashboardGoogleMap = () => {
   const mapContainer = document.getElementById('dashboard-map');
