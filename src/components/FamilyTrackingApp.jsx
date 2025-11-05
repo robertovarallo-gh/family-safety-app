@@ -1290,7 +1290,7 @@ const createMarker = (memberId, location, map, childData = null) => {
     icon: {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
         <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#fca5a5' : (isSelected ? '#3B82F6' : '#6b7280')}" stroke="#FFFFFF" stroke-width="${isSelected ? '4' : '3'}"/>
+          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#ef4444' : (isSelected ? '#3B82F6' : '#6b7280')}" stroke="#FFFFFF" stroke-width="${isSelected ? '4' : '3'}"/>
           <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
             ${child.avatar || '👤'}
           </text>
