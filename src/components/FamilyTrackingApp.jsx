@@ -1999,8 +1999,8 @@ return (
 				  onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
 				  className={`w-full px-4 py-2 rounded-lg ${
             activeChild?.battery <= 20 
-              ? 'border-[3px] border-red-600 focus:outline-none focus:border-red-600'
-              : 'border-[3px] border-blue-500 focus:outline-none focus:border-blue-500'
+              ? 'border-[3px] border-red-600 text-red-600 focus:outline-none focus:border-red-600'
+              : 'border-[3px] border-blue-500 text-gray-900 focus:outline-none focus:border-blue-500'
           }`}
 			  >
 			    {children.map((child, index) => (
