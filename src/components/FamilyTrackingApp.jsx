@@ -36,6 +36,8 @@ const FamilyTrackingApp = () => {
 
   // Estados principales
   const [selectedChild, setSelectedChild] = useState(0);
+  const [shouldCenterMap, setShouldCenterMap] = useState(true); // ✨ Control auto-centrado
+  const mapInstanceRef = useRef(null); // ✨ Ref del mapa
   const [currentScreen, setCurrentScreen] = useState('dashboard');
   const [children, setChildren] = useState([]);
   const [safeZones, setSafeZones] = useState([]);
@@ -44,7 +46,6 @@ const FamilyTrackingApp = () => {
   const [isGPSTracking, setIsGPSTracking] = useState(false);
   const [lastGPSUpdate, setLastGPSUpdate] = useState(null);
   const [gpsError, setGpsError] = useState(null);  
-  const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
   const zoneCirclesRef = useRef([]);
 
@@ -692,6 +693,16 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
       setChildren(formattedMembers);
       console.log('Miembros con ubicaciones reales:', formattedMembers);
       
+      // ✨ Seleccionar usuario logueado por defecto
+      const loggedUserIndex = formattedMembers.findIndex(m => 
+        m.id === userData?.id || m.name.includes(userData?.user_metadata?.first_name)
+      );
+      
+      if (loggedUserIndex !== -1) {
+        console.log('👤 Usuario logueado encontrado en índice:', loggedUserIndex);
+        setSelectedChild(loggedUserIndex);
+      }
+      
     } catch (error) {
       console.error('Error cargando miembros familiares:', error);
       setChildren([]);
@@ -1178,8 +1189,14 @@ const initializeDashboardMap = (mapContainer) => {
       createMarker(child.id, location, mapInstanceRef.current, child);
     });
     
-    // Centrar en el miembro seleccionado
-    mapInstanceRef.current.setCenter(childLocation);
+    // ✨ Centrar SOLO si shouldCenterMap es true
+    if (shouldCenterMap) {
+      console.log('🎯 Centrando mapa en:', activeChild.name);
+      mapInstanceRef.current.setCenter(childLocation);
+      mapInstanceRef.current.setZoom(15);
+    } else {
+      console.log('📍 Manteniendo vista actual');
+    }
     
     // Limpiar zonas anteriores
     zoneCirclesRef.current.forEach(item => {
@@ -1207,6 +1224,12 @@ const initializeDashboardMap = (mapContainer) => {
 
   mapInstanceRef.current = map;
   
+  // ✨ Listener: Detectar movimiento del mapa
+  map.addListener('dragstart', () => {
+    console.log('🖱️ Usuario movió el mapa');
+    setShouldCenterMap(false);
+  });
+  
   // ✨ Crear marcadores para TODOS los miembros
   children.forEach(child => {
     const location = {
@@ -1217,6 +1240,21 @@ const initializeDashboardMap = (mapContainer) => {
   });
   
   drawSafeZones(map);
+};
+
+// ✨ Función para re-centrar el mapa
+const recenterMap = () => {
+  if (!mapInstanceRef.current || !activeChild) return;
+  
+  const childLocation = {
+    lat: activeChild.coordinates?.lat || 4.6951,
+    lng: activeChild.coordinates?.lng || -74.0787
+  };
+  
+  console.log('🎯 Re-centrando en:', activeChild.name);
+  mapInstanceRef.current.setCenter(childLocation);
+  mapInstanceRef.current.setZoom(15);
+  setShouldCenterMap(true);
 };
 
 // Nueva función para dibujar zonas
@@ -1290,7 +1328,7 @@ const createMarker = (memberId, location, map, childData = null) => {
     icon: {
       url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
         <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#fca5a5' : (isSelected ? '#3B82F6' : '#6b7280')}" stroke="${isLowBattery ? '#ef4444' : '#FFFFFF'}" stroke-width="${isSelected ? '4' : (isLowBattery ? '4' : '3')}"/>
+          <circle cx="25" cy="25" r="20" fill="${isLowBattery ? '#ef4444' : (isSelected ? '#3B82F6' : '#6b7280')}" stroke="#FFFFFF" stroke-width="${isSelected ? '4' : '3'}"/>
           <text x="25" y="32" text-anchor="middle" fill="white" font-size="18" font-family="Arial, sans-serif">
             ${child.avatar || '👤'}
           </text>
@@ -1996,12 +2034,11 @@ return (
 			{children.length > 1 ? (
 			  <select 
 			    value={selectedChild} 
-				  onChange={(e) => setSelectedChild(parseInt(e.target.value))} 
-				  className={`w-full px-4 py-2 rounded-lg ${
-            activeChild?.battery <= 20 
-              ? 'border-[3px] border-red-600 text-red-600 focus:outline-none focus:border-red-600'
-              : 'border-[3px] border-blue-500 text-gray-900 focus:outline-none focus:border-blue-500'
-          }`}
+				onChange={(e) => {
+				  setSelectedChild(parseInt(e.target.value));
+				  setShouldCenterMap(true); // ✨ Activar centrado
+				}} 
+				className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
 			  >
 			    {children.map((child, index) => (
 				  <option key={child.id} value={index}>
@@ -2151,11 +2188,23 @@ return (
         <>
           <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
             <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">MAPA</span>
-                Localizacion en tiempo real
-              </h3>
-				  <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicación no disponible'}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">MAPA</span>
+                    Localizacion en tiempo real
+                  </h3>
+                  <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicación no disponible'}</p>
+                </div>
+                <button
+                  onClick={recenterMap}
+                  className="flex items-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md"
+                  title="Centrar en usuario seleccionado"
+                >
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm font-medium">Centrar</span>
+                </button>
+              </div>
             </div>
             <div 
               id="dashboard-map"
