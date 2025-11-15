@@ -170,7 +170,7 @@ useEffect(() => {
 // 1 AGREGAR ESTE useEffect AQUÍ - GPS tracking automático
 useEffect(() => {
   const startAutoTracking = async () => {
-    if (!user?.id) return;
+    if (!user?.member_id) return;
     
     try {
       const { data: memberData } = await supabase
@@ -347,11 +347,11 @@ useEffect(() => {
 useEffect(() => {
   if (!user?.id) return;
   
-  const subscription = MessagingService.subscribeToMessages(user.id, (newMsg) => {
+  const subscription = MessagingService.subscribeToMessages(user.memberId, (newMsg) => {
     // Si estamos en el chat con esa persona, agregar mensaje
     if (selectedContact?.id === newMsg.sender_id) {
       setChatMessages(prev => [...prev, newMsg]);
-      MessagingService.markAsRead(user.id, newMsg.sender_id);
+      MessagingService.markAsRead(user.member_id, newMsg.sender_id);
     }
     
     // Actualizar lista de conversaciones
@@ -361,7 +361,7 @@ useEffect(() => {
   return () => {
     subscription.unsubscribe();
   };
-}, [user?.id, selectedContact?.id]);
+}, [user?.member_id, selectedContact?.id]);
 
 // Detectar batería baja
 useEffect(() => {
