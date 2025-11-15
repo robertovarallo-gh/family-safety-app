@@ -345,7 +345,7 @@ useEffect(() => {
 
 // Listener de mensajes en tiempo real
 useEffect(() => {
-  if (!user?.id) return;
+  if (!user?.member_id) return;
   
   const subscription = MessagingService.subscribeToMessages(user.memberId, (newMsg) => {
 
