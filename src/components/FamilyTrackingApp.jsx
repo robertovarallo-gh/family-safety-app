@@ -28,6 +28,7 @@ import SafeZonesService from '../services/SafeZonesService';
 import realtimeLocationService from '../services/RealtimeLocationService';
 import ZoneDetectionService from '../services/ZoneDetectionService';
 import BatteryAlertService from '../services/BatteryAlertService';
+import MessagingService from '../services/MessagingService';
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
@@ -84,6 +85,9 @@ const FamilyTrackingApp = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
+  const [conversations, setConversations] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
   
 // ✨ Función helper para agregar alertas sin duplicados
 const addZoneAlert = (newAlert) => {
@@ -174,6 +178,7 @@ useEffect(() => {
             setLastGPSUpdate(new Date());
             setGpsError(null);
             loadChildren();
+            loadConversations();
           },
           onError: (error) => {
             setGpsError(error.message);
@@ -324,6 +329,26 @@ useEffect(() => {
     batteryAlertsSubscription.unsubscribe();
   };
 }, [user?.user_metadata?.family_id]);
+
+// Listener de mensajes en tiempo real
+useEffect(() => {
+  if (!user?.id) return;
+  
+  const subscription = MessagingService.subscribeToMessages(user.id, (newMsg) => {
+    // Si estamos en el chat con esa persona, agregar mensaje
+    if (selectedContact?.id === newMsg.sender_id) {
+      setChatMessages(prev => [...prev, newMsg]);
+      MessagingService.markAsRead(user.id, newMsg.sender_id);
+    }
+    
+    // Actualizar lista de conversaciones
+    loadConversations();
+  });
+  
+  return () => {
+    subscription.unsubscribe();
+  };
+}, [user?.id, selectedContact?.id]);
 
 // Detectar batería baja
 useEffect(() => {
@@ -794,6 +819,63 @@ const loadSafeZones = async () => {
     console.error('Error cargando zonas seguras:', error);
     setSafeZones([]);
     return [];
+  }
+};
+
+const loadConversations = async () => {
+  if (!user?.id) return;
+  
+  const result = await MessagingService.getConversations(
+    user.id, 
+    user.user_metadata.family_id
+  );
+  
+  if (result.success) {
+    // Combinar con datos de children para nombres/avatares
+    const conversationsWithInfo = result.data.map(conv => {
+      const contact = children.find(c => c.id === conv.contactId);
+      return {
+        ...conv,
+        name: contact?.name || 'Desconocido',
+        avatar: contact?.avatar || '👤'
+      };
+    });
+    
+    setConversations(conversationsWithInfo);
+  }
+};
+
+// Abrir chat con un contacto
+const openChat = async (contact) => {
+  setSelectedContact(contact);
+  
+  // Cargar mensajes
+  const result = await MessagingService.getMessages(user.id, contact.id);
+  if (result.success) {
+    setChatMessages(result.data);
+  }
+  
+  // Marcar como leído
+  await MessagingService.markAsRead(user.id, contact.id);
+  
+  // Recargar conversaciones para actualizar contador
+  loadConversations();
+};
+
+// Enviar mensaje
+const handleSendMessage = async () => {
+  if (!newMessage.trim() || !selectedContact) return;
+  
+  const result = await MessagingService.sendMessage(
+    user.id,
+    selectedContact.id,
+    user.user_metadata.family_id,
+    newMessage.trim()
+  );
+  
+  if (result.success) {
+    setChatMessages(prev => [...prev, result.data]);
+    setNewMessage('');
   }
 };
 
@@ -1891,72 +1973,130 @@ const handleCheckMessages = () => {
 
   // Messaging screen
   if (currentScreen === 'messaging') {
-    return (
-      <div className="max-w-md mx-auto bg-white min-h-screen">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
-          <div className="flex items-center space-x-3 mb-4">
-            <button onClick={() => setCurrentScreen('dashboard')} className="p-2 hover:bg-blue-500 rounded-full transition-colors">
-              <ArrowLeft className="h-5 w-5" />
-            </button>
-            <h1 className="text-xl font-bold">Mensagens Familiares</h1>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-          <div className="bg-gray-50 px-6 py-4 border-b">
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <img src={activeChild?.photo} alt={activeChild?.name} className="w-12 h-12 rounded-full object-cover" />
-                <div className={`absolute bottom-0 right-0 w-4 h-4 ${activeChild?.messagingStatus === 'online' ? 'bg-green-500' : 'bg-gray-400'} rounded-full border-2 border-white`}></div>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-900">{activeChild?.name}</h2>
-                <p className="text-sm text-gray-600">
-                  {activeChild?.messagingStatus === 'online' ? (
-                    <span className="text-green-600">Ativo agora</span>
-                  ) : (
-                    <span className="text-gray-500">Offline</span>
-                  )}
-                </p>
+    // Si hay un contacto seleccionado, mostrar chat
+    if (selectedContact) {
+      return (
+        <div className="max-w-md mx-auto bg-white min-h-screen flex flex-col">
+          {/* Header del Chat */}
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+            <div className="flex items-center space-x-3">
+              <button 
+                onClick={() => setSelectedContact(null)}
+                className="p-2 hover:bg-blue-500 rounded-full transition-colors"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div className="flex items-center space-x-3">
+                <div className="text-3xl">{selectedContact.avatar}</div>
+                <div>
+                  <h1 className="text-lg font-bold">{selectedContact.name}</h1>
+                  <p className="text-xs opacity-90">Online</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="h-96 overflow-y-auto p-6 space-y-4">
-            {activeChild?.messages?.map((message) => (
-              <div key={message.id} className={`flex ${message.sender === 'parent' ? 'justify-end' : 'justify-start'}`}>
+          {/* Mensajes */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+            {chatMessages.map((msg) => (
+              <div 
+                key={msg.id} 
+                className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+              >
                 <div className={`max-w-xs px-4 py-2 rounded-lg ${
-                  message.sender === 'parent' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900'
+                  msg.sender_id === user.id 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-white text-gray-900 border'
                 }`}>
-                  <p className="text-sm">{message.message}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className={`text-xs ${message.sender === 'parent' ? 'text-blue-100' : 'text-gray-500'}`}>
-                      {message.timestamp}
-                    </span>
-                    {message.verified && (
-                      <CheckCircle className={`h-3 w-3 ${message.sender === 'parent' ? 'text-blue-200' : 'text-green-600'}`} />
-                    )}
-                  </div>
+                  <p className="text-sm">{msg.message_text}</p>
+                  <p className={`text-xs mt-1 ${
+                    msg.sender_id === user.id ? 'text-blue-100' : 'text-gray-500'
+                  }`}>
+                    {new Date(msg.created_at).toLocaleTimeString('es-ES', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="px-6 py-4 border-t bg-gray-50">
+          {/* Input de mensaje */}
+          <div className="p-4 bg-white border-t">
             <div className="flex space-x-2">
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                placeholder="Digite sua mensagem..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg"
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Escribe un mensaje..."
+                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <button onClick={sendMessage} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                <Send className="h-4 w-4" />
+              <button
+                onClick={handleSendMessage}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Send className="h-5 w-5" />
               </button>
             </div>
           </div>
+        </div>
+      );
+    }
+
+    // Lista de conversaciones
+    return (
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+          <div className="flex items-center space-x-3 mb-4">
+            <button 
+              onClick={() => setCurrentScreen('dashboard')}
+              className="p-2 hover:bg-blue-500 rounded-full transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-bold">💬 Mensajes Familiares</h1>
+          </div>
+        </div>
+
+        <div className="divide-y">
+          {children.filter(c => c.id !== user?.id).map((contact) => {
+            const conversation = conversations.find(conv => conv.contactId === contact.id);
+            
+            return (
+              <div
+                key={contact.id}
+                onClick={() => openChat(contact)}
+                className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="text-4xl">{contact.avatar}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-gray-900">{contact.name}</h3>
+                      {conversation && (
+                        <span className="text-xs text-gray-500">
+                          {new Date(conversation.lastMessageTime).toLocaleTimeString('es-ES', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 truncate">
+                      {conversation?.lastMessage || 'Sin mensajes'}
+                    </p>
+                  </div>
+                  {conversation?.unreadCount > 0 && (
+                    <div className="bg-blue-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center">
+                      {conversation.unreadCount}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     );
