@@ -2061,6 +2061,12 @@ const handleCheckMessages = () => {
           </div>
         </div>
 
+        {/* 🔴 PON EL BOTÓN DEBUG AQUÍ */}
+        <div className="m-4 p-4 bg-red-500 text-white">
+          <p>User ID: {user?.id || 'NO DEFINIDO'}</p>
+          <p>Children count: {children.length}</p>
+        </div>
+
         <div className="divide-y">
           {children.filter(c => c.id !== user?.id).map((contact) => {
             const conversation = conversations.find(conv => conv.contactId === contact.id);
@@ -2195,18 +2201,6 @@ return (
 		  </div>
 		)}
       </div>
-
-      <button 
-      onClick={() => {
-        console.log('🔍 User ID:', user?.id);
-        console.log('🔍 User completo:', user);
-        console.log('🔍 Children:', children.map(c => ({ id: c.id, name: c.name })));
-      }}
-      className="m-4 p-2 bg-red-500 text-white rounded"
-    >
-      DEBUG - Click aquí
-    </button>
-
     </header>
 
     {/* Banner de alertas de zona */}
