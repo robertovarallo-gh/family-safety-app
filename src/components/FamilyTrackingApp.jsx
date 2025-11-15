@@ -56,7 +56,6 @@ const FamilyTrackingApp = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordCheck, setPasswordCheck] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [newMessage, setNewMessage] = useState('');
   const [showEmergencyConfirmation, setShowEmergencyConfirmation] = useState(false);
   const [isEmergencyActive, setIsEmergencyActive] = useState(false);
   const [emergencyType, setEmergencyType] = useState('');
@@ -88,7 +87,15 @@ const FamilyTrackingApp = () => {
   const [conversations, setConversations] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
-  
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll al final cuando llegan mensajes nuevos
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
+
+  const [newMessage, setNewMessage] = useState('');
+
 // ✨ Función helper para agregar alertas sin duplicados
 const addZoneAlert = (newAlert) => {
   setZoneAlerts(prev => {
@@ -345,22 +352,12 @@ useEffect(() => {
 
 // Listener de mensajes en tiempo real
 useEffect(() => {
-
-  console.log('🎯 useEffect mensajes - ejecutando');
-  console.log('🎯 user?.member_id:', user?.member_id);
-
   if (!user?.member_id) {
     console.log('❌ No hay member_id, saliendo');
     return;
   }
   
-  console.log('✅ Iniciando subscription para member_id:', user.member_id);
-  
   const subscription = MessagingService.subscribeToMessages(user.member_id, (newMsg) => {
-
-    console.log('📨 Mensaje recibido en listener:', newMsg);
-    console.log('🔍 Selected contact ID:', selectedContact?.id);
-    console.log('🔍 Sender ID del mensaje:', newMsg.sender_id);
 
     // Si estamos en el chat con esa persona, agregar mensaje
     if (selectedContact?.id === newMsg.sender_id) {
@@ -2030,7 +2027,7 @@ const handleCheckMessages = () => {
           </div>
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50" style={{ maxHeight: 'calc(100vh - 200px)' }}>
             {chatMessages.map((msg) => (
               <div 
                 key={msg.id} 
@@ -2053,6 +2050,7 @@ const handleCheckMessages = () => {
                 </div>
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input de mensaje */}
