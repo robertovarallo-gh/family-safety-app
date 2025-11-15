@@ -104,6 +104,8 @@ class MessagingService {
 
   // Listener de mensajes en tiempo real
   subscribeToMessages(userId, callback) {
+    console.log('🔔 Iniciando listener para userId:', userId);
+
     const subscription = supabase
       .channel('messages-realtime')
       .on('postgres_changes',
@@ -118,7 +120,9 @@ class MessagingService {
           callback(payload.new);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Estado subscription:', status);
+      });
 
     return subscription;
   }
