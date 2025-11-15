@@ -1971,6 +1971,11 @@ const handleCheckMessages = () => {
     );
   }
 
+  console.log('🔍 DEBUG Mensajería:');
+  console.log('User ID:', user?.id);
+  console.log('User completo:', user);
+  console.log('Children IDs:', children.map(c => ({ id: c.id, name: c.name })));
+
   // Messaging screen
   if (currentScreen === 'messaging') {
     // Si hay un contacto seleccionado, mostrar chat
