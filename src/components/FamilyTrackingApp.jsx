@@ -2015,16 +2015,16 @@ const handleCheckMessages = () => {
             {chatMessages.map((msg) => (
               <div 
                 key={msg.id} 
-                className={`flex ${msg.sender_id === user.id ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${msg.sender_id === user.member_id ? 'justify-end' : 'justify-start'}`}
               >
                 <div className={`max-w-xs px-4 py-2 rounded-lg ${
-                  msg.sender_id === user.id 
+                  msg.sender_id === user.member_id 
                     ? 'bg-blue-600 text-white' 
                     : 'bg-white text-gray-900 border'
                 }`}>
                   <p className="text-sm">{msg.message_text}</p>
                   <p className={`text-xs mt-1 ${
-                    msg.sender_id === user.id ? 'text-blue-100' : 'text-gray-500'
+                    msg.sender_id === user.member_id ? 'text-blue-100' : 'text-gray-500'
                   }`}>
                     {new Date(msg.created_at).toLocaleTimeString('es-ES', {
                       hour: '2-digit',
