@@ -345,9 +345,18 @@ useEffect(() => {
 
 // Listener de mensajes en tiempo real
 useEffect(() => {
-  if (!user?.member_id) return;
+
+  console.log('🎯 useEffect mensajes - ejecutando');
+  console.log('🎯 user?.member_id:', user?.member_id);
+
+  if (!user?.member_id) {
+    console.log('❌ No hay member_id, saliendo');
+    return;
+  }
   
-  const subscription = MessagingService.subscribeToMessages(user.memberId, (newMsg) => {
+  console.log('✅ Iniciando subscription para member_id:', user.member_id);
+  
+  const subscription = MessagingService.subscribeToMessages(user.member_id, (newMsg) => {
 
     console.log('📨 Mensaje recibido en listener:', newMsg);
     console.log('🔍 Selected contact ID:', selectedContact?.id);
