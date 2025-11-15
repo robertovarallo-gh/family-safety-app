@@ -839,7 +839,7 @@ const loadConversations = async () => {
   if (!user?.id) return;
   
   const result = await MessagingService.getConversations(
-    user.id, 
+    user.member_id, 
     user.user_metadata.family_id
   );
   
@@ -863,13 +863,13 @@ const openChat = async (contact) => {
   setSelectedContact(contact);
   
   // Cargar mensajes
-  const result = await MessagingService.getMessages(user.id, contact.id);
+  const result = await MessagingService.getMessages(user.member_id, contact.id);
   if (result.success) {
     setChatMessages(result.data);
   }
   
   // Marcar como leído
-  await MessagingService.markAsRead(user.id, contact.id);
+  await MessagingService.markAsRead(user.member_id, contact.id);
   
   // Recargar conversaciones para actualizar contador
   loadConversations();
@@ -880,7 +880,7 @@ const handleSendMessage = async () => {
   if (!newMessage.trim() || !selectedContact) return;
   
   const result = await MessagingService.sendMessage(
-    user.id,
+    user.member_id,
     selectedContact.id,
     user.user_metadata.family_id,
     newMessage.trim()
@@ -2074,14 +2074,14 @@ const handleCheckMessages = () => {
           </div>
         </div>
 
-        {/* 🔴 PON EL BOTÓN DEBUG AQUÍ */}
+        {/* 🔴 PON EL BOTÓN DEBUG AQUÍ 
         <div className="m-4 p-4 bg-red-500 text-white text-xs">
           <p><strong>User ID:</strong> {user?.id}</p>
           <p><strong>Children:</strong></p>
           {children.map((c, i) => (
             <p key={i}>- {c.name}: {c.id}</p>
           ))}
-        </div>
+        </div> */}
 
         <div className="divide-y">
           {children.filter(c => c.id !== user?.member_id).map((contact) => {
