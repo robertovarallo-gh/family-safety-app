@@ -2505,13 +2505,16 @@ return (
                     </>
                 )}
             </button>
+
+            <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="font-medium">Emergencia</span>
+            </button>
+
             <button onClick={() => { 
-				console.log('Botón clickeado');
-				console.log('Estado antes:', currentScreen);
-				setCurrentScreen('safezones')
-				console.log('Estado después:', 'safezones');
-			}} 
-			className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
+	      			setCurrentScreen('safezones')
+      			}} 
+			    className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
               <Shield className="h-5 w-5" />
               <span className="font-medium">Gestionar Zonas Seguras</span>
             </button>
@@ -2536,14 +2539,12 @@ return (
 			  )}
 			</div> */}
 
-            <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="font-medium">Emergencia</span>
-            </button>
           </div>
         </>
       )}
       
+
+
       <button 
         onClick={() => setCurrentScreen('addchild')}
         className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200"
