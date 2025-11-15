@@ -135,6 +135,19 @@ useEffect(() => {
       
       if (session?.user) {
         console.log('Usuario autenticado:', session.user.email);
+
+        // ✨ Obtener member_id del usuario logueado
+        const { data: memberData } = await supabase
+          .from('family_members')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (memberData) {
+          session.user.member_id = memberData.id; // Agregar member_id
+          console.log('✅ Member ID obtenido:', memberData.id);
+        }
+
         setUser(session.user);
         await loadAppData(session.user);
       } else {
@@ -2071,7 +2084,7 @@ const handleCheckMessages = () => {
         </div>
 
         <div className="divide-y">
-          {children.filter(c => c.id !== user?.id).map((contact) => {
+          {children.filter(c => c.id !== user?.member_id).map((contact) => {
             const conversation = conversations.find(conv => conv.contactId === contact.id);
             
             return (
