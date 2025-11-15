@@ -348,10 +348,20 @@ useEffect(() => {
   if (!user?.id) return;
   
   const subscription = MessagingService.subscribeToMessages(user.memberId, (newMsg) => {
+
+    console.log('📨 Mensaje recibido en listener:', newMsg);
+    console.log('🔍 Selected contact ID:', selectedContact?.id);
+    console.log('🔍 Sender ID del mensaje:', newMsg.sender_id);
+
     // Si estamos en el chat con esa persona, agregar mensaje
     if (selectedContact?.id === newMsg.sender_id) {
+
+      console.log('✅ Agregando mensaje al chat actual');
+
       setChatMessages(prev => [...prev, newMsg]);
       MessagingService.markAsRead(user.member_id, newMsg.sender_id);
+    } else {
+      console.log('⚠️ Mensaje no es del contacto actual');
     }
     
     // Actualizar lista de conversaciones
