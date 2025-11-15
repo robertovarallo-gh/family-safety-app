@@ -2065,6 +2065,15 @@ const handleCheckMessages = () => {
         <div className="m-4 p-4 bg-red-500 text-white">
           <p>User ID: {user?.id || 'NO DEFINIDO'}</p>
           <p>Children count: {children.length}</p>
+          <button 
+            onClick={() => {
+              console.log('🔍 Children completo:', children);
+              console.log('🔍 Children IDs:', children.map(c => ({ id: c.id, name: c.name })));
+            }}
+            className="mt-2 p-2 bg-white text-red-500 rounded"
+          >
+            Ver Children en Consola
+            </button>  
         </div>
 
         <div className="divide-y">
