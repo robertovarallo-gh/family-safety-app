@@ -1974,15 +1974,6 @@ const handleCheckMessages = () => {
 
   // Messaging screen
   if (currentScreen === 'messaging') {
-
-    // DEBUG
-    React.useEffect(() => {
-      console.log('🔍 DEBUG Mensajería:');
-      console.log('User ID:', user?.id);
-      console.log('User completo:', user);
-      console.log('Children IDs:', children.map(c => ({ id: c.id, name: c.name })));
-    }, []);
-
     // Si hay un contacto seleccionado, mostrar chat
     if (selectedContact) {
       return (
@@ -2204,6 +2195,18 @@ return (
 		  </div>
 		)}
       </div>
+
+      <button 
+      onClick={() => {
+        console.log('🔍 User ID:', user?.id);
+        console.log('🔍 User completo:', user);
+        console.log('🔍 Children:', children.map(c => ({ id: c.id, name: c.name })));
+      }}
+      className="m-4 p-2 bg-red-500 text-white rounded"
+    >
+      DEBUG - Click aquí
+    </button>
+
     </header>
 
     {/* Banner de alertas de zona */}
