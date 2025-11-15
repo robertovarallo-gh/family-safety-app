@@ -2515,7 +2515,8 @@ return (
               <Shield className="h-5 w-5" />
               <span className="font-medium">Gestionar Zonas Seguras</span>
             </button>
-			{/* POR este nuevo código: */}
+
+			{/* POR este nuevo código: 
 			<div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
 			  <div className="flex items-center justify-between">
 				<div className="flex items-center space-x-2">
@@ -2533,7 +2534,8 @@ return (
 			  {gpsError && (
 				<p className="text-xs text-red-600 mt-1">{gpsError}</p>
 			  )}
-			</div>
+			</div> */}
+
             <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
               <AlertTriangle className="h-5 w-5" />
               <span className="font-medium">Emergencia</span>
