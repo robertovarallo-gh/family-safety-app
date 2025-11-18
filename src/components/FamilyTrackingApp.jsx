@@ -88,6 +88,7 @@ const FamilyTrackingApp = () => {
   const [selectedContact, setSelectedContact] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const messagesEndRef = useRef(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Auto-scroll al final cuando llegan mensajes nuevos
   useEffect(() => {
@@ -871,6 +872,10 @@ const loadConversations = async () => {
     });
     
     setConversations(conversationsWithInfo);
+
+    // Calcular total de mensajes no leídos
+    const totalUnread = conversationsWithInfo.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
+    setUnreadCount(totalUnread);
   }
 };
 
@@ -2475,10 +2480,18 @@ return (
 			  </button>
 			)}
 			
-			<button onClick={() => setCurrentScreen('messaging')} className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
-              <MessageCircle className="h-5 w-5" />
-              <span className="font-medium">Enviar Mensaje</span>
-            </button>
+			<button 
+        onClick={() => setCurrentScreen('messaging')} 
+        className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
+        <MessageCircle className="h-5 w-5" />
+        <span className="font-medium">Enviar Mensaje</span>
+        {unreadCount > 0 && (
+          <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+            {unreadCount}
+          </span>
+        )}
+      </button>
+
             <button onClick={handleCheckMessages} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
               checkStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
               }`}>
