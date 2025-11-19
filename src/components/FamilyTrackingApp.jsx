@@ -2357,215 +2357,201 @@ return (
 
     <div className="p-4 space-y-4">
       {children.length <= 1 ? (
-		<div className="bg-white rounded-xl shadow-sm border p-8 text-center">
-		  <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-		  <h3 className="text-lg font-semibold text-gray-900 mb-2">Aun no hay otros miembros</h3>
-		  <p className="text-gray-600 mb-6">Invita a tu familia para comenzar a usar FamilyWatch</p>
-		  <button 
-			onClick={() => setCurrentScreen('addchild')}
-			className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium"
-		  >
-			<Users className="h-5 w-5" />
-			<span>Invitar miembro familiar</span>
-		  </button>
-		</div>
-		) : (
-        <>
-          <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 p-4 border-b">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">MAPA</span>
-                    Localizacion en tiempo real
-                  </h3>
-                  <p className="text-sm text-gray-600">{activeChild?.location || 'Ubicación no disponible'}</p>
-                </div>
-                <button
-                  onClick={recenterMap}
-                  className="flex items-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md"
-                  title="Centrar en usuario seleccionado"
-                >
-                  <MapPin className="h-4 w-4" />
-                  <span className="text-sm font-medium">Centrar</span>
-                </button>
-              </div>
-            </div>
-            <div 
-              id="dashboard-map"
-              className="w-full h-64"
-              style={{ minHeight: '256px' }}
-            />
-            <div className="p-4 bg-gray-50 border-t">
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-1">
-                    <div className={`w-2 h-2 rounded-full ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`}></div>
-                    <span className={activeChild?.isConnected ? 'text-green-600' : 'text-red-600'}>
-                      {activeChild?.isConnected ? 'En línea' : 'Desconectado'}
-                    </span>
+        <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+          <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Aun no hay otros miembros</h3>
+          <p className="text-gray-600 mb-6">Invita a tu familia para comenzar a usar FamilyWatch</p>
+            <button 
+              onClick={() => setCurrentScreen('addchild')}
+              className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium"
+              >
+              <Users className="h-5 w-5" />
+              <span>Invitar miembro familiar</span>
+            </button>
+        </div>
+        ) : (
+            <>
+              {/* CONTENEDOR PRINCIPAL CON MAPA FIJO */}
+              <div className="flex flex-col h-screen">
+                {/* SECCIÓN FIJA: Mapa + Selector + Info */}
+                <div className="flex-none">
+                  {/* MAPA */}
+                  <div className="bg-white shadow-sm border-b">
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 p-3 border-b">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-base font-semibold text-gray-900 flex items-center">
+                          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs mr-2 font-bold">MAPA</span>
+                          Localización en tiempo real
+                        </h3>
+                        <button
+                          onClick={recenterMap}
+                          className="flex items-center space-x-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs"
+                          title="Centrar en usuario seleccionado"
+                        >
+                          <MapPin className="h-3 w-3" />
+                          <span>Centrar</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div 
+                      id="dashboard-map"
+                      className="w-full h-64"
+                      style={{ minHeight: '256px' }}
+                    />
                   </div>
-                  <span className="text-gray-500">
-                    Actualizado: {activeChild?.lastUpdate || 'Hace un momento'}
-                  </span>
-                </div>
-				{activeChild?.safeZone && activeChild.safeZone !== "Verificando zona..." && (
-				  <div className="flex items-center space-x-1 text-green-600">
-					<span className="font-medium">En zona segura: {activeChild.safeZone}</span>
-				  </div>
-				)}
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex items-center mb-4">
-              <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">INFO del Miembro Familiar</span>
-            </div>              
-            <div className="flex items-center space-x-4 mb-4">
-              <div className="relative">
-                <img src={activeChild?.photo} alt={activeChild?.name} className="w-16 h-16 rounded-full object-cover" />
-                <div className={`absolute bottom-0 right-0 w-5 h-5 ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'} rounded-full border-2 border-white`}></div>
-              </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-gray-900">{activeChild?.name}</h2>
-                <p className="text-gray-600">{activeChild?.age} years old</p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <MapPin className="h-4 w-4 text-gray-400" />                   
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-			  <div className="bg-gray-50 rounded-lg p-3">
-				<div className="flex items-center space-x-2">
-				  <Battery className={`h-4 w-4 ${
-					activeChild.battery === null 
-					  ? 'text-gray-400' 
-					  : activeChild.battery > 20 
-					    ? 'text-green-500' 
-					    : 'text-red-500'
-				  }`} />
-				  <span className="text-sm font-medium">
-				    {activeChild.battery === null ? 'N/D' : `${activeChild.battery}%`}
-				  </span>
-			    </div>
-			    <p className="text-xs text-gray-500 mt-1">
-				  {activeChild.battery === null ? 'No disponible' : 'Battery'}
-			    </p>
-			  </div>
-              <div className="bg-gray-50 rounded-lg p-3">
-                <div className="flex items-center space-x-2">
-                  <Wifi className={`h-4 w-4 ${activeChild?.isConnected ? 'text-green-500' : 'text-red-500'}`} />
-                  <span className="text-sm font-medium">{activeChild?.isConnected ? 'Connected' : 'Offline'}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Status</p>
-              </div>
-            </div>
-          </div>
+                  {/* SELECTOR DE MIEMBRO */}
+                  <div className="bg-white p-3 border-b">
+                    {children.length > 1 ? (
+                      <select 
+                        value={selectedChild} 
+                        onChange={(e) => {
+                          setSelectedChild(parseInt(e.target.value));
+                          setShouldCenterMap(true);
+                        }} 
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      >
+                        {children.map((child, index) => (
+                          <option key={child.id} value={index}>
+                            {child.name} ({child.age} años)
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="text-center text-gray-500 text-sm">
+                        {children[0]?.name || 'Cargando...'}
+                      </div>
+                    )}
+                  </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center mb-3">
-              <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">Acciones</span>
-              <h3 className="text-lg font-semibold text-gray-900">Acciones rápidas</h3>
-            </div>
- 
-			{/* Botón solo para iOS */}
-			{isIOSDevice && (
-			  <button 
-				onClick={handleLowBatteryAlert}
-				className="w-full flex items-center space-x-3 px-4 py-3 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg transition-colors"
-			  >
-				<Battery className="h-5 w-5" />
-				<span className="font-medium">Mi batería está baja</span>
-			  </button>
-			)}
-			
-			<button 
-        onClick={() => setCurrentScreen('messaging')} 
-        className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
-        <MessageCircle className="h-5 w-5" />
-        <span className="font-medium">Enviar Mensaje</span>
-        {unreadCount > 0 && (
-          <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-            {unreadCount}
-          </span>
-        )}
-      </button>
+                  {/* INFO COMPACTA - 1 LÍNEA */}
+                  <div className="bg-gray-50 px-4 py-2 border-b">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center space-x-3">
+                        {/* Batería */}
+                        <div className="flex items-center space-x-1">
+                          <Battery className={`h-3 w-3 ${
+                            activeChild?.battery === null 
+                              ? 'text-gray-400' 
+                              : activeChild?.battery > 20 
+                                ? 'text-green-500' 
+                                : 'text-red-500'
+                          }`} />
+                          <span className="font-medium">
+                            {activeChild?.battery === null ? 'N/D' : `${activeChild.battery}%`}
+                          </span>
+                        </div>
 
-            <button onClick={handleCheckMessages} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-              checkStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
-              }`}>
-                {checkStatus === 'sending' ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-                      <span className="font-medium">Enviando Check...</span>
-                    </>
-                ) : checkStatus === 'waiting' ? (
-                    <>
-                      <Clock className="h-5 w-5 animate-pulse" />
-                      <span className="font-medium">Aguardando {activeChild?.name}...</span>
-                    </>
-                ) : checkStatus === 'success' ? (
-                    <>
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="font-medium">Check OK!</span>
-                      <span className="ml-auto text-xs bg-green-200 px-2 py-1 rounded">{checkRequestTime}</span>
-                    </>
-                ) : (
-                    <>
+                        {/* Status */}
+                        <div className="flex items-center space-x-1">
+                          <div className={`w-2 h-2 rounded-full ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className={activeChild?.isConnected ? 'text-green-600' : 'text-red-600'}>
+                            {activeChild?.isConnected ? 'Online' : 'Offline'}
+                          </span>
+                        </div>
+
+                        {/* Última actualización */}
+                        <div className="flex items-center space-x-1 text-gray-500">
+                          <Clock className="h-3 w-3" />
+                          <span>{activeChild?.lastUpdate || 'Hace un momento'}</span>
+                        </div>
+                      </div>
+
+                      {/* Zona segura */}
+                      {activeChild?.safeZone && activeChild.safeZone !== "Verificando zona..." && (
+                        <div className="flex items-center space-x-1 text-green-600">
+                          <Shield className="h-3 w-3" />
+                          <span className="font-medium">{activeChild.safeZone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* SECCIÓN CON SCROLL: Botones */}
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center mb-3">
+                      <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">Acciones</span>
+                      <h3 className="text-lg font-semibold text-gray-900">Acciones rápidas</h3>
+                    </div>
+        
+                    {/* Botón solo para iOS */}
+                    {isIOSDevice && (
+                      <button 
+                        onClick={handleLowBatteryAlert}
+                        className="w-full flex items-center space-x-3 px-4 py-3 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg transition-colors"
+                      >
+                        <Battery className="h-5 w-5" />
+                        <span className="font-medium">Mi batería está baja</span>
+                      </button>
+                    )}
+                    
+                    <button 
+                      onClick={() => setCurrentScreen('messaging')} 
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
                       <MessageCircle className="h-5 w-5" />
-                      <span className="font-medium">Checa Status</span>
-                    </>
-                )}
-            </button>
+                      <span className="font-medium">Enviar Mensaje</span>
+                      {unreadCount > 0 && (
+                        <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                          {unreadCount}
+                        </span>
+                      )}
+                    </button>
 
-            <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
-              <AlertTriangle className="h-5 w-5" />
-              <span className="font-medium">Emergencia</span>
-            </button>
+                    <button onClick={handleCheckMessages} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                      checkStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
+                      }`}>
+                        {checkStatus === 'sending' ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
+                              <span className="font-medium">Enviando Check...</span>
+                            </>
+                        ) : checkStatus === 'waiting' ? (
+                            <>
+                              <Clock className="h-5 w-5 animate-pulse" />
+                              <span className="font-medium">Aguardando {activeChild?.name}...</span>
+                            </>
+                        ) : checkStatus === 'success' ? (
+                            <>
+                              <CheckCircle className="h-5 w-5" />
+                              <span className="font-medium">Check OK!</span>
+                              <span className="ml-auto text-xs bg-green-200 px-2 py-1 rounded">{checkRequestTime}</span>
+                            </>
+                        ) : (
+                            <>
+                              <MessageCircle className="h-5 w-5" />
+                              <span className="font-medium">Checa Status</span>
+                            </>
+                        )}
+                    </button>
 
-            <button onClick={() => { 
-	      			setCurrentScreen('safezones')
-      			}} 
-			    className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
-              <Shield className="h-5 w-5" />
-              <span className="font-medium">Gestionar Zonas Seguras</span>
-            </button>
+                    <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
+                      <AlertTriangle className="h-5 w-5" />
+                        <span className="font-medium">Emergencia</span>
+                    </button>
 
-			{/* POR este nuevo código: 
-			<div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-			  <div className="flex items-center justify-between">
-				<div className="flex items-center space-x-2">
-				  <div className={`w-3 h-3 rounded-full ${isGPSTracking ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
-				  <span className="text-sm font-medium text-gray-700">
-					GPS Tracking: {isGPSTracking ? 'Activo' : 'Inactivo'}
-				  </span>
-				</div>
-				{lastGPSUpdate && (
-				  <span className="text-xs text-gray-500">
-					Última actualización: {lastGPSUpdate.toLocaleTimeString()}
-				  </span>
-				)}
-			  </div>
-			  {gpsError && (
-				<p className="text-xs text-red-600 mt-1">{gpsError}</p>
-			  )}
-			</div> */}
-
-          </div>
-        </>
+                    <button onClick={() => { 
+                      setCurrentScreen('safezones')
+                      }} 
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
+                          <Shield className="h-5 w-5" />
+                          <span className="font-medium">Gestionar Zonas Seguras</span>
+                    </button>
+                    
+                    <button 
+                      onClick={() => setCurrentScreen('addchild')}
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200"
+                    >
+                      <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">+</div>
+                      <span className="font-medium">Agregar Nuevo Miembro</span>
+                    </button>
+                  </div>
+                </div> 
+              </div> 
+            </> 
       )}
-      
-
-
-      <button 
-        onClick={() => setCurrentScreen('addchild')}
-        className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200"
-      >
-        <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">+</div>
-        <span className="font-medium">Agregar Nuevo Miembro</span>
-      </button>
-    </div>
+    </div> 
 
     {showPasswordModal && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
