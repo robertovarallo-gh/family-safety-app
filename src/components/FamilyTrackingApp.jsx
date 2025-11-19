@@ -1309,7 +1309,7 @@ const initializeDashboardMap = (mapContainer) => {
     if (shouldCenterMap) {
       console.log('🎯 Centrando mapa en:', activeChild.name);
       mapInstanceRef.current.setCenter(childLocation);
-      mapInstanceRef.current.setZoom(15);
+      mapInstanceRef.current.setZoom(17);
     } else {
       console.log('📍 Manteniendo vista actual');
     }
@@ -1328,7 +1328,7 @@ const initializeDashboardMap = (mapContainer) => {
 
   // Crear mapa primera vez
   const map = new window.google.maps.Map(mapContainer, {
-    zoom: 15,
+    zoom: 17,
     center: childLocation,
     mapTypeControl: true,
     streetViewControl: true,
@@ -1369,7 +1369,7 @@ const recenterMap = () => {
   
   console.log('🎯 Re-centrando en:', activeChild.name);
   mapInstanceRef.current.setCenter(childLocation);
-  mapInstanceRef.current.setZoom(15);
+  mapInstanceRef.current.setZoom(17);
   setShouldCenterMap(true);
 };
 
