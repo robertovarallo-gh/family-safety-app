@@ -29,6 +29,7 @@ import realtimeLocationService from '../services/RealtimeLocationService';
 import ZoneDetectionService from '../services/ZoneDetectionService';
 import BatteryAlertService from '../services/BatteryAlertService';
 import MessagingService from '../services/MessagingService';
+import SafetyCheckService from '../services/SafetyCheckService';
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
@@ -96,6 +97,14 @@ const FamilyTrackingApp = () => {
   }, [chatMessages]);
 
   const [newMessage, setNewMessage] = useState('');
+
+  // Checa Status
+  const [sentChecks, setSentChecks] = useState([]);
+  const [pendingCheckRequest, setPendingCheckRequest] = useState(null);
+  const [showCheckPinModal, setShowCheckPinModal] = useState(false);
+  const [checkPin, setCheckPin] = useState('');
+  const [checkPinError, setCheckPinError] = useState('');
+  const [silentEmergencies, setSilentEmergencies] = useState([]);
 
 // ✨ Función helper para agregar alertas sin duplicados
 const addZoneAlert = (newAlert) => {
@@ -356,8 +365,8 @@ useEffect(() => {
   if (!user?.member_id) {
     console.log('❌ No hay member_id, saliendo');
     return;
-  }
-  
+  }  
+
   const subscription = MessagingService.subscribeToMessages(user.member_id, (newMsg) => {
 
     // Si estamos en el chat con esa persona, agregar mensaje
@@ -379,6 +388,8 @@ useEffect(() => {
     subscription.unsubscribe();
   };
 }, [user?.member_id, selectedContact?.id]);
+
+
 
 // Detectar batería baja
 useEffect(() => {
@@ -515,6 +526,57 @@ useEffect(() => {
 
   checkZoneChanges();
 }, [children, safeZones]);
+
+// Listener de checks pendientes (cuando recibes un check)
+useEffect(() => {
+  if (!user?.member_id) return;
+  
+  console.log('🔔 Iniciando listener de safety checks...');
+  
+  const subscription = SafetyCheckService.subscribeToPendingChecks(user.member_id, (newCheck) => {
+    console.log('📨 Nuevo check recibido de:', newCheck.requester_id);
+    setPendingCheckRequest(newCheck);
+    setShowCheckPinModal(true);
+  });
+  
+  return () => {
+    subscription.unsubscribe();
+  };
+}, [user?.member_id]);
+
+// Listener de respuestas a checks (cuando te responden)
+useEffect(() => {
+  if (!user?.member_id) return;
+  
+  const subscription = SafetyCheckService.subscribeToCheckResponses(user.member_id, (updatedCheck) => {
+    console.log('✅ Check respondido:', updatedCheck);
+    loadSentChecks();
+  });
+  
+  return () => {
+    subscription.unsubscribe();
+  };
+}, [user?.member_id]);
+
+// Listener de emergencias silenciosas
+useEffect(() => {
+  if (!user?.user_metadata?.family_id) return;
+  
+  const subscription = SafetyCheckService.subscribeToSilentEmergencies(
+    user.user_metadata.family_id,
+    (emergency) => {
+      // Solo mostrar si NO eres el target (para que no vea la alerta quien está en peligro)
+      if (emergency.target_id !== user.member_id) {
+        console.log('🚨 EMERGENCIA SILENCIOSA detectada');
+        setSilentEmergencies(prev => [emergency, ...prev].slice(0, 3));
+      }
+    }
+  );
+  
+  return () => {
+    subscription.unsubscribe();
+  };
+}, [user?.user_metadata?.family_id, user?.member_id]);
 
 const loadAppData = async (userData) => {
   try {
@@ -912,6 +974,65 @@ const handleSendMessage = async () => {
     setNewMessage('');
   }
 };
+
+// ========== FUNCIONES DE SAFETY CHECK ==========
+
+const loadSentChecks = async () => {
+  if (!user?.member_id) return;
+  
+  const result = await SafetyCheckService.getSentChecks(user.member_id);
+  if (result.success) {
+    setSentChecks(result.data);
+  }
+};
+
+const sendSafetyCheck = async (targetMember) => {
+  const result = await SafetyCheckService.sendCheckRequest(
+    user.member_id,
+    targetMember.id,
+    user.user_metadata.family_id
+  );
+  
+  if (result.success) {
+    console.log('✅ Check enviado a:', targetMember.name);
+    loadSentChecks();
+  } else {
+    alert('Error enviando check: ' + result.error);
+  }
+};
+
+const handleCheckPinSubmit = async () => {
+  if (!pendingCheckRequest || checkPin.length !== 4) {
+    setCheckPinError('PIN debe tener 4 dígitos');
+    return;
+  }
+  
+  // Validar PIN
+  const validation = await SafetyCheckService.validatePin(user.member_id, checkPin);
+  
+  if (!validation.success || validation.type === 'invalid') {
+    setCheckPinError('PIN incorrecto');
+    setCheckPin('');
+    return;
+  }
+  
+  // Responder al check
+  const result = await SafetyCheckService.respondToCheck(
+    pendingCheckRequest.id,
+    user.member_id,
+    validation.type
+  );
+  
+  if (result.success) {
+    console.log('✅ Check respondido:', validation.type);
+    setShowCheckPinModal(false);
+    setPendingCheckRequest(null);
+    setCheckPin('');
+    setCheckPinError('');
+  } else {
+    setCheckPinError('Error respondiendo check');
+  }
+};  
 
   // Funcion para calcular edad
   const calculateAge = (birthDate) => {
@@ -2146,7 +2267,108 @@ const handleCheckMessages = () => {
       </div>
     );
   }
-  
+
+  // ========== PANTALLA: SAFETY CHECK ==========
+  if (currentScreen === 'safetycheck') {
+    return (
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4">
+          <div className="flex items-center space-x-3 mb-4">
+            <button 
+              onClick={() => setCurrentScreen('dashboard')}
+              className="p-2 hover:bg-purple-500 rounded-full transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-bold">🛡️ Safety Check</h1>
+          </div>
+        </div>
+
+        <div className="p-4">
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-purple-800 mb-2">¿Cómo funciona?</h3>
+            <ul className="text-sm text-purple-700 space-y-1">
+              <li>• Selecciona un miembro para solicitar confirmación</li>
+              <li>• El miembro recibirá una alerta para ingresar su PIN</li>
+              <li>• PIN normal = Todo bien ✅</li>
+              <li>• PIN invertido = Emergencia silenciosa 🚨</li>
+            </ul>
+          </div>
+
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Selecciona un miembro:</h3>
+          
+          <div className="space-y-3 mb-6">
+            {children.filter(c => c.id !== user?.member_id).map((member) => {
+              const lastCheck = sentChecks.find(check => check.target_id === member.id);
+              
+              return (
+                <div
+                  key={member.id}
+                  onClick={() => sendSafetyCheck(member)}
+                  className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="text-4xl">{member.avatar}</div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900">{member.name}</h4>
+                      {lastCheck && (
+                        <p className="text-sm text-gray-600">
+                          {lastCheck.status === 'pending' ? (
+                            <span className="text-orange-600">⏳ Pendiente - {new Date(lastCheck.requested_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                          ) : (
+                            <span className="text-green-600">✅ OK - {new Date(lastCheck.responded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <CheckCircle className="h-6 w-6 text-purple-600" />
+                </div>
+              );
+            })}
+          </div>
+
+          {sentChecks.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3">Historial reciente:</h3>
+              <div className="space-y-2">
+                {sentChecks.slice(0, 5).map((check) => {
+                  const targetMember = children.find(c => c.id === check.target_id);
+                  
+                  return (
+                    <div key={check.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-2xl">{targetMember?.avatar}</span>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{targetMember?.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(check.requested_at).toLocaleString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        {check.status === 'pending' ? (
+                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">⏳ Pendiente</span>
+                        ) : (
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">✅ Confirmado</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
 // Parte 9 y 10 del FamilyTrackingApp.jsx - Dashboard principal
 
 // Dashboard principal
@@ -2285,7 +2507,40 @@ return (
         </div>
       </div>
     )}
-	
+
+    {/* Banner de EMERGENCIAS SILENCIOSAS */}
+    {silentEmergencies.length > 0 && (
+      <div className="bg-red-600 border-b border-red-700 py-2 animate-pulse">
+        <div className="max-w-md mx-auto px-4 space-y-2">
+          {silentEmergencies.map(emergency => {
+            const targetMember = children.find(c => c.id === emergency.target_id);
+            return (
+              <div 
+                key={emergency.id}
+                className="flex items-center p-3 rounded-lg bg-red-700 text-white"
+              >
+                <span className="text-2xl mr-3">🚨</span>
+                <div className="flex-1">
+                  <p className="text-sm font-bold">
+                    ALERTA: {targetMember?.name || 'Miembro'} necesita ayuda
+                  </p>
+                  <p className="text-xs opacity-90">
+                    Respondió con PIN de emergencia - {new Date(emergency.responded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSilentEmergencies(prev => prev.filter(e => e.id !== emergency.id))}
+                  className="text-white hover:text-red-200 ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
 	    {showZoneAlert && zoneAlerts.length > 0 && (
       <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
         {zoneAlerts.slice(0, 3).map(alert => (
@@ -2472,31 +2727,15 @@ return (
                       )}
                     </button>
 
-                    <button onClick={handleCheckMessages} className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      checkStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-purple-50 hover:bg-purple-100 text-purple-700'
-                      }`}>
-                        {checkStatus === 'sending' ? (
-                            <>
-                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600"></div>
-                              <span className="font-medium">Enviando Check...</span>
-                            </>
-                        ) : checkStatus === 'waiting' ? (
-                            <>
-                              <Clock className="h-5 w-5 animate-pulse" />
-                              <span className="font-medium">Aguardando {activeChild?.name}...</span>
-                            </>
-                        ) : checkStatus === 'success' ? (
-                            <>
-                              <CheckCircle className="h-5 w-5" />
-                              <span className="font-medium">Check OK!</span>
-                              <span className="ml-auto text-xs bg-green-200 px-2 py-1 rounded">{checkRequestTime}</span>
-                            </>
-                        ) : (
-                            <>
-                              <MessageCircle className="h-5 w-5" />
-                              <span className="font-medium">Checa Status</span>
-                            </>
-                        )}
+                    <button 
+                      onClick={() => {
+                        setCurrentScreen('safetycheck');
+                        loadSentChecks();
+                      }}
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors"
+                    >
+                      <Shield className="h-5 w-5" />
+                      <span className="font-medium">Safety Check</span>
                     </button>
 
                     <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
@@ -2525,7 +2764,80 @@ return (
             </> 
       )}
     </div> 
+    
+    {/* Modal de Safety Check PIN */}
+    {showCheckPinModal && pendingCheckRequest && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-sm">
+          <div className="text-center mb-4">
+            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <Shield className="h-8 w-8 text-purple-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">🛡️ Safety Check</h3>
+            <p className="text-sm text-gray-600">
+              <span className="font-bold text-purple-600">
+                {children.find(c => c.id === pendingCheckRequest.requester_id)?.name || 'Un miembro'}
+              </span>
+              {' '}solicita confirmación de seguridad
+            </p>
+          </div>
 
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-4">
+            <p className="text-xs text-purple-800 text-center">
+              <strong>PIN normal:</strong> Todo bien ✅<br />
+              <strong>PIN invertido:</strong> Necesito ayuda 🚨
+            </p>
+          </div>
+
+          <div>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              value={checkPin}
+              onChange={(e) => setCheckPin(e.target.value.replace(/\D/g, ''))}
+              onKeyPress={(e) => e.key === 'Enter' && handleCheckPinSubmit()}
+              placeholder="Ingresa tu PIN (4 dígitos)"
+              className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-500"
+              autoFocus
+            />
+            
+            {checkPinError && (
+              <p className="text-red-600 text-sm mt-2 text-center">{checkPinError}</p>
+            )}
+
+            <div className="flex space-x-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowCheckPinModal(false);
+                  setPendingCheckRequest(null);
+                  setCheckPin('');
+                  setCheckPinError('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCheckPinSubmit}
+                disabled={checkPin.length !== 4}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-600 text-center">
+              💡 PIN de prueba: 1234 (normal) / 4321 (emergencia)
+            </p>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal de verificación de contraseña */}
     {showPasswordModal && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
         <div className="bg-white rounded-lg p-6 w-full max-w-sm">
