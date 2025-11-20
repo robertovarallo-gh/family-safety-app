@@ -44,27 +44,6 @@ class SafetyCheckService {
     }
   }
 
-  // Obtener checks enviados por un usuario
-  async getSentChecks(requesterId) {
-    try {
-      const { data, error } = await supabase
-        .from('safety_checks')
-        .select(`
-          *,
-          target:family_members!target_id(first_name, last_name, avatar)
-        `)
-        .eq('requester_id', requesterId)
-        .order('requested_at', { ascending: false })
-        .limit(20);
-
-      if (error) throw error;
-      return { success: true, data: data || [] };
-    } catch (error) {
-      console.error('Error obteniendo checks enviados:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
   // Validar PIN (debe venir de family_members.settings o families)
   async validatePin(memberId, enteredPin) {
     try {
