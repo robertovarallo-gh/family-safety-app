@@ -588,8 +588,18 @@ useEffect(() => {
 const loadAppData = async (userData) => {
   try {
     setLoading(true);
-    // await loadSafeZones(); // YA NO ES NECESARIO AQUÍ
     await loadChildren(userData);
+    
+    // ✨ PRUEBA TEMPORAL
+    console.log('🧪 TEST: Llamando listener manualmente');
+    console.log('🧪 member_id disponible:', userData.member_id);
+    
+    if (userData.member_id) {
+      const sub = SafetyCheckService.subscribeToPendingChecks(userData.member_id, (check) => {
+        console.log('📨 CHECK RECIBIDO EN PRUEBA:', check);
+        alert('Check recibido: ' + JSON.stringify(check));
+      });
+    }
   } catch (error) {
     console.error('Error cargando datos de la aplicación:', error);
   } finally {
