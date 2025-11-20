@@ -530,83 +530,42 @@ useEffect(() => {
   checkZoneChanges();
 }, [children, safeZones]);
 
-// Listener de checks pendientes (cuando recibes un check)
+// ✨ UN SOLO Listener para toda la familia
 useEffect(() => {
-  console.log('🎯 useEffect checks - member_id:', user?.member_id); // ← AGREGAR
-
-  if (!user?.member_id) {
-    console.log('❌ No hay member_id');
-    return;
-  }
+  if (!user?.member_id || !user?.user_metadata?.family_id) return;
   
-  console.log('🔔 Iniciando listener de safety checks...');
+  console.log('🔔 Iniciando listener único de familia');
   
-  const subscription = SafetyCheckService.subscribeToPendingChecks(user.member_id, (newCheck) => {
-    console.log('📨 Nuevo check recibido de:', newCheck.requester_id);
-    console.log('📨 Nuevo check recibido completo:', newCheck); // ← MODIFICAR
-    setPendingCheckRequest(newCheck);
-    setShowCheckPinModal(true);
-  });
-  
-  return () => {
-    console.log('🔌 Desconectando listener checks'); // ← AGREGAR
-    subscription.unsubscribe();
-  };
-}, [user?.member_id, user?.id]);
-
-// Listener de respuestas a checks (cuando te responden)
-useEffect(() => {
-  if (!user?.member_id) return;
-  
-  const subscription = SafetyCheckService.subscribeToCheckResponses(user.member_id, (updatedCheck) => {
-    console.log('✅ Check respondido:', updatedCheck);
-    loadSentChecks();
-  });
-  
-  return () => {
-    subscription.unsubscribe();
-  };
-}, [user?.member_id]);
-
-// Listener de emergencias silenciosas
-useEffect(() => {
-  if (!user?.user_metadata?.family_id) return;
-  
-  const subscription = SafetyCheckService.subscribeToSilentEmergencies(
+  const subscription = SafetyCheckService.subscribeToFamilyChecks(
     user.user_metadata.family_id,
-    (emergency) => {
-      // Solo mostrar si NO eres el target (para que no vea la alerta quien está en peligro)
-      if (emergency.target_id !== user.member_id) {
-        console.log('🚨 EMERGENCIA SILENCIOSA detectada');
+    user.member_id,
+    {
+      onCheckReceived: (check) => {
+        console.log('📬 Check recibido, mostrando modal');
+        setPendingCheckRequest(check);
+        setShowCheckPinModal(true);
+      },
+      onCheckResponse: (check) => {
+        console.log('📥 Check respondido, recargando lista');
+        loadSentChecks();
+      },
+      onSilentEmergency: (emergency) => {
+        console.log('🚨 Emergencia silenciosa, agregando alerta');
         setSilentEmergencies(prev => [emergency, ...prev].slice(0, 3));
       }
     }
   );
   
   return () => {
+    console.log('🔌 Desconectando listener de familia');
     subscription.unsubscribe();
   };
-}, [user?.user_metadata?.family_id, user?.member_id]);
+}, [user?.member_id, user?.user_metadata?.family_id]);
 
 const loadAppData = async (userData) => {
   try {
     setLoading(true);
     await loadChildren(userData);
-    
-    // ✨ PRUEBA TEMPORAL
-    console.log('🧪 TEST: Llamando listener manualmente');
-    console.log('🧪 userData completo:', userData);
-    console.log('🧪 member_id disponible:', userData?.member_id);
-
-    if (userData?.member_id) {
-      console.log('✅ Suscribiendo listener con member_id:', userData.member_id);
-      const sub = SafetyCheckService.subscribeToPendingChecks(userData.member_id, (check) => {
-        console.log('📨 CHECK RECIBIDO EN PRUEBA:', check);
-        alert('Check recibido: ' + JSON.stringify(check));
-      });
-    } else {
-      console.log('❌ No se puede suscribir - member_id no disponible');
-    }
   } catch (error) {
     console.error('Error cargando datos de la aplicación:', error);
   } finally {
