@@ -151,16 +151,21 @@ class SafetyCheckService {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'safety_checks',
-          filter: `family_id=eq.${familyId}`
+          table: 'safety_checks'
+          // ← SIN FILTRO para probar
         },
         (payload) => {
-          console.log('📨 Evento INSERT recibido:', payload.new);
+          console.log('📨 Evento INSERT recibido (sin filtro):', payload.new);
           
-          // Si el check es para mí
-          if (payload.new.target_id === memberId && payload.new.status === 'pending') {
-            console.log('📬 Check recibido para mí');
-            callbacks.onCheckReceived?.(payload.new);
+          // Filtrar manualmente por familia
+          if (payload.new.family_id === familyId) {
+            console.log('✅ Es de mi familia');
+            
+            // Si el check es para mí
+            if (payload.new.target_id === memberId && payload.new.status === 'pending') {
+              console.log('📬 Check recibido para mí');
+              callbacks.onCheckReceived?.(payload.new);
+            }
           }
         }
       )
@@ -168,22 +173,24 @@ class SafetyCheckService {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'safety_checks',
-          filter: `family_id=eq.${familyId}`
+          table: 'safety_checks'
+          // ← SIN FILTRO
         },
         (payload) => {
-          console.log('✅ Evento UPDATE recibido:', payload.new);
+          console.log('✅ Evento UPDATE recibido (sin filtro):', payload.new);
           
-          // Si respondieron a mi check
-          if (payload.new.requester_id === memberId) {
-            console.log('📥 Respuesta a mi check');
-            callbacks.onCheckResponse?.(payload.new);
-          }
-          
-          // Si es emergencia silenciosa y NO soy el target
-          if (payload.new.is_silent_emergency && payload.new.target_id !== memberId) {
-            console.log('🚨 Emergencia silenciosa detectada');
-            callbacks.onSilentEmergency?.(payload.new);
+          if (payload.new.family_id === familyId) {
+            // Si respondieron a mi check
+            if (payload.new.requester_id === memberId) {
+              console.log('📥 Respuesta a mi check');
+              callbacks.onCheckResponse?.(payload.new);
+            }
+            
+            // Si es emergencia silenciosa y NO soy el target
+            if (payload.new.is_silent_emergency && payload.new.target_id !== memberId) {
+              console.log('🚨 Emergencia silenciosa detectada');
+              callbacks.onSilentEmergency?.(payload.new);
+            }
           }
         }
       )
@@ -193,6 +200,7 @@ class SafetyCheckService {
 
     return subscription;
   }
+
 }
 
 export default new SafetyCheckService();
