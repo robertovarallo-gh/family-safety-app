@@ -167,6 +167,9 @@ useEffect(() => {
 
         setUser(session.user);
         await loadAppData(session.user);
+        // ✨ FORZAR actualización de estado para activar listeners
+        setUser({...session.user}); // ← AGREGAR ESTA LÍNEA
+
       } else {
         console.log('Sin sesion - mostrando login');
         setCurrentScreen('login');
@@ -592,13 +595,17 @@ const loadAppData = async (userData) => {
     
     // ✨ PRUEBA TEMPORAL
     console.log('🧪 TEST: Llamando listener manualmente');
-    console.log('🧪 member_id disponible:', userData.member_id);
-    
-    if (userData.member_id) {
+    console.log('🧪 userData completo:', userData);
+    console.log('🧪 member_id disponible:', userData?.member_id);
+
+    if (userData?.member_id) {
+      console.log('✅ Suscribiendo listener con member_id:', userData.member_id);
       const sub = SafetyCheckService.subscribeToPendingChecks(userData.member_id, (check) => {
         console.log('📨 CHECK RECIBIDO EN PRUEBA:', check);
         alert('Check recibido: ' + JSON.stringify(check));
       });
+    } else {
+      console.log('❌ No se puede suscribir - member_id no disponible');
     }
   } catch (error) {
     console.error('Error cargando datos de la aplicación:', error);
