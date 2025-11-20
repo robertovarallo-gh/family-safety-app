@@ -529,20 +529,27 @@ useEffect(() => {
 
 // Listener de checks pendientes (cuando recibes un check)
 useEffect(() => {
-  if (!user?.member_id) return;
+  console.log('🎯 useEffect checks - member_id:', user?.member_id); // ← AGREGAR
+
+  if (!user?.member_id) {
+    console.log('❌ No hay member_id');
+    return;
+  }
   
   console.log('🔔 Iniciando listener de safety checks...');
   
   const subscription = SafetyCheckService.subscribeToPendingChecks(user.member_id, (newCheck) => {
     console.log('📨 Nuevo check recibido de:', newCheck.requester_id);
+    console.log('📨 Nuevo check recibido completo:', newCheck); // ← MODIFICAR
     setPendingCheckRequest(newCheck);
     setShowCheckPinModal(true);
   });
   
   return () => {
+    console.log('🔌 Desconectando listener checks'); // ← AGREGAR
     subscription.unsubscribe();
   };
-}, [user?.member_id]);
+}, [user?.member_id, user?.id]);
 
 // Listener de respuestas a checks (cuando te responden)
 useEffect(() => {
