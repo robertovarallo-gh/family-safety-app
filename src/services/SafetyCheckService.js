@@ -65,10 +65,9 @@ class SafetyCheckService {
     }
   }
 
-  // Validar PIN (debe venir de family_members.settings o families)
+  // Validar PIN (debe venir de family_members.settings)
   async validatePin(memberId, enteredPin) {
     try {
-      // Obtener PIN del miembro
       const { data: member, error } = await supabase
         .from('family_members')
         .select('settings')
@@ -77,7 +76,7 @@ class SafetyCheckService {
 
       if (error) throw error;
 
-      const correctPin = member?.settings?.safety_pin || '1234'; // Default si no existe
+      const correctPin = member?.settings?.safety_pin || '1234';
       const reversePin = correctPin.split('').reverse().join('');
 
       if (enteredPin === correctPin) {
@@ -119,7 +118,7 @@ class SafetyCheckService {
     }
   }
 
-  // Obtener alertas de emergencia silenciosa para la familia
+  // Obtener alertas de emergencia silenciosa
   async getSilentEmergencies(familyId) {
     try {
       const { data, error } = await supabase
@@ -130,7 +129,7 @@ class SafetyCheckService {
         `)
         .eq('family_id', familyId)
         .eq('is_silent_emergency', true)
-        .gte('responded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Últimas 24h
+        .gte('responded_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
         .order('responded_at', { ascending: false });
 
       if (error) throw error;
@@ -141,62 +140,30 @@ class SafetyCheckService {
     }
   }
 
-  // Listener para checks pendientes
-  subscribeToPendingChecks(targetId, callback) {
-    console.log('🔔 Suscribiendo a checks para target_id:', targetId);
+  // ✨ UN SOLO LISTENER para toda la familia
+  subscribeToFamilyChecks(familyId, memberId, callbacks) {
+    console.log('🔔 Suscribiendo a checks de familia:', familyId);
+    console.log('👤 Member ID:', memberId);
     
     const subscription = supabase
-      .channel(`pending-checks-${targetId}`)
+      .channel(`family-checks-${familyId}`)
       .on('postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'safety_checks',
-          filter: `target_id=eq.${targetId}`
+          filter: `family_id=eq.${familyId}`
         },
         (payload) => {
-          console.log('📨 ¡PAYLOAD RECIBIDO EN SERVICIO!:', payload);
-          callback(payload.new);
+          console.log('📨 Evento INSERT recibido:', payload.new);
+          
+          // Si el check es para mí
+          if (payload.new.target_id === memberId && payload.new.status === 'pending') {
+            console.log('📬 Check recibido para mí');
+            callbacks.onCheckReceived?.(payload.new);
+          }
         }
       )
-      .subscribe((status) => {
-        console.log('📡 Estado suscripción checks:', status);
-      });
-
-    return subscription;
-  }
-
-  // Listener para respuestas de checks
-  subscribeToCheckResponses(requesterId, callback) {
-    console.log('✅ Suscribiendo a respuestas para requester_id:', requesterId);
-    
-    const subscription = supabase
-      .channel(`check-responses-${requesterId}`)
-      .on('postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'safety_checks',
-          filter: `requester_id=eq.${requesterId}`
-        },
-        (payload) => {
-          console.log('✅ Check respondido:', payload);
-          callback(payload.new);
-        }
-      )
-      .subscribe((status) => {
-        console.log('📡 Estado suscripción respuestas:', status);
-      });
-
-    return subscription;
-  }
-
-  // Listener para emergencias silenciosas
-  subscribeToSilentEmergencies(familyId, callback) {
-    console.log('🚨 Suscribiendo a emergencias silenciosas para family:', familyId);
-    
-    const subscription = supabase
-      .channel(`silent-emergencies-${familyId}`)
       .on('postgres_changes',
         {
           event: 'UPDATE',
@@ -205,14 +172,23 @@ class SafetyCheckService {
           filter: `family_id=eq.${familyId}`
         },
         (payload) => {
-          if (payload.new.is_silent_emergency) {
-            console.log('🚨 EMERGENCIA SILENCIOSA:', payload);
-            callback(payload.new);
+          console.log('✅ Evento UPDATE recibido:', payload.new);
+          
+          // Si respondieron a mi check
+          if (payload.new.requester_id === memberId) {
+            console.log('📥 Respuesta a mi check');
+            callbacks.onCheckResponse?.(payload.new);
+          }
+          
+          // Si es emergencia silenciosa y NO soy el target
+          if (payload.new.is_silent_emergency && payload.new.target_id !== memberId) {
+            console.log('🚨 Emergencia silenciosa detectada');
+            callbacks.onSilentEmergency?.(payload.new);
           }
         }
       )
       .subscribe((status) => {
-        console.log('📡 Estado suscripción emergencias:', status);
+        console.log('📡 Estado canal familia:', status);
       });
 
     return subscription;
