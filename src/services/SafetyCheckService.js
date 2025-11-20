@@ -184,24 +184,26 @@ class SafetyCheckService {
   }
 
   // Listener para emergencias silenciosas
-  subscribeToSilentEmergencies(familyId, callback) {
+  subscribeToPendingChecks(targetId, callback) {
+    console.log('🔔 Suscribiendo a checks para target_id:', targetId);
+    
     const subscription = supabase
-      .channel('silent-emergencies-realtime')
+      .channel('pending-checks-realtime')
       .on('postgres_changes',
         {
-          event: 'UPDATE',
+          event: 'INSERT',
           schema: 'public',
           table: 'safety_checks',
-          filter: `family_id=eq.${familyId}`
+          filter: `target_id=eq.${targetId}`
         },
         (payload) => {
-          if (payload.new.is_silent_emergency) {
-            console.log('🚨 EMERGENCIA SILENCIOSA:', payload);
-            callback(payload.new);
-          }
+          console.log('📨 ¡PAYLOAD RECIBIDO EN SERVICIO!:', payload);
+          callback(payload.new);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Estado suscripción checks:', status);
+      });
 
     return subscription;
   }
