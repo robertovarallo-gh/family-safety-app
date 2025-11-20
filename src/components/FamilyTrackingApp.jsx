@@ -2389,6 +2389,11 @@ if (loading) {
 // Dashboard principal
 return (
   <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+    {console.log('🔍 DEBUG User:', { 
+      id: user?.id, 
+      member_id: user?.member_id,
+      email: user?.email 
+    })}
     <header className="bg-white shadow-sm border-b">
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-4">
@@ -2735,7 +2740,7 @@ return (
                       className="w-full flex items-center space-x-3 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors"
                     >
                       <Shield className="h-5 w-5" />
-                      <span className="font-medium">Safety Check</span>
+                      <span className="font-medium">Check de Seguridad</span>
                     </button>
 
                     <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
