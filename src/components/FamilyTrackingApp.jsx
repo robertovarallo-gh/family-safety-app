@@ -2625,7 +2625,11 @@ return (
                           setSelectedChild(parseInt(e.target.value));
                           setShouldCenterMap(true);
                         }} 
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                        className={`w-full px-3 py-2 border-2 rounded-lg focus:ring-2 text-sm font-medium ${
+                          activeChild?.battery <= 20 
+                            ? 'border-red-500 text-red-700 bg-red-50 focus:ring-red-500' 
+                            : 'border-gray-300 text-gray-900 focus:ring-blue-500'
+                        }`}
                       >
                         {children.map((child, index) => (
                           <option key={child.id} value={index}>
