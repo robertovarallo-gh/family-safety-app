@@ -7,12 +7,12 @@ class BatteryAlertService {
     // Solo alertar si batería <= 20%
     if (batteryLevel > 20) return { success: true, alerted: false };
 
-    // Evitar spam - solo 1 alerta cada 30 minutos
+    // Evitar spam - solo 1 alerta cada 15 minutos
     const lastAlert = this.lastAlertSent[memberId];
     const now = Date.now();
-    const thirtyMinutes = 30 * 60 * 1000;
+    const alertinterval = 15 * 60 * 1000;
 
-    if (lastAlert && (now - lastAlert) < thirtyMinutes) {
+    if (lastAlert && (now - lastAlert) < alertinterval) {
       return { success: true, alerted: false, message: 'Alerta reciente' };
     }
 
