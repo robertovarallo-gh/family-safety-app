@@ -2789,8 +2789,8 @@ return (
               value={checkPin}
               onChange={(e) => setCheckPin(e.target.value.replace(/\D/g, ''))}
               onKeyPress={(e) => e.key === 'Enter' && handleCheckPinSubmit()}
-              placeholder="Ingresa tu PIN (4 dígitos)"
-              className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-purple-500"
+              placeholder="PIN (4 dígitos)"
+              className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg text-center text-xl tracking-wide placeholder:text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
               autoFocus
             />
             
