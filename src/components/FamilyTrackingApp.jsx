@@ -105,6 +105,7 @@ const FamilyTrackingApp = () => {
   const [checkPin, setCheckPin] = useState('');
   const [checkPinError, setCheckPinError] = useState('');
   const [silentEmergencies, setSilentEmergencies] = useState([]);
+  const [explicitEmergencies, setExplicitEmergencies] = useState([]);
   const [activeTabSafety, setActiveTabSafety] = useState('send'); // 'send' o 'history'
 
 // ✨ Función helper para agregar alertas sin duplicados
@@ -2580,6 +2581,39 @@ return (
                 </div>
                 <button
                   onClick={() => setSilentEmergencies(prev => prev.filter(e => e.id !== emergency.id))}
+                  className="text-white hover:text-red-200 ml-2"
+                >
+                  ✕
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
+    {/* Banner de EMERGENCIAS EXPLÍCITAS */}
+    {explicitEmergencies.length > 0 && (
+      <div className="bg-red-700 border-b border-red-800 py-2 animate-pulse">
+        <div className="max-w-md mx-auto px-4 space-y-2">
+          {explicitEmergencies.map(emergency => {
+            const member = children.find(c => c.id === emergency.requester_id);
+            return (
+              <div 
+                key={emergency.id}
+                className="flex items-center p-3 rounded-lg bg-red-800 text-white"
+              >
+                <span className="text-2xl mr-3">🚨</span>
+                <div className="flex-1">
+                  <p className="text-sm font-bold">
+                    ¡{member?.name || 'Un miembro'} activó EMERGENCIA!
+                  </p>
+                  <p className="text-xs opacity-90">
+                    {new Date(emergency.responded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setExplicitEmergencies(prev => prev.filter(e => e.id !== emergency.id))}
                   className="text-white hover:text-red-200 ml-2"
                 >
                   ✕
