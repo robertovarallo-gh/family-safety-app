@@ -105,6 +105,7 @@ const FamilyTrackingApp = () => {
   const [checkPin, setCheckPin] = useState('');
   const [checkPinError, setCheckPinError] = useState('');
   const [silentEmergencies, setSilentEmergencies] = useState([]);
+  const [activeTabSafety, setActiveTabSafety] = useState('send'); // 'send' o 'history'
 
 // ✨ Función helper para agregar alertas sin duplicados
 const addZoneAlert = (newAlert) => {
@@ -2252,6 +2253,7 @@ const handleCheckMessages = () => {
   }
 
   // ========== PANTALLA: SAFETY CHECK ==========
+  // ========== PANTALLA: SAFETY CHECK ==========
   if (currentScreen === 'safetycheck') {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -2267,85 +2269,121 @@ const handleCheckMessages = () => {
           </div>
         </div>
 
+        {/* TABS */}
+        <div className="flex bg-white border-b">
+          <button
+            onClick={() => setActiveTabSafety('send')}
+            className={`flex-1 py-4 text-sm font-medium transition-colors border-b-2 ${
+              activeTabSafety === 'send'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Enviar Check
+          </button>
+          <button
+            onClick={() => setActiveTabSafety('history')}
+            className={`flex-1 py-4 text-sm font-medium transition-colors border-b-2 ${
+              activeTabSafety === 'history'
+                ? 'border-purple-600 text-purple-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Historial
+          </button>
+        </div>
+
         <div className="p-4">
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-purple-800 mb-2">¿Cómo funciona?</h3>
-            <ul className="text-sm text-purple-700 space-y-1">
-              <li>• Selecciona un miembro para solicitar confirmación</li>
-              <li>• El miembro recibirá una alerta para ingresar su PIN</li>
-              <li>• PIN normal = Todo bien ✅</li>
-              <li>• PIN invertido = Emergencia silenciosa 🚨</li>
-            </ul>
-          </div>
+          {activeTabSafety === 'send' ? (
+            // TAB: ENVIAR CHECK
+            <>
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-purple-800 mb-2">¿Cómo funciona?</h3>
+                <ul className="text-sm text-purple-700 space-y-1">
+                  <li>• Selecciona un miembro para solicitar confirmación</li>
+                  <li>• PIN normal = Todo bien ✅</li>
+                  <li>• PIN invertido = Emergencia silenciosa 🚨</li>
+                </ul>
+              </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Selecciona un miembro:</h3>
-          
-          <div className="space-y-3 mb-6">
-            {children.filter(c => c.id !== user?.member_id).map((member) => {
-              const lastCheck = sentChecks.find(check => check.target_id === member.id);
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Selecciona un miembro:</h3>
               
-              return (
-                <div
-                  key={member.id}
-                  onClick={() => sendSafetyCheck(member)}
-                  className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="text-4xl">{member.avatar}</div>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{member.name}</h4>
-                      {lastCheck && (
-                        <p className="text-sm text-gray-600">
-                          {lastCheck.status === 'pending' ? (
-                            <span className="text-orange-600">⏳ Pendiente - {new Date(lastCheck.requested_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
-                          ) : (
-                            <span className="text-green-600">✅ OK - {new Date(lastCheck.responded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
-                          )}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <CheckCircle className="h-6 w-6 text-purple-600" />
-                </div>
-              );
-            })}
-          </div>
-
-          {sentChecks.length > 0 && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Historial reciente:</h3>
-              <div className="space-y-2">
-                {sentChecks.slice(0, 5).map((check) => {
-                  const targetMember = children.find(c => c.id === check.target_id);
+              <div className="space-y-3">
+                {children.filter(c => c.id !== user?.member_id).map((member) => {
+                  const lastCheck = sentChecks.find(check => check.target_id === member.id);
                   
                   return (
-                    <div key={check.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-2xl">{targetMember?.avatar}</span>
+                    <div
+                      key={member.id}
+                      onClick={() => sendSafetyCheck(member)}
+                      className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 cursor-pointer transition-all"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-4xl">{member.avatar}</div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{targetMember?.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(check.requested_at).toLocaleString('es-ES', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
+                          <h4 className="font-semibold text-gray-900">{member.name}</h4>
+                          {lastCheck && (
+                            <p className="text-sm text-gray-600">
+                              {lastCheck.status === 'pending' ? (
+                                <span className="text-orange-600">⏳ Pendiente - {new Date(lastCheck.requested_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                              ) : (
+                                <span className="text-green-600">✅ OK - {new Date(lastCheck.responded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                              )}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div>
-                        {check.status === 'pending' ? (
-                          <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">⏳ Pendiente</span>
-                        ) : (
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">✅ Confirmado</span>
-                        )}
-                      </div>
+                      <CheckCircle className="h-6 w-6 text-purple-600" />
                     </div>
                   );
                 })}
               </div>
-            </div>
+            </>
+          ) : (
+            // TAB: HISTORIAL
+            <>
+              {sentChecks.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-4">📋</div>
+                  <p className="text-gray-500">No hay checks enviados aún</p>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Historial de checks enviados:</h3>
+                  <div className="space-y-2">
+                    {sentChecks.map((check) => {
+                      const targetMember = children.find(c => c.id === check.target_id);
+                      
+                      return (
+                        <div key={check.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-2xl">{targetMember?.avatar}</span>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{targetMember?.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {new Date(check.requested_at).toLocaleString('es-ES', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <div>
+                            {check.status === 'pending' ? (
+                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">⏳ Pendiente</span>
+                            ) : (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">✅ Confirmado</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </>
           )}
         </div>
       </div>
