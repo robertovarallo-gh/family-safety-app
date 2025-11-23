@@ -160,6 +160,9 @@ class SafetyCheckService {
           // Filtrar manualmente por familia
           if (payload.new.family_id === familyId) {
             console.log('✅ Es de mi familia');
+            console.log('🔍 DEBUG - memberId:', memberId);  // ← AGREGAR
+            console.log('🔍 DEBUG - requester_id:', payload.new.requester_id);  // ← AGREGAR
+            console.log('🔍 DEBUG - emergency_type:', payload.new.emergency_type);  // ← AGREGAR
             
             // Si el check es para mí
             if (payload.new.target_id === memberId && payload.new.status === 'pending') {
