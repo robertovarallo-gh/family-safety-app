@@ -174,22 +174,27 @@ class SafetyCheckService {
           event: 'UPDATE',
           schema: 'public',
           table: 'safety_checks'
-          // ← SIN FILTRO
         },
         (payload) => {
           console.log('✅ Evento UPDATE recibido (sin filtro):', payload.new);
           
           if (payload.new.family_id === familyId) {
             // Si respondieron a mi check
-            if (payload.new.requester_id === memberId) {
+            if (payload.new.requester_id === memberId && !payload.new.emergency_type) {
               console.log('📥 Respuesta a mi check');
               callbacks.onCheckResponse?.(payload.new);
             }
             
             // Si es emergencia silenciosa y NO soy el target
-            if (payload.new.is_silent_emergency && payload.new.target_id !== memberId) {
+            if (payload.new.emergency_type === 'silent' && payload.new.target_id !== memberId) {
               console.log('🚨 Emergencia silenciosa detectada');
               callbacks.onSilentEmergency?.(payload.new);
+            }
+            
+            // Si es emergencia explícita y NO soy yo quien la activó
+            if (payload.new.emergency_type === 'explicit' && payload.new.requester_id !== memberId) {
+              console.log('🚨 EMERGENCIA EXPLÍCITA detectada');
+              callbacks.onExplicitEmergency?.(payload.new);
             }
           }
         }
@@ -199,6 +204,31 @@ class SafetyCheckService {
       });
 
     return subscription;
+  }
+
+  // Activar emergencia explícita
+  async activateEmergency(memberId, familyId) {
+    try {
+      const { data, error } = await supabase
+        .from('safety_checks')
+        .insert({
+          requester_id: memberId,
+          target_id: memberId, // El mismo que activa
+          family_id: familyId,
+          status: 'ok',
+          is_silent_emergency: false,
+          emergency_type: 'explicit',
+          responded_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error activando emergencia:', error);
+      return { success: false, error: error.message };
+    }
   }
 
 }

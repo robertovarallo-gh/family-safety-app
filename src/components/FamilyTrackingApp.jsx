@@ -553,6 +553,10 @@ useEffect(() => {
       onSilentEmergency: (emergency) => {
         console.log('🚨 Emergencia silenciosa, agregando alerta');
         setSilentEmergencies(prev => [emergency, ...prev].slice(0, 3));
+      },
+      onExplicitEmergency: (emergency) => {
+        console.log('🚨 Emergencia explícita, agregando alerta');
+        setExplicitEmergencies(prev => [emergency, ...prev].slice(0, 3));
       }
     }
   );
@@ -562,6 +566,8 @@ useEffect(() => {
     subscription.unsubscribe();
   };
 }, [user?.member_id, user?.user_metadata?.family_id]);
+
+
 
 const loadAppData = async (userData) => {
   try {
@@ -1017,6 +1023,25 @@ const handleCheckPinSubmit = async () => {
     setCheckPinError('Error respondiendo check');
   }
 };  
+
+// ========== FUNCIÓN DE EMERGENCIA EXPLÍCITA ==========
+
+const handleExplicitEmergency = async () => {
+  if (!window.confirm('🚨 ¿Activar alerta de emergencia?\n\nTodos los miembros de tu familia serán notificados inmediatamente.')) {
+    return;
+  }
+  
+  const result = await SafetyCheckService.activateEmergency(
+    user.member_id,
+    user.user_metadata.family_id
+  );
+  
+  if (result.success) {
+    alert('✅ Alerta de emergencia enviada a tu familia');
+  } else {
+    alert('❌ Error activando emergencia');
+  }
+};
 
   // Funcion para calcular edad
   const calculateAge = (birthDate) => {
@@ -2253,7 +2278,6 @@ const handleCheckMessages = () => {
   }
 
   // ========== PANTALLA: SAFETY CHECK ==========
-  // ========== PANTALLA: SAFETY CHECK ==========
   if (currentScreen === 'safetycheck') {
     return (
       <div className="max-w-md mx-auto bg-white min-h-screen">
@@ -2265,7 +2289,7 @@ const handleCheckMessages = () => {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-xl font-bold">🛡️ Safety Check</h1>
+            <h1 className="text-xl font-bold">🛡️ Check de Seguridad</h1>
           </div>
         </div>
 
@@ -2768,9 +2792,11 @@ return (
                       <span className="font-medium">Check de Seguridad</span>
                     </button>
 
-                    <button onClick={() => setCurrentScreen('emergency')} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
+                    <button 
+                      onClick={handleExplicitEmergency} 
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
                       <AlertTriangle className="h-5 w-5" />
-                        <span className="font-medium">Emergencia</span>
+                      <span className="font-medium">Emergencia</span>
                     </button>
 
                     <button onClick={() => { 
@@ -2803,7 +2829,7 @@ return (
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
               <Shield className="h-8 w-8 text-purple-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">🛡️ Safety Check</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">🛡️ Check de <Seguridad></Seguridad></h3>
             <p className="text-sm text-gray-600">
               <span className="font-bold text-purple-600">
                 {children.find(c => c.id === pendingCheckRequest.requester_id)?.name || 'Un miembro'}
