@@ -166,6 +166,12 @@ class SafetyCheckService {
               console.log('📬 Check recibido para mí');
               callbacks.onCheckReceived?.(payload.new);
             }
+
+            // Si es emergencia explícita y NO soy yo quien la activó
+            if (payload.new.emergency_type === 'explicit' && payload.new.requester_id !== memberId) {
+              console.log('🚨 EMERGENCIA EXPLÍCITA detectada en INSERT');
+              callbacks.onExplicitEmergency?.(payload.new);
+            }
           }
         }
       )
