@@ -2863,7 +2863,7 @@ return (
             <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
               <Shield className="h-8 w-8 text-purple-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">🛡️ Check de <Seguridad></Seguridad></h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">🛡️ Check de Seguridad</h3>
             <p className="text-sm text-gray-600">
               <span className="font-bold text-purple-600">
                 {children.find(c => c.id === pendingCheckRequest.requester_id)?.name || 'Un miembro'}
