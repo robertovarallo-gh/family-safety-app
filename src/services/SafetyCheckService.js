@@ -99,7 +99,8 @@ class SafetyCheckService {
         status: 'ok',
         pin_used: pinType,
         responded_at: new Date().toISOString(),
-        is_silent_emergency: pinType === 'reverse'
+        is_silent_emergency: pinType === 'reverse',
+        emergency_type: pinType === 'reverse' ? 'silent' : null  // ← AGREGAR ESTA LÍNEA
       };
 
       const { data, error } = await supabase
