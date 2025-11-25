@@ -98,7 +98,7 @@ const FamilyTrackingApp = () => {
 
   const [newMessage, setNewMessage] = useState('');
 
-  // Checa Status
+  // Checa Status - Safety Check
   const [sentChecks, setSentChecks] = useState([]);
   const [pendingCheckRequest, setPendingCheckRequest] = useState(null);
   const [showCheckPinModal, setShowCheckPinModal] = useState(false);
@@ -107,6 +107,12 @@ const FamilyTrackingApp = () => {
   const [silentEmergencies, setSilentEmergencies] = useState([]);
   const [explicitEmergencies, setExplicitEmergencies] = useState([]);
   const [activeTabSafety, setActiveTabSafety] = useState('send'); // 'send' o 'history'
+
+  // Log de Alertas
+  const [alertsTab, setAlertsTab] = useState('user'); // 'user' o 'all'
+  const [selectedAlertUser, setSelectedAlertUser] = useState(null);
+  const [userAlerts, setUserAlerts] = useState([]);
+  const [allAlerts, setAllAlerts] = useState([]);
 
 // ✨ Función helper para agregar alertas sin duplicados
 const addZoneAlert = (newAlert) => {
@@ -569,7 +575,6 @@ useEffect(() => {
 }, [user?.member_id, user?.user_metadata?.family_id]);
 
 
-
 const loadAppData = async (userData) => {
   try {
     setLoading(true);
@@ -1024,6 +1029,169 @@ const handleCheckPinSubmit = async () => {
     setCheckPinError('Error respondiendo check');
   }
 };  
+
+// ========== FUNCIONES DE LOG DE ALERTAS ==========
+
+const loadUserAlerts = async (userId) => {
+  try {
+    const alerts = [];
+    
+    // 1. Alertas de zona
+    const { data: zoneEvents } = await supabase
+      .from('zone_events')
+      .select('*, safe_zones(name)')
+      .eq('member_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    
+    if (zoneEvents) {
+      zoneEvents.forEach(event => {
+        alerts.push({
+          type: 'zone',
+          action: event.event_type,
+          zoneName: event.safe_zones?.name,
+          timestamp: event.created_at,
+          icon: event.event_type === 'entered' ? '🟢' : '🔴'
+        });
+      });
+    }
+    
+    // 2. Alertas de batería
+    const { data: batteryEvents } = await supabase
+      .from('battery_alerts')
+      .select('*')
+      .eq('member_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    
+    if (batteryEvents) {
+      batteryEvents.forEach(event => {
+        alerts.push({
+          type: 'battery',
+          batteryLevel: event.battery_level,
+          timestamp: event.created_at,
+          icon: '🔋'
+        });
+      });
+    }
+    
+    // 3. Safety Checks
+    const { data: checks } = await supabase
+      .from('safety_checks')
+      .select('*, requester:family_members!requester_id(first_name, last_name), target:family_members!target_id(first_name, last_name)')
+      .or(`requester_id.eq.${userId},target_id.eq.${userId}`)
+      .order('requested_at', { ascending: false })
+      .limit(50);
+    
+    if (checks) {
+      checks.forEach(check => {
+        if (check.emergency_type === 'explicit') {
+          alerts.push({
+            type: 'emergency_explicit',
+            memberName: `${check.requester.first_name} ${check.requester.last_name}`,
+            timestamp: check.responded_at,
+            icon: '🚨'
+          });
+        } else if (check.emergency_type === 'silent') {
+          alerts.push({
+            type: 'emergency_silent',
+            memberName: `${check.target.first_name} ${check.target.last_name}`,
+            timestamp: check.responded_at,
+            icon: '🚨'
+          });
+        } else if (check.target_id === userId) {
+          alerts.push({
+            type: 'check_received',
+            memberName: `${check.requester.first_name} ${check.requester.last_name}`,
+            status: check.status,
+            timestamp: check.requested_at,
+            icon: '🛡️'
+          });
+        }
+      });
+    }
+    
+    alerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    setUserAlerts(alerts);
+  } catch (error) {
+    console.error('Error cargando alertas de usuario:', error);
+  }
+};
+
+const loadAllAlerts = async () => {
+  try {
+    const alerts = [];
+    
+    // 1. Alertas de zona
+    const { data: zoneEvents } = await supabase
+      .from('zone_events')
+      .select('*, member:family_members(first_name, last_name, avatar), safe_zones(name)')
+      .eq('family_id', user.user_metadata.family_id)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    if (zoneEvents) {
+      zoneEvents.forEach(event => {
+        alerts.push({
+          type: 'zone',
+          memberName: `${event.member.first_name} ${event.member.last_name}`,
+          avatar: event.member.avatar,
+          action: event.event_type,
+          zoneName: event.safe_zones?.name,
+          timestamp: event.created_at,
+          icon: event.event_type === 'entered' ? '🟢' : '🔴'
+        });
+      });
+    }
+    
+    // 2. Alertas de batería
+    const { data: batteryEvents } = await supabase
+      .from('battery_alerts')
+      .select('*, member:family_members(first_name, last_name, avatar)')
+      .eq('family_id', user.user_metadata.family_id)
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    if (batteryEvents) {
+      batteryEvents.forEach(event => {
+        alerts.push({
+          type: 'battery',
+          memberName: `${event.member.first_name} ${event.member.last_name}`,
+          avatar: event.member.avatar,
+          batteryLevel: event.battery_level,
+          timestamp: event.created_at,
+          icon: '🔋'
+        });
+      });
+    }
+    
+    // 3. Emergencias
+    const { data: emergencies } = await supabase
+      .from('safety_checks')
+      .select('*, requester:family_members!requester_id(first_name, last_name, avatar)')
+      .eq('family_id', user.user_metadata.family_id)
+      .not('emergency_type', 'is', null)
+      .order('responded_at', { ascending: false })
+      .limit(100);
+    
+    if (emergencies) {
+      emergencies.forEach(emergency => {
+        alerts.push({
+          type: emergency.emergency_type === 'explicit' ? 'emergency_explicit' : 'emergency_silent',
+          memberName: `${emergency.requester.first_name} ${emergency.requester.last_name}`,
+          avatar: emergency.requester.avatar,
+          timestamp: emergency.responded_at,
+          icon: '🚨'
+        });
+      });
+    }
+    
+    alerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    setAllAlerts(alerts);
+  } catch (error) {
+    console.error('Error cargando todas las alertas:', error);
+  }
+};
 
 // ========== FUNCIÓN DE EMERGENCIA EXPLÍCITA ==========
 
@@ -2415,8 +2583,201 @@ const handleCheckMessages = () => {
     );
   }
 
-// Parte 9 y 10 del FamilyTrackingApp.jsx - Dashboard principal
+  // ========== PANTALLA: LOG DE ALERTAS ==========
+  if (currentScreen === 'alerts') {
+    return (
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="bg-yellow-500 text-white p-4">
+          <div className="flex items-center space-x-3 mb-4">
+            <button 
+              onClick={() => setCurrentScreen('dashboard')}
+              className="p-2 hover:bg-yellow-600 rounded-full transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-bold">📋 Log de Alertas</h1>
+          </div>
+        </div>
 
+        {/* TABS */}
+        <div className="flex bg-white border-b">
+          <button
+            onClick={() => setAlertsTab('user')}
+            className={`flex-1 py-4 text-sm font-medium transition-colors border-b-2 ${
+              alertsTab === 'user'
+                ? 'border-yellow-500 text-yellow-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Por Usuario
+          </button>
+          <button
+            onClick={() => {
+              setAlertsTab('all');
+              loadAllAlerts();
+            }}
+            className={`flex-1 py-4 text-sm font-medium transition-colors border-b-2 ${
+              alertsTab === 'all'
+                ? 'border-yellow-500 text-yellow-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Todas las Alertas
+          </button>
+        </div>
+
+        <div className="p-4">
+          {alertsTab === 'user' ? (
+            // TAB: POR USUARIO
+            <>
+              {!selectedAlertUser ? (
+                <>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Selecciona un miembro:</h3>
+                  <div className="space-y-3">
+                    {children.map((member) => (
+                      <div
+                        key={member.id}
+                        onClick={() => {
+                          setSelectedAlertUser(member);
+                          loadUserAlerts(member.id);
+                        }}
+                        className="flex items-center justify-between p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-yellow-500 hover:bg-yellow-50 cursor-pointer transition-all"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="text-4xl">{member.avatar}</div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">{member.name}</h4>
+                          </div>
+                        </div>
+                        <span className="text-gray-400">→</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Header del usuario seleccionado */}
+                  <div
+                    onClick={() => setSelectedAlertUser(null)}
+                    className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg mb-4 cursor-pointer hover:bg-yellow-100"
+                  >
+                    <span className="text-3xl">{selectedAlertUser.avatar}</span>
+                    <span className="text-lg font-semibold flex-1">{selectedAlertUser.name}</span>
+                    <span className="text-gray-500">✕</span>
+                  </div>
+
+                  {userAlerts.length === 0 ? (
+                    <div className="text-center py-16">
+                      <div className="text-6xl mb-4">📋</div>
+                      <p className="text-gray-500">No hay alertas para este usuario</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {userAlerts.map((alert, index) => (
+                        <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                          <span className="text-2xl">{alert.icon}</span>
+                          <div className="flex-1">
+                            {alert.type === 'zone' && (
+                              <p className="text-sm text-gray-700">
+                                {alert.action === 'entered' ? 'Entró a' : 'Salió de'} <span className="font-semibold">{alert.zoneName}</span>
+                              </p>
+                            )}
+                            {alert.type === 'battery' && (
+                              <p className="text-sm text-gray-700">
+                                Batería baja: <span className="font-semibold">{alert.batteryLevel}%</span>
+                              </p>
+                            )}
+                            {alert.type === 'emergency_explicit' && (
+                              <p className="text-sm text-gray-700">
+                                Activó <span className="font-semibold">emergencia</span>
+                              </p>
+                            )}
+                            {alert.type === 'emergency_silent' && (
+                              <p className="text-sm text-gray-700">
+                                <span className="font-semibold">Emergencia silenciosa</span> (PIN inverso)
+                              </p>
+                            )}
+                            {alert.type === 'check_received' && (
+                              <p className="text-sm text-gray-700">
+                                Check de <span className="font-semibold">{alert.memberName}</span> - {alert.status === 'pending' ? '⏳ Pendiente' : '✅ Confirmado'}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">
+                              {new Date(alert.timestamp).toLocaleString('es-ES', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </>
+          ) : (
+            // TAB: TODAS LAS ALERTAS
+            <>
+              {allAlerts.length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="text-6xl mb-4">📋</div>
+                  <p className="text-gray-500">No hay alertas registradas</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {allAlerts.map((alert, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                      <span className="text-2xl">{alert.icon}</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900 mb-1">
+                          {alert.avatar} {alert.memberName}
+                        </p>
+                        {alert.type === 'zone' && (
+                          <p className="text-sm text-gray-700">
+                            {alert.action === 'entered' ? 'Entró a' : 'Salió de'} <span className="font-semibold">{alert.zoneName}</span>
+                          </p>
+                        )}
+                        {alert.type === 'battery' && (
+                          <p className="text-sm text-gray-700">
+                            Batería baja: <span className="font-semibold">{alert.batteryLevel}%</span>
+                          </p>
+                        )}
+                        {alert.type === 'emergency_explicit' && (
+                          <p className="text-sm text-gray-700">
+                            Activó <span className="font-semibold">emergencia</span>
+                          </p>
+                        )}
+                        {alert.type === 'emergency_silent' && (
+                          <p className="text-sm text-gray-700">
+                            <span className="font-semibold">Emergencia silenciosa</span> (PIN inverso)
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(alert.timestamp).toLocaleString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+// Parte 9 y 10 del FamilyTrackingApp.jsx - Dashboard principal
 // Dashboard principal
 
 // 2. Loading screen
