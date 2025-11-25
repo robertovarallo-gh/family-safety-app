@@ -3194,6 +3194,14 @@ return (
                       <span className="font-medium">Emergencia</span>
                     </button>
 
+                    <button 
+                      onClick={() => setCurrentScreen('alerts')}
+                      className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors"
+                    >
+                      <Bell className="h-5 w-5" />
+                      <span className="font-medium">📋 Log de Alertas</span>
+                    </button>
+
                     <button onClick={() => { 
                       setCurrentScreen('safezones')
                       }} 
