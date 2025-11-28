@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  
+
 // Función de registro personalizada
 const signUp = async (email, password, userData = {}) => {
   try {
@@ -164,6 +164,12 @@ const signUp = async (email, password, userData = {}) => {
         // Generar código único para la familia (6 caracteres)
         const familyCode = data.user.id.replace(/-/g, '').substring(0, 6).toUpperCase()
         
+        console.log('🔍 Intentando crear familia con:', {
+          family_name: `Familia ${userData.last_name || userData.first_name || 'Nueva'}`,
+          family_code: familyCode,
+          admin_id: data.user.id
+        });
+
         // 1. Crear la cuenta familia 
         const { data: familyData, error: familyError } = await supabase
           .from('families')
