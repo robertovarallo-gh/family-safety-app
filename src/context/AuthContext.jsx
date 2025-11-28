@@ -236,7 +236,6 @@ const signUp = async (email, password, userData = {}) => {
             role: role,
             relationship: userData.relationship || 'padre',
             birth_date: userData.birth_date || null,
-            age: age || null,
             phone: userData.phone || null,
             permissions: permissions,
             settings: { safety_pin: userData.safety_pin || '1234' }  // ✨ Agregar PIN
