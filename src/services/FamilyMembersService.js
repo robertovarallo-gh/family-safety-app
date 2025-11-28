@@ -46,7 +46,6 @@ const FamilyMembersService = {
           first_name: memberData.firstName,
           last_name: memberData.lastName,
           role: memberData.role,
-          age: memberData.age,
           relationship: memberData.relationship,
           phone: memberData.phone,
           photo_url: memberData.photoUrl,
