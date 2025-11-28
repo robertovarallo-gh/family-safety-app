@@ -23,6 +23,8 @@ const CustomLoginScreen = () => {
   const [showResetPassword, setShowResetPassword] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [resetMessage, setResetMessage] = useState('')
+  const [safetyPin, setSafetyPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
 
   // Manejar envío del formulario principal
   const handleSubmit = async (e) => {
@@ -52,13 +54,39 @@ const CustomLoginScreen = () => {
           return
         }
 
+                // ✨ Validar PIN
+        if (safetyPin.length !== 4) {
+          setError('El PIN debe tener exactamente 4 dígitos')
+          setLoading(false)
+          return
+        }
+
+        if (safetyPin !== confirmPin) {
+          setError('Los PINs no coinciden')
+          setLoading(false)
+          return
+        }
+
+        if (!/^\d{4}$/.test(safetyPin)) {
+          setError('El PIN debe contener solo números')
+          setLoading(false)
+          return
+        }
+
+        if (/^(\d)\1{3}$/.test(safetyPin)) {
+          setError('El PIN no puede tener los 4 dígitos iguales (ej: 1111, 2222)')
+          setLoading(false)
+          return
+        }
+
         console.log('Attempting signup with email:', email)
         const { error } = await signUp(email, password, {
 		  first_name: firstName,
 		  last_name: lastName,
 		  relationship: relationship,
 		  birth_date: birthDate,  
-		  phone: phone
+		  phone: phone,
+      safety_pin: safetyPin  // ✨ Agregar PIN
 		  })
         if (error) {
           setError(error.message || 'Error al crear cuenta')
@@ -329,7 +357,45 @@ const CustomLoginScreen = () => {
 		<p className="text-xs text-gray-500 mt-1">
 		  Para notificaciones de emergencia
 		</p>
-	  </div>	  
+	  </div>
+
+    {/* PIN de Seguridad - AGREGAR */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          PIN de Seguridad (4 dígitos) *
+        </label>
+        <input
+          type="password"
+          inputMode="numeric"
+          maxLength="4"
+          value={safetyPin}
+          onChange={(e) => setSafetyPin(e.target.value.replace(/\D/g, ''))}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-center text-xl tracking-widest"
+          placeholder="••••"
+          required
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Este PIN se usará para confirmar tu seguridad en emergencias
+        </p>
+      </div>
+
+      {/* Confirmar PIN - AGREGAR */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Confirmar PIN *
+        </label>
+        <input
+          type="password"
+          inputMode="numeric"
+          maxLength="4"
+          value={confirmPin}
+          onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-center text-xl tracking-widest"
+          placeholder="••••"
+          required
+        />
+      </div>
+
     </div>
   )}
 

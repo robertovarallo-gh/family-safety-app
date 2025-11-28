@@ -233,12 +233,13 @@ const signUp = async (email, password, userData = {}) => {
             first_name: userData.first_name || 'Usuario',
             last_name: userData.last_name || 'Nuevo',
             email: email.trim(),
-		    role: role,
-			relationship: userData.relationship || 'padre',
-			birth_date: userData.birth_date || null,
-			age: age || null,
-			phone: userData.phone || null,
-			permissions: permissions
+            role: role,
+            relationship: userData.relationship || 'padre',
+            birth_date: userData.birth_date || null,
+            age: age || null,
+            phone: userData.phone || null,
+            permissions: permissions,
+            settings: { safety_pin: userData.safety_pin || '1234' }  // ✨ Agregar PIN
           })
           .select()
           .single()

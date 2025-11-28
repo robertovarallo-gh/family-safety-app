@@ -4,6 +4,8 @@ import { supabase } from '../services/supabaseClient'
 const FamilyInvitationPage = () => {
   const [invitationData, setInvitationData] = useState(null)
   const [newPassword, setNewPassword] = useState('')
+  const [safetyPin, setSafetyPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sessionReady, setSessionReady] = useState(false)
@@ -58,10 +60,29 @@ const FamilyInvitationPage = () => {
   const handleAcceptInvitation = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError(''); // Limpiar errores previos
 
     try {
       if (newPassword.length < 6) {
         throw new Error('La contraseña debe tener al menos 6 caracteres')
+      }
+
+      // ✨ Validar PIN
+      if (safetyPin.length !== 4) {
+        throw new Error('El PIN debe tener exactamente 4 dígitos')
+      }
+
+      if (safetyPin !== confirmPin) {
+        throw new Error('Los PINs no coinciden')
+      }
+
+      if (!/^\d{4}$/.test(safetyPin)) {
+        throw new Error('El PIN debe contener solo números')
+      }
+
+      // ✨ Validar que no todos los dígitos sean iguales
+      if (/^(\d)\1{3}$/.test(safetyPin)) {
+        throw new Error('El PIN no puede tener los 4 dígitos iguales (ej: 1111, 2222)')
       }
 
       // Actualizar contraseña
@@ -71,7 +92,7 @@ const FamilyInvitationPage = () => {
 
       if (updateError) throw updateError
 
-      // Actualizar status del miembro familiar
+      // Actualizar status del miembro familiar y guardar PIN
       if (invitationData?.family_member_id) {
         const { data: userData } = await supabase.auth.getUser()
         
@@ -79,7 +100,8 @@ const FamilyInvitationPage = () => {
           .from('family_members')
           .update({ 
             status: 'active',
-            user_id: userData.user.id 
+            user_id: userData.user.id,
+            settings: { safety_pin: safetyPin }  // ✨ Guardar PIN
           })
           .eq('id', invitationData.family_member_id)
       }
@@ -143,6 +165,41 @@ const FamilyInvitationPage = () => {
               placeholder="Minimo 6 caracteres"
               required
               minLength="6"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              PIN de Seguridad (4 dígitos)
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength="4"
+              value={safetyPin}
+              onChange={(e) => setSafetyPin(e.target.value.replace(/\D/g, ''))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-center text-xl tracking-widest"
+              placeholder="••••"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Este PIN se usará para confirmar tu seguridad en emergencias
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Confirmar PIN
+            </label>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength="4"
+              value={confirmPin}
+              onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-center text-xl tracking-widest"
+              placeholder="••••"
+              required
             />
           </div>
 
