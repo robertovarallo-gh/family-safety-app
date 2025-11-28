@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  // Función de registro personalizada
+  
 // Función de registro personalizada
 const signUp = async (email, password, userData = {}) => {
   try {
