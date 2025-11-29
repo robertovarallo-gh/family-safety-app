@@ -715,7 +715,6 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
           email: userData.email,
           user_id: userData.id,
           role: 'adulto',
-          age: null,
           relationship: 'padre',
           phone: userData.phone || '',
           emergencyContact: true
@@ -1325,7 +1324,6 @@ const handleAddMemberSubmit = async (e) => {
         relationship: memberFormData.relationship,
         phone: memberFormData.phone.trim() || null,
         birth_date: memberFormData.birth_date,
-        age: age,
         role: role,
         family_id: currentUserData.family_id,
         status: 'pending', // Pendiente hasta que se registre
