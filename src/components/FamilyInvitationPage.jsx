@@ -107,7 +107,8 @@ const FamilyInvitationPage = () => {
             user_id: userData.user.id,
             settings: { safety_pin: safetyPin }  // ✨ Guardar PIN
           })
-          .eq('id', invitationData.family_member_id)
+          .eq('email', userData.user.email)  // ← Usar email en vez de ID
+          .select();
 
         if (updateError) {
           console.error('❌ Error actualizando miembro:', updateError);
