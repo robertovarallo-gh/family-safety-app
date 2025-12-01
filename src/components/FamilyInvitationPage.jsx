@@ -126,9 +126,9 @@ const FamilyInvitationPage = () => {
       }
 
       // Redirigir al dashboard
-      setTimeout(() => {
-        window.location.href = '/'
-      }, 2000)
+      // setTimeout(() => {
+      //  window.location.href = '/'
+      // }, 2000)
 
     } catch (error) {
       console.error('Error accepting invitation:', error)
