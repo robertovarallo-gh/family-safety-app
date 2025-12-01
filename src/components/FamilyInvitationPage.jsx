@@ -62,7 +62,17 @@ const FamilyInvitationPage = () => {
     setLoading(true)
     setError(''); // Limpiar errores previos
 
+    
     try {
+
+      // ✨ Verificar sesión actual
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 Sesión actual:', session);
+      
+      if (!session) {
+        throw new Error('Sesión expirada. Por favor, solicita una nueva invitación.');
+      }  
+
       if (newPassword.length < 6) {
         throw new Error('La contraseña debe tener al menos 6 caracteres')
       }
