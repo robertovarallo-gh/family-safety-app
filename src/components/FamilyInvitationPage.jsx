@@ -125,6 +125,7 @@ const FamilyInvitationPage = () => {
         alert('✅ Cuenta activada exitosamente');
       }
 
+      
       // Redirigir al dashboard
       // setTimeout(() => {
       //  window.location.href = '/'
