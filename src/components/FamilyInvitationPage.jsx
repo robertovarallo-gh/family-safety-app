@@ -94,9 +94,13 @@ const FamilyInvitationPage = () => {
 
       // Actualizar status del miembro familiar y guardar PIN
       if (invitationData?.family_member_id) {
+        console.log('🔍 Actualizando miembro:', invitationData.family_member_id);
+        console.log('🔍 PIN a guardar:', safetyPin);
+
         const { data: userData } = await supabase.auth.getUser()
-        
-        await supabase
+        console.log('🔍 User ID:', userData.user.id);
+
+        const { data: updateData, error: updateError } = await supabase
           .from('family_members')
           .update({ 
             status: 'active',
@@ -104,6 +108,13 @@ const FamilyInvitationPage = () => {
             settings: { safety_pin: safetyPin }  // ✨ Guardar PIN
           })
           .eq('id', invitationData.family_member_id)
+
+        if (updateError) {
+          console.error('❌ Error actualizando miembro:', updateError);
+          throw updateError;
+        }
+
+        console.log('✅ Miembro actualizado:', updateData);
       }
 
       // Redirigir al dashboard
