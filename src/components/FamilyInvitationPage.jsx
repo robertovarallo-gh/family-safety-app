@@ -117,10 +117,17 @@ const FamilyInvitationPage = () => {
         console.log('✅ Miembro actualizado:', updateData);
       }
 
+      // Mostrar resultado
+      if (updateError) {
+        alert('❌ Error: ' + updateError.message);
+      } else {
+        alert('✅ Cuenta activada exitosamente');
+      }
+
       // Redirigir al dashboard
       setTimeout(() => {
         window.location.href = '/'
-      }, 1000)
+      }, 2000)
 
     } catch (error) {
       console.error('Error accepting invitation:', error)
