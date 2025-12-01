@@ -101,12 +101,24 @@ const FamilyInvitationPage = () => {
         console.log('🔍 User ID:', userData.user.id);
         console.log('🔍 Email del token:', userData.user.email);
 
+        // ✨ Leer settings actuales primero
+        const { data: currentMember } = await supabase
+          .from('family_members')
+          .select('settings')
+          .eq('email', userData.user.email)
+          .single();
+
+        const updatedSettings = {
+          ...currentMember.settings,  // Mantener valores existentes
+          safety_pin: safetyPin        // Agregar PIN
+        };
+
         const { data: updateData, error: updateError } = await supabase
           .from('family_members')
           .update({ 
             status: 'active',
             user_id: userData.user.id,
-            settings: { safety_pin: safetyPin }  // ✨ Guardar PIN
+            settings: updatedSettings  // ✨ Guardar PIN
           })
           .eq('email', userData.user.email)  // ← Usar email en vez de ID
           .select();
