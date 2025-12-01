@@ -957,10 +957,28 @@ const openChat = async (contact) => {
 const handleSendMessage = async () => {
   if (!newMessage.trim() || !selectedContact) return;
   
+  // ✨ Obtener family_id desde family_members si no está en metadata
+  let familyId = user.user_metadata.family_id;
+  
+  if (!familyId) {
+    const { data: member } = await supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .single();
+    
+    familyId = member?.family_id;
+  }
+  
+  if (!familyId) {
+    console.error('No se pudo obtener family_id');
+    return;
+  }
+  
   const result = await MessagingService.sendMessage(
     user.member_id,
     selectedContact.id,
-    user.user_metadata.family_id,
+    familyId,
     newMessage.trim()
   );
   
