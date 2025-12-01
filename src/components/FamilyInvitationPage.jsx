@@ -99,6 +99,7 @@ const FamilyInvitationPage = () => {
 
         const { data: userData } = await supabase.auth.getUser()
         console.log('🔍 User ID:', userData.user.id);
+        console.log('🔍 Email del token:', userData.user.email);
 
         const { data: updateData, error: updateError } = await supabase
           .from('family_members')
@@ -125,7 +126,7 @@ const FamilyInvitationPage = () => {
         alert('✅ Cuenta activada exitosamente');
       }
 
-      
+
       // Redirigir al dashboard
       // setTimeout(() => {
       //  window.location.href = '/'
