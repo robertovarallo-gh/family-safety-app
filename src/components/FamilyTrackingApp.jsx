@@ -912,9 +912,27 @@ const loadSafeZones = async () => {
 const loadConversations = async () => {
   if (!user?.id) return;
   
+  // ✨ Obtener family_id desde family_members si no está en metadata
+  let familyId = user.user_metadata.family_id;
+  
+  if (!familyId) {
+    const { data: member } = await supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .single();
+    
+    familyId = member?.family_id;
+  }
+  
+  if (!familyId) {
+    console.error('No se pudo obtener family_id');
+    return;
+  }
+  
   const result = await MessagingService.getConversations(
     user.member_id, 
-    user.user_metadata.family_id
+    familyId
   );
   
   if (result.success) {
