@@ -540,40 +540,64 @@ useEffect(() => {
 
 // ✨ UN SOLO Listener para toda la familia
 useEffect(() => {
-  if (!user?.member_id || !user?.user_metadata?.family_id) return;
+  if (!user?.member_id) return;
   
   console.log('🔔 Iniciando listener único de familia');
   
-  const subscription = SafetyCheckService.subscribeToFamilyChecks(
-    user.user_metadata.family_id,
-    user.member_id,
-    {
-      onCheckReceived: (check) => {
-        console.log('📬 Check recibido, mostrando modal');
-        setPendingCheckRequest(check);
-        setShowCheckPinModal(true);
-      },
-      onCheckResponse: (check) => {
-        console.log('📥 Check respondido, recargando lista');
-        loadSentChecks();
-      },
-      onSilentEmergency: (emergency) => {
-        console.log('🚨 Emergencia silenciosa, agregando alerta');
-        setSilentEmergencies(prev => [emergency, ...prev].slice(0, 3));
-      },
-      onExplicitEmergency: (emergency) => {
-        console.log('🚨 Emergencia explícita, agregando alerta');
-        setExplicitEmergencies(prev => [emergency, ...prev].slice(0, 3));
-      }
+  const setupListener = async () => {
+    // ✨ Obtener family_id desde family_members si no está en metadata
+    let familyId = user.user_metadata?.family_id;
+    
+    if (!familyId) {
+      const { data: member } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', user.id)
+        .single();
+      
+      familyId = member?.family_id;
     }
-  );
+    
+    if (!familyId) {
+      console.error('No se pudo obtener family_id para listener');
+      return null;
+    }
+    
+    const subscription = SafetyCheckService.subscribeToFamilyChecks(
+      familyId,
+      user.member_id,
+      {
+        onCheckReceived: (check) => {
+          console.log('📬 Check recibido, mostrando modal');
+          setPendingCheckRequest(check);
+          setShowCheckPinModal(true);
+        },
+        onCheckResponse: (check) => {
+          console.log('📥 Check respondido, recargando lista');
+          loadSentChecks();
+        },
+        onSilentEmergency: (emergency) => {
+          console.log('🚨 Emergencia silenciosa, agregando alerta');
+          setSilentEmergencies(prev => [emergency, ...prev].slice(0, 3));
+        },
+        onExplicitEmergency: (emergency) => {
+          console.log('🚨 Emergencia explícita, agregando alerta');
+          setExplicitEmergencies(prev => [emergency, ...prev].slice(0, 3));
+        }
+      }
+    );
+    
+    return subscription;
+  };
+  
+  let subscription = null;
+  setupListener().then(sub => { subscription = sub; });
   
   return () => {
     console.log('🔌 Desconectando listener de familia');
-    subscription.unsubscribe();
+    subscription?.unsubscribe();
   };
-}, [user?.member_id, user?.user_metadata?.family_id]);
-
+}, [user?.member_id, user?.id]);
 
 const loadAppData = async (userData) => {
   try {
