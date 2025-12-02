@@ -1042,10 +1042,28 @@ const loadSentChecks = async () => {
 };
 
 const sendSafetyCheck = async (targetMember) => {
+  // ✨ Obtener family_id desde family_members si no está en metadata
+  let familyId = user.user_metadata?.family_id;
+  
+  if (!familyId) {
+    const { data: member } = await supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .single();
+    
+    familyId = member?.family_id;
+  }
+  
+  if (!familyId) {
+    alert('Error: No se pudo obtener el ID de la familia');
+    return;
+  }
+  
   const result = await SafetyCheckService.sendCheckRequest(
     user.member_id,
     targetMember.id,
-    user.user_metadata.family_id
+    familyId
   );
   
   if (result.success) {
