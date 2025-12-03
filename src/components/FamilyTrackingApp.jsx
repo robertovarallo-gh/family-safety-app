@@ -16,6 +16,9 @@ import {
   Users
 } from 'lucide-react';
 
+// Importaciones del dashboard
+import DashboardLayout from './DashboardLayout';
+
 // Importaciones de servicios reales
 import { familyService } from "../services/api.js";
 import SafeZonesManager from "./SafeZonesManager.jsx";
@@ -2829,434 +2832,207 @@ if (loading) {
 
 // Dashboard principal
 return (
-  <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+  <>
     {console.log('🔍 DEBUG User:', { 
       id: user?.id, 
       member_id: user?.member_id,
       email: user?.email 
     })}
-    <header className="bg-white shadow-sm border-b">
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Users className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-xl font-bold text-gray-900">Family Watch</h1>
-						
-            <div className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-bold">
-              MODO TESTING
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="relative group">
-              <button className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-300 transition-all">
-                <span className="text-white text-sm font-bold">
-                  {user?.user_metadata?.first_name?.charAt(0)}{user?.user_metadata?.last_name?.charAt(0)}
-                </span>
-              </button>
-              
-              <div className="absolute right-0 top-10 bg-white rounded-lg shadow-lg border py-2 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                <div className="px-4 py-2 border-b">
-                  <p className="text-sm font-medium text-gray-900">{user?.user_metadata?.first_name} {user?.user_metadata?.last_name}</p>
-                  <p className="text-xs text-gray-500">{user?.email}</p>
-                </div>
-                <button 
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Cambiar Usuario</span>
-                </button>
-              </div>
-            </div>
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
-            </button>
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
-              <Settings className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
 
-    {/* Banner de alertas de zona */}
+    {/* Alertas flotantes */}
     {zoneAlerts.length > 0 && (
-      <div className="bg-white border-b border-gray-200 py-2">
-        <div className="max-w-md mx-auto px-4 space-y-2">
-          {zoneAlerts.map(alert => (
-            <div 
-              key={alert.id}
-              className={`flex items-center p-3 rounded-lg border-l-4 ${
-                alert.type === 'entered' 
-                  ? 'bg-green-50 border-green-500' 
-                  : 'bg-red-50 border-red-500'
-              }`}
-            >
-              <span className="text-2xl mr-3">
-                {alert.type === 'entered' ? '✅' : '⚠️'}
-              </span>
-              <div className="flex-1">
-                <p className="text-sm text-gray-800">
-                  <span className="font-bold">{alert.memberName}</span>
-                  {alert.type === 'entered' ? ' entró a ' : ' salió de '}
-                  <span className="font-semibold text-blue-600">{alert.zoneName}</span>
-                </p>
-                <p className="text-xs text-gray-500">
-                  {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}
-                </p>
-              </div>
-              <button
-                onClick={() => setZoneAlerts(prev => prev.filter(a => a.id !== alert.id))}
-                className="text-gray-400 hover:text-gray-600 ml-2"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-
-    {/* Banner de alertas de batería baja */}
-    {batteryAlerts.length > 0 && (
-      <div className="bg-white border-b border-gray-200 py-2">
-        <div className="max-w-md mx-auto px-4 space-y-2">
-          {batteryAlerts.map(alert => (
-            <div 
-              key={alert.id}
-              className="flex items-center p-3 rounded-lg border-l-4 bg-red-50 border-red-500"
-            >
-              <span className="text-2xl mr-3">
-                ⚠️
-              </span>
-              <div className="flex-1">
-                <p className="text-sm text-gray-800">
-                  <span className="font-bold">{alert.memberName}</span>
-                  {' tiene batería baja: '}
-                  <span className="font-semibold text-red-600">{alert.batteryLevel}%</span>
-                </p>
-                <p className="text-xs text-gray-500">
-                  {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}
-                </p>
-              </div>
-              <button
-                onClick={() => setBatteryAlerts(prev => prev.filter(a => a.id !== alert.id))}
-                className="text-gray-400 hover:text-gray-600 ml-2"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-
-    {/* Banner de EMERGENCIAS SILENCIOSAS */}
-    {silentEmergencies.length > 0 && (
-      <div className="bg-red-600 border-b border-red-700 py-2 animate-pulse">
-        <div className="max-w-md mx-auto px-4 space-y-2">
-          {silentEmergencies.map(emergency => {
-            const targetMember = children.find(c => c.id === emergency.target_id);
-            return (
-              <div 
-                key={emergency.id}
-                className="flex items-center p-3 rounded-lg bg-red-700 text-white"
-              >
-                <span className="text-2xl mr-3">🚨</span>
-                <div className="flex-1">
-                  <p className="text-sm font-bold">
-                    ALERTA: {targetMember?.name || 'Miembro'} necesita ayuda
-                  </p>
-                  <p className="text-xs opacity-90">
-                    Respondió con PIN de emergencia - {new Date(emergency.responded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setSilentEmergencies(prev => prev.filter(e => e.id !== emergency.id))}
-                  className="text-white hover:text-red-200 ml-2"
-                >
-                  ✕
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    )}
-
-    {/* Banner de EMERGENCIAS EXPLÍCITAS */}
-    {explicitEmergencies.length > 0 && (
-      <div className="bg-red-700 border-b border-red-800 py-2 animate-pulse">
-        <div className="max-w-md mx-auto px-4 space-y-2">
-          {explicitEmergencies.map(emergency => {
-            const member = children.find(c => c.id === emergency.requester_id);
-            return (
-              <div 
-                key={emergency.id}
-                className="flex items-center p-3 rounded-lg bg-red-800 text-white"
-              >
-                <span className="text-2xl mr-3">🚨</span>
-                <div className="flex-1">
-                  <p className="text-sm font-bold">
-                    ¡{member?.name || 'Un miembro'} activó EMERGENCIA!
-                  </p>
-                  <p className="text-xs opacity-90">
-                    {new Date(emergency.responded_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setExplicitEmergencies(prev => prev.filter(e => e.id !== emergency.id))}
-                  className="text-white hover:text-red-200 ml-2"
-                >
-                  ✕
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    )}
-
-	    {showZoneAlert && zoneAlerts.length > 0 && (
-      <div className="fixed top-20 right-4 z-50 space-y-2 max-w-sm">
-        {zoneAlerts.slice(0, 3).map(alert => (
+      <div className="fixed top-4 right-4 z-50 max-w-sm space-y-2">
+        {zoneAlerts.map(alert => (
           <div 
             key={alert.id}
-            className={`p-4 rounded-lg shadow-lg border-l-4 bg-white ${
-              alert.type === 'entered' 
-                ? 'border-green-500' 
-                : 'border-orange-500'
+            className={`flex items-center p-3 rounded-lg border-l-4 bg-white shadow-lg ${
+              alert.type === 'entered' ? 'border-green-500' : 'border-red-500'
             }`}
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-full ${
-                  alert.type === 'entered' 
-                    ? 'bg-green-100' 
-                    : 'bg-orange-100'
-                }`}>
-                  {alert.type === 'entered' ? '✅' : '⚠️'}
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900">
-                    {alert.type === 'entered' ? 'Entró a zona segura' : 'Salió de zona segura'}
-                  </p>
-                  <p className="text-sm text-gray-600">{alert.message}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowZoneAlert(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
+            <span className="text-2xl mr-3">{alert.type === 'entered' ? '✅' : '⚠️'}</span>
+            <div className="flex-1">
+              <p className="text-sm text-gray-800">
+                <span className="font-bold">{alert.memberName}</span>
+                {alert.type === 'entered' ? ' entró a ' : ' salió de '}
+                <span className="font-semibold text-blue-600">{alert.zoneName}</span>
+              </p>
+              <p className="text-xs text-gray-500">
+                {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}
+              </p>
             </div>
+            <button onClick={() => setZoneAlerts(prev => prev.filter(a => a.id !== alert.id))} className="text-gray-400 hover:text-gray-600 ml-2">✕</button>
           </div>
         ))}
       </div>
     )}
 
-    <div className="p-4 space-y-4">
-      {children.length <= 1 ? (
-        <div className="bg-white rounded-xl shadow-sm border p-8 text-center">
+    {batteryAlerts.length > 0 && (
+      <div className="fixed top-4 left-4 z-50 max-w-sm space-y-2">
+        {batteryAlerts.map(alert => (
+          <div key={alert.id} className="flex items-center p-3 rounded-lg border-l-4 bg-white shadow-lg border-red-500">
+            <span className="text-2xl mr-3">⚠️</span>
+            <div className="flex-1">
+              <p className="text-sm text-gray-800">
+                <span className="font-bold">{alert.memberName}</span> tiene batería baja: 
+                <span className="font-semibold text-red-600">{alert.batteryLevel}%</span>
+              </p>
+              <p className="text-xs text-gray-500">{alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}</p>
+            </div>
+            <button onClick={() => setBatteryAlerts(prev => prev.filter(a => a.id !== alert.id))} className="text-gray-400 hover:text-gray-600 ml-2">✕</button>
+          </div>
+        ))}
+      </div>
+    )}
+
+    {silentEmergencies.length > 0 && (
+      <div className="fixed top-20 right-4 z-50 max-w-sm space-y-2">
+        {silentEmergencies.map(emergency => {
+          const targetMember = children.find(c => c.id === emergency.target_id);
+          return (
+            <div key={emergency.id} className="flex items-center p-3 rounded-lg bg-red-700 text-white shadow-lg animate-pulse">
+              <span className="text-2xl mr-3">🚨</span>
+              <div className="flex-1">
+                <p className="text-sm font-bold">ALERTA: {targetMember?.name || 'Miembro'} necesita ayuda</p>
+                <p className="text-xs opacity-90">Respondió con PIN de emergencia</p>
+              </div>
+              <button onClick={() => setSilentEmergencies(prev => prev.filter(e => e.id !== emergency.id))} className="text-white hover:text-red-200 ml-2">✕</button>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {explicitEmergencies.length > 0 && (
+      <div className="fixed top-36 right-4 z-50 max-w-sm space-y-2">
+        {explicitEmergencies.map(emergency => {
+          const member = children.find(c => c.id === emergency.requester_id);
+          return (
+            <div key={emergency.id} className="flex items-center p-3 rounded-lg bg-red-800 text-white shadow-lg animate-pulse">
+              <span className="text-2xl mr-3">🚨</span>
+              <div className="flex-1">
+                <p className="text-sm font-bold">¡{member?.name || 'Un miembro'} activó EMERGENCIA!</p>
+              </div>
+              <button onClick={() => setExplicitEmergencies(prev => prev.filter(e => e.id !== emergency.id))} className="text-white hover:text-red-200 ml-2">✕</button>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {children.length <= 1 ? (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+        <div className="bg-white rounded-xl shadow-lg border p-8 text-center max-w-md">
           <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Aun no hay otros miembros</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Aún no hay otros miembros</h3>
           <p className="text-gray-600 mb-6">Invita a tu familia para comenzar a usar FamilyWatch</p>
-            <button 
-              onClick={() => setCurrentScreen('addchild')}
-              className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium"
-              >
-              <Users className="h-5 w-5" />
-              <span>Invitar miembro familiar</span>
-            </button>
+          <button onClick={() => setCurrentScreen('addchild')} className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-colors font-medium">
+            <Users className="h-5 w-5" />
+            <span>Invitar miembro familiar</span>
+          </button>
         </div>
-        ) : (
-            <>
-              {/* CONTENEDOR PRINCIPAL CON MAPA FIJO */}
-              <div className="flex flex-col h-screen">
-                {/* SECCIÓN FIJA: Mapa + Selector + Info */}
-                <div className="flex-none">
-                  {/* MAPA */}
-                  <div className="bg-white shadow-sm border-b">
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 p-3 border-b">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-base font-semibold text-gray-900 flex items-center">
-                          <span className="bg-red-500 text-white px-2 py-1 rounded-full text-xs mr-2 font-bold">MAPA</span>
-                          Localización en tiempo real
-                        </h3>
-                        <button
-                          onClick={recenterMap}
-                          className="flex items-center space-x-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs"
-                          title="Centrar en usuario seleccionado"
-                        >
-                          <MapPin className="h-3 w-3" />
-                          <span>Centrar</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div 
-                      id="dashboard-map"
-                      className="w-full h-64"
-                      style={{ minHeight: '256px' }}
-                    />
-                  </div>
+      </div>
+    ) : (
+      <DashboardLayout
+        selectedMember={selectedChild}
+        onMemberSelect={(index) => {
+          setSelectedChild(index);
+          setShouldCenterMap(true);
+        }}
+        members={children}
+        memberStatus={{
+          isConnected: activeChild?.isConnected,
+          text: `${activeChild?.battery === null ? 'N/D' : activeChild.battery + '%'} • ${activeChild?.lastUpdate || 'Hace un momento'}`
+        }}
+        renderMap={() => (
+          <div className="relative h-full">
+            <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between bg-white bg-opacity-90 backdrop-blur-sm rounded-lg p-2 shadow-md">
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">{activeChild?.location || 'Cargando...'}</span>
+              </div>
+              <button onClick={recenterMap} className="flex items-center space-x-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs">
+                <MapPin className="h-3 w-3" />
+                <span>Centrar</span>
+              </button>
+            </div>
+            <div id="dashboard-map" className="w-full h-full" />
+          </div>
+        )}
+        renderMemberInfo={() => (
+          <div className="grid grid-cols-3 gap-4">
+            <div className="flex items-center space-x-2">
+              <Battery className={`h-5 w-5 ${activeChild?.battery === null ? 'text-gray-400' : activeChild?.battery > 20 ? 'text-green-500' : 'text-red-500'}`} />
+              <div>
+                <p className="text-xs text-gray-500">Batería</p>
+                <p className="font-semibold text-sm">{activeChild?.battery === null ? 'N/D' : `${activeChild.battery}%`}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <div>
+                <p className="text-xs text-gray-500">Estado</p>
+                <p className={`font-semibold text-sm ${activeChild?.isConnected ? 'text-green-600' : 'text-red-600'}`}>{activeChild?.isConnected ? 'Online' : 'Offline'}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Shield className="h-5 w-5 text-green-500" />
+              <div>
+                <p className="text-xs text-gray-500">Zona</p>
+                <p className="font-semibold text-sm text-green-600">{activeChild?.safeZone && activeChild.safeZone !== "Verificando zona..." ? activeChild.safeZone : 'N/D'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+        renderActions={() => (
+          <>
+            {isIOSDevice && (
+              <button onClick={handleLowBatteryAlert} className="w-full flex items-center space-x-3 px-4 py-3 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg transition-colors">
+                <Battery className="h-5 w-5" />
+                <span className="font-medium">Mi batería está baja</span>
+              </button>
+            )}
+            
+            <button onClick={() => setCurrentScreen('messaging')} className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
+              <MessageCircle className="h-5 w-5" />
+              <span className="font-medium">Enviar Mensaje</span>
+              {unreadCount > 0 && <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">{unreadCount}</span>}
+            </button>
 
-                  {/* SELECTOR DE MIEMBRO */}
-                  <div className="bg-white p-3 border-b">
-                    {children.length > 1 ? (
-                      <select 
-                        value={selectedChild} 
-                        onChange={(e) => {
-                          setSelectedChild(parseInt(e.target.value));
-                          setShouldCenterMap(true);
-                        }} 
-                        className={`w-full px-3 py-2 border-2 rounded-lg focus:ring-2 text-sm font-medium ${
-                          activeChild?.battery <= 20 
-                            ? 'border-red-500 text-red-700 bg-red-50 focus:ring-red-500' 
-                            : 'border-gray-300 text-gray-900 focus:ring-blue-500'
-                        }`}
-                      >
-                        {children.map((child, index) => (
-                          <option key={child.id} value={index}>
-                            {child.name} ({child.age} años)
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="text-center text-gray-500 text-sm">
-                        {children[0]?.name || 'Cargando...'}
-                      </div>
-                    )}
-                  </div>
+            <button onClick={() => { setCurrentScreen('safetycheck'); loadSentChecks(); }} className="w-full flex items-center space-x-3 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors">
+              <Shield className="h-5 w-5" />
+              <span className="font-medium">Check de Seguridad</span>
+            </button>
 
-                  {/* INFO COMPACTA - 1 LÍNEA */}
-                  <div className="bg-gray-50 px-4 py-2 border-b">
-                    <div className="flex items-center justify-between text-xs">
-                      <div className="flex items-center space-x-3">
-                        {/* Batería */}
-                        <div className="flex items-center space-x-1">
-                          <Battery className={`h-3 w-3 ${
-                            activeChild?.battery === null 
-                              ? 'text-gray-400' 
-                              : activeChild?.battery > 20 
-                                ? 'text-green-500' 
-                                : 'text-red-500'
-                          }`} />
-                          <span className="font-medium">
-                            {activeChild?.battery === null ? 'N/D' : `${activeChild.battery}%`}
-                          </span>
-                        </div>
+            <button onClick={handleExplicitEmergency} className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="font-medium">Emergencia</span>
+            </button>
 
-                        {/* Status */}
-                        <div className="flex items-center space-x-1">
-                          <div className={`w-2 h-2 rounded-full ${activeChild?.isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          <span className={activeChild?.isConnected ? 'text-green-600' : 'text-red-600'}>
-                            {activeChild?.isConnected ? 'Online' : 'Offline'}
-                          </span>
-                        </div>
+            <button onClick={() => setCurrentScreen('alerts')} className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors">
+              <Bell className="h-5 w-5" />
+              <span className="font-medium">📋 Log de Alertas</span>
+            </button>
 
-                        {/* Última actualización */}
-                        <div className="flex items-center space-x-1 text-gray-500">
-                          <Clock className="h-3 w-3" />
-                          <span>{activeChild?.lastUpdate || 'Hace un momento'}</span>
-                        </div>
-                      </div>
+            <button onClick={() => setCurrentScreen('safezones')} className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
+              <Shield className="h-5 w-5" />
+              <span className="font-medium">Gestionar Zonas Seguras</span>
+            </button>
+            
+            <button onClick={() => setCurrentScreen('addchild')} className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200">
+              <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">+</div>
+              <span className="font-medium">Agregar Nuevo Miembro</span>
+            </button>
 
-                      {/* Zona segura */}
-                      {activeChild?.safeZone && activeChild.safeZone !== "Verificando zona..." && (
-                        <div className="flex items-center space-x-1 text-green-600">
-                          <Shield className="h-3 w-3" />
-                          <span className="font-medium">{activeChild.safeZone}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* SECCIÓN CON SCROLL: Botones */}
-                <div className="flex-1 overflow-y-auto bg-gray-50">
-                  <div className="p-4 space-y-3">
-                    <div className="flex items-center mb-3">
-                      <span className="bg-purple-500 text-white px-3 py-1 rounded-full text-sm mr-3 font-bold">Acciones</span>
-                      <h3 className="text-lg font-semibold text-gray-900">Acciones rápidas</h3>
-                    </div>
-        
-                    {/* Botón solo para iOS */}
-                    {isIOSDevice && (
-                      <button 
-                        onClick={handleLowBatteryAlert}
-                        className="w-full flex items-center space-x-3 px-4 py-3 bg-orange-50 hover:bg-orange-100 text-orange-700 rounded-lg transition-colors"
-                      >
-                        <Battery className="h-5 w-5" />
-                        <span className="font-medium">Mi batería está baja</span>
-                      </button>
-                    )}
-                    
-                    <button 
-                      onClick={() => setCurrentScreen('messaging')} 
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg transition-colors">
-                      <MessageCircle className="h-5 w-5" />
-                      <span className="font-medium">Enviar Mensaje</span>
-                      {unreadCount > 0 && (
-                        <span className="ml-auto bg-red-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </button>
-
-                    <button 
-                      onClick={() => {
-                        setCurrentScreen('safetycheck');
-                        loadSentChecks();
-                      }}
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg transition-colors"
-                    >
-                      <Shield className="h-5 w-5" />
-                      <span className="font-medium">Check de Seguridad</span>
-                    </button>
-
-                    <button 
-                      onClick={handleExplicitEmergency} 
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg transition-colors animate-pulse">
-                      <AlertTriangle className="h-5 w-5" />
-                      <span className="font-medium">Emergencia</span>
-                    </button>
-
-                    <button 
-                      onClick={() => setCurrentScreen('alerts')}
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors"
-                    >
-                      <Bell className="h-5 w-5" />
-                      <span className="font-medium">📋 Log de Alertas</span>
-                    </button>
-
-                    <button onClick={() => { 
-                      setCurrentScreen('safezones')
-                      }} 
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg transition-colors">
-                          <Shield className="h-5 w-5" />
-                          <span className="font-medium">Gestionar Zonas Seguras</span>
-                    </button>
-                    
-                    <button 
-                      onClick={() => setCurrentScreen('addchild')}
-                      className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200"
-                    >
-                      <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">+</div>
-                      <span className="font-medium">Agregar Nuevo Miembro</span>
-                    </button>
-                  </div>
-                </div> 
-              </div> 
-            </> 
-      )}
-    </div> 
+            <div className="hidden md:block pt-3 mt-3 border-t">
+              <button onClick={handleLogout} className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Cambiar Usuario</span>
+              </button>
+            </div>
+          </>
+        )}
+      />
+    )}
     
     {/* Modal de Safety Check PIN */}
     {showCheckPinModal && pendingCheckRequest && (
@@ -3384,8 +3160,9 @@ return (
         </div>
       </div>
     )}
-  </div>
+  </>
 );
+
 };
 
 export default FamilyTrackingApp;
