@@ -91,6 +91,24 @@ const FamilyTrackingApp = () => {
   const messagesEndRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // ========== HELPER: OBTENER FAMILY_ID ==========
+  
+  const getFamilyId = async () => {
+    if (user?.user_metadata?.family_id) {
+      return user.user_metadata.family_id;
+    }
+    
+    if (!user?.id) return null;
+    
+    const { data: member } = await supabase
+      .from('family_members')
+      .select('family_id')
+      .eq('user_id', user.id)
+      .single();
+    
+    return member?.family_id;
+  };
+
   // Auto-scroll al final cuando llegan mensajes nuevos
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -278,98 +296,77 @@ useEffect(() => {
 
 // 3 Listener realtime para eventos de zona de TODA la familia
 useEffect(() => {
-  if (!user?.user_metadata?.family_id) return;
+  if (!user?.id) return;
 
   console.log('🔔 Iniciando listener de eventos de zona...');
 
-  const zoneEventsSubscription = supabase
-    .channel('zone-events-realtime')
-    .on('postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'zone_events'
-      },
-      async (payload) => {
-        console.log('🔔 Nuevo evento de zona recibido:', payload);
-        
-        // Obtener info del miembro
-        const { data: member } = await supabase
-          .from('family_members')
-          .select('first_name, last_name, family_id')
-          .eq('id', payload.new.member_id)
-          .single();
-        
-        // Solo mostrar si es de la misma familia
-        if (member?.family_id === user.user_metadata.family_id) {
-          const memberName = `${member.first_name} ${member.last_name}`;
-          const zoneName = payload.new.metadata?.zone_name || 'zona desconocida';
-          const eventType = payload.new.event_type;
-          
-          console.log(`✅ Evento de familia: ${memberName} ${eventType} ${zoneName}`);
-          
-          // Agregar alerta al banner (con protección anti-duplicados)
-          addZoneAlert({
-            id: Date.now(),
-            type: eventType,
-            memberName: memberName,
-            zoneName: zoneName,
-            timestamp: new Date()
-          });
-        }
-      }
-    )
-    .subscribe();
+  const setupZoneListener = async () => {
+    const familyId = await getFamilyId();
+    
+    if (!familyId) {
+      console.error('No se pudo obtener family_id para listener de zonas');
+      return null;
+    }
 
-  // AGREGAR este segundo listener de batería
-  // Listener de batería baja
-  console.log('🔋 Iniciando listener de alertas de batería...');
+    const zoneEventsSubscription = supabase
+      .channel('zone-events-realtime')
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'zone_events'
+        },
+        async (payload) => {
+          console.log('🔔 Nuevo evento de zona recibido:', payload);
+          
+          // Obtener info del miembro
+          const { data: member } = await supabase
+            .from('family_members')
+            .select('first_name, last_name, family_id')
+            .eq('id', payload.new.member_id)
+            .single();
+          
+          // Solo mostrar si es de la misma familia
+          if (member?.family_id === familyId) {
+            const memberName = `${member.first_name} ${member.last_name}`;
+            const zoneName = payload.new.metadata?.zone_name || 'zona desconocida';
+            const eventType = payload.new.event_type;
+            
+            const newAlert = {
+              id: payload.new.id,
+              type: 'zone',
+              memberName,
+              zoneName,
+              eventType,
+              time: new Date(payload.new.created_at).toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })
+            };
+            
+            setZoneAlerts(prev => {
+              // Evitar duplicados
+              if (prev.some(alert => alert.id === newAlert.id)) {
+                return prev;
+              }
+              return [newAlert, ...prev].slice(0, 3);
+            });
+          }
+        }
+      )
+      .subscribe();
+    
+    return zoneEventsSubscription;
+  };
   
-  const batteryAlertsSubscription = supabase
-    .channel('battery-alerts-realtime')
-    .on('postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'battery_alerts'
-      },
-      async (payload) => {
-        console.log('🔋 Nueva alerta de batería recibida:', payload);
-        
-        const { data: member } = await supabase
-          .from('family_members')
-          .select('first_name, last_name, family_id')
-          .eq('id', payload.new.member_id)
-          .single();
-        
-        console.log('🔋 Miembro encontrado:', member);
-        console.log('🔋 Family ID del miembro:', member?.family_id);
-        console.log('🔋 Family ID del usuario:', user.user_metadata.family_id);
-        
-        if (member?.family_id === user.user_metadata.family_id) {
-          const memberName = `${member.first_name} ${member.last_name}`;
-          
-          console.log('✅ Agregando alerta de batería para:', memberName);
-          
-          setBatteryAlerts(prev => [{
-            id: Date.now(),
-            memberName: memberName,
-            batteryLevel: payload.new.battery_level,
-            timestamp: new Date()
-          }, ...prev].slice(0, 5));
-        } else {
-          console.log('⚠️ Alerta de batería ignorada - diferente familia');
-        }
-      }
-    )
-    .subscribe();
-
+  let subscription = null;
+  setupZoneListener().then(sub => { subscription = sub; });
+  
   return () => {
     console.log('🔕 Cerrando listener de eventos de zona');
-    zoneEventsSubscription.unsubscribe();
-    batteryAlertsSubscription.unsubscribe();
+    subscription?.unsubscribe();
   };
-}, [user?.user_metadata?.family_id]);
+}, [user?.id]);
 
 // Listener de mensajes en tiempo real
 useEffect(() => {
@@ -545,18 +542,7 @@ useEffect(() => {
   console.log('🔔 Iniciando listener único de familia');
   
   const setupListener = async () => {
-    // ✨ Obtener family_id desde family_members si no está en metadata
-    let familyId = user.user_metadata?.family_id;
-    
-    if (!familyId) {
-      const { data: member } = await supabase
-        .from('family_members')
-        .select('family_id')
-        .eq('user_id', user.id)
-        .single();
-      
-      familyId = member?.family_id;
-    }
+    const familyId = await getFamilyId();
     
     if (!familyId) {
       console.error('No se pudo obtener family_id para listener');
@@ -936,19 +922,7 @@ const loadSafeZones = async () => {
 const loadConversations = async () => {
   if (!user?.id) return;
   
-  // ✨ Obtener family_id desde family_members si no está en metadata
-  let familyId = user.user_metadata.family_id;
-  
-  if (!familyId) {
-    const { data: member } = await supabase
-      .from('family_members')
-      .select('family_id')
-      .eq('user_id', user.id)
-      .single();
-    
-    familyId = member?.family_id;
-  }
-  
+  const familyId = await getFamilyId();
   if (!familyId) {
     console.error('No se pudo obtener family_id');
     return;
@@ -960,7 +934,6 @@ const loadConversations = async () => {
   );
   
   if (result.success) {
-    // Combinar con datos de children para nombres/avatares
     const conversationsWithInfo = result.data.map(conv => {
       const contact = children.find(c => c.id === conv.contactId);
       return {
@@ -971,8 +944,6 @@ const loadConversations = async () => {
     });
     
     setConversations(conversationsWithInfo);
-
-    // Calcular total de mensajes no leídos
     const totalUnread = conversationsWithInfo.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
     setUnreadCount(totalUnread);
   }
@@ -999,19 +970,7 @@ const openChat = async (contact) => {
 const handleSendMessage = async () => {
   if (!newMessage.trim() || !selectedContact) return;
   
-  // ✨ Obtener family_id desde family_members si no está en metadata
-  let familyId = user.user_metadata.family_id;
-  
-  if (!familyId) {
-    const { data: member } = await supabase
-      .from('family_members')
-      .select('family_id')
-      .eq('user_id', user.id)
-      .single();
-    
-    familyId = member?.family_id;
-  }
-  
+  const familyId = await getFamilyId();
   if (!familyId) {
     console.error('No se pudo obtener family_id');
     return;
@@ -1042,19 +1001,7 @@ const loadSentChecks = async () => {
 };
 
 const sendSafetyCheck = async (targetMember) => {
-  // ✨ Obtener family_id desde family_members si no está en metadata
-  let familyId = user.user_metadata?.family_id;
-  
-  if (!familyId) {
-    const { data: member } = await supabase
-      .from('family_members')
-      .select('family_id')
-      .eq('user_id', user.id)
-      .single();
-    
-    familyId = member?.family_id;
-  }
-  
+  const familyId = await getFamilyId();
   if (!familyId) {
     alert('Error: No se pudo obtener el ID de la familia');
     return;
@@ -1197,13 +1144,19 @@ const loadUserAlerts = async (userId) => {
 
 const loadAllAlerts = async () => {
   try {
+    const familyId = await getFamilyId();
+    if (!familyId) {
+      console.error('No se pudo obtener family_id');
+      return;
+    }
+    
     const alerts = [];
     
     // 1. Alertas de zona
     const { data: zoneEvents } = await supabase
       .from('zone_events')
       .select('*, member:family_members(first_name, last_name, avatar), safe_zones(name)')
-      .eq('family_id', user.user_metadata.family_id)
+      .eq('family_id', familyId)
       .order('created_at', { ascending: false })
       .limit(100);
     
@@ -1225,7 +1178,7 @@ const loadAllAlerts = async () => {
     const { data: batteryEvents } = await supabase
       .from('battery_alerts')
       .select('*, member:family_members(first_name, last_name, avatar)')
-      .eq('family_id', user.user_metadata.family_id)
+      .eq('family_id', familyId)
       .order('created_at', { ascending: false })
       .limit(100);
     
@@ -1246,7 +1199,7 @@ const loadAllAlerts = async () => {
     const { data: emergencies } = await supabase
       .from('safety_checks')
       .select('*, requester:family_members!requester_id(first_name, last_name, avatar)')
-      .eq('family_id', user.user_metadata.family_id)
+      .eq('family_id', familyId)
       .not('emergency_type', 'is', null)
       .order('responded_at', { ascending: false })
       .limit(100);
@@ -1269,7 +1222,6 @@ const loadAllAlerts = async () => {
     console.error('Error cargando todas las alertas:', error);
   }
 };
-
 // ========== FUNCIÓN DE EMERGENCIA EXPLÍCITA ==========
 
 const handleExplicitEmergency = async () => {
@@ -1277,19 +1229,7 @@ const handleExplicitEmergency = async () => {
     return;
   }
   
-  // ✨ Obtener family_id desde family_members si no está en metadata
-  let familyId = user.user_metadata?.family_id;
-  
-  if (!familyId) {
-    const { data: member } = await supabase
-      .from('family_members')
-      .select('family_id')
-      .eq('user_id', user.id)
-      .single();
-    
-    familyId = member?.family_id;
-  }
-  
+  const familyId = await getFamilyId();
   if (!familyId) {
     alert('❌ Error: No se pudo obtener el ID de la familia');
     return;
