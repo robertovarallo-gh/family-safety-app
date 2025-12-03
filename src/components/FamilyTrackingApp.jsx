@@ -2905,7 +2905,7 @@ return (
                   <span className="font-semibold text-blue-600">{alert.zoneName}</span>
                 </p>
                 <p className="text-xs text-gray-500">
-                  {alert.timestamp.toLocaleTimeString()}
+                  {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}
                 </p>
               </div>
               <button
@@ -2939,7 +2939,7 @@ return (
                   <span className="font-semibold text-red-600">{alert.batteryLevel}%</span>
                 </p>
                 <p className="text-xs text-gray-500">
-                  {alert.timestamp.toLocaleTimeString()}
+                  {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}
                 </p>
               </div>
               <button
@@ -3046,7 +3046,7 @@ return (
                   </p>
                   <p className="text-sm text-gray-600">{alert.message}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {alert.timestamp.toLocaleTimeString()}
+                    {alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}
                   </p>
                 </div>
               </div>
