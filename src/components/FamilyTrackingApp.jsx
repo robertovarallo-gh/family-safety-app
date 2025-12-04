@@ -1560,6 +1560,27 @@ useEffect(() => {
   }
 }, [selectedChild, activeChild, currentScreen]);
 
+// ✨ NUEVO: Forzar resize del mapa cuando el layout cambia
+useEffect(() => {
+  if (currentScreen === 'dashboard' && mapInstanceRef.current && window.google) {
+    // Esperar a que el layout se estabilice
+    const timer = setTimeout(() => {
+      window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
+      
+      if (activeChild?.coordinates) {
+        mapInstanceRef.current.setCenter({
+          lat: activeChild.coordinates.lat,
+          lng: activeChild.coordinates.lng
+        });
+      }
+      
+      console.log('🗺️ Mapa resized y recentrado');
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }
+}, [currentScreen, activeChild?.id]);
+
 // Realtime updates para ubicaciones
 useEffect(() => {
   if (!user?.id) return;
