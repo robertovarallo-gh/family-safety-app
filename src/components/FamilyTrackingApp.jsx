@@ -1659,6 +1659,11 @@ const loadDashboardGoogleMap = () => {
 };
 
 const initializeDashboardMap = (mapContainer) => {
+  console.log('🎯 initializeDashboardMap llamado');  // ← Este log debe estar aquí
+  console.log('🎯 mapContainer:', mapContainer);
+  console.log('🎯 window.google:', !!window.google);
+  console.log('🎯 activeChild:', activeChild);
+
   if (!window.google || !activeChild) return;
 
   console.log('🎯 Zonas disponibles:', safeZones?.length || 0);
