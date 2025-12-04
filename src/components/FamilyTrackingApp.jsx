@@ -3005,7 +3005,7 @@ return (
                 <span>Centrar</span>
               </button>
             </div>
-            <div id="dashboard-map" className="w-full h-full" />
+            <div id="dashboard-map" style={{ width: '100%', height: '100%' }} />
           </div>
         )}
         renderMemberInfo={() => (
