@@ -1623,11 +1623,15 @@ useEffect(() => {
 const loadDashboardGoogleMap = () => {
   const mapContainer = document.getElementById('dashboard-map');
   
-  if (!mapContainer || !activeChild) return;
+  if (!mapContainer || !activeChild) {
+    console.log('❌ Saliendo: mapContainer:', !!mapContainer, 'activeChild:', !!activeChild);
+    return;
+  }
   
   console.log('🗺️ Inicializando mapa - Zonas disponibles:', safeZones?.length || 0);
   
   if (window.google && window.google.maps) {
+    console.log('🔵 Caso 1: Google ya cargado, llamando initializeDashboardMap');
     initializeDashboardMap(mapContainer);
     return;
   }
@@ -1638,6 +1642,7 @@ const loadDashboardGoogleMap = () => {
     script.defer = true;
     script.onload = () => {
       console.log('🗺️ Google Maps cargado - Zonas:', safeZones?.length || 0);
+      console.log('🔵 Caso 2: Script cargado, llamando initializeDashboardMap');
       initializeDashboardMap(mapContainer);
     };
     document.head.appendChild(script);
@@ -1646,6 +1651,7 @@ const loadDashboardGoogleMap = () => {
       if (window.google && window.google.maps) {
         clearInterval(checkGoogleMaps);
         console.log('🗺️ Retry Google Maps - Zonas:', safeZones?.length || 0);
+        console.log('🔵 Caso 3: Retry exitoso, llamando initializeDashboardMap');
         initializeDashboardMap(mapContainer);
       }
     }, 100);
@@ -1744,7 +1750,7 @@ const recenterMap = () => {
   
   console.log('🎯 Re-centrando en:', activeChild.name);
   mapInstanceRef.current.setCenter(childLocation);
-  mapInstanceRef.current.setZoom(16);
+  mapInstanceRef.current.setZoom(14);
   setShouldCenterMap(true);
 };
 
