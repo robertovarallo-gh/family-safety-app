@@ -1538,7 +1538,18 @@ useEffect(() => {
   if (currentScreen === 'dashboard' && activeChild && activeChild.id) {
     setTimeout(() => {
       loadDashboardGoogleMap();
-    }, 100);
+
+      // ✨ Forzar resize del mapa después de cargar
+      setTimeout(() => {
+        if (mapInstanceRef.current && window.google) {
+          window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
+          mapInstanceRef.current.setCenter({
+            lat: activeChild.coordinates?.lat || 4.6951,
+            lng: activeChild.coordinates?.lng || -74.0787
+          });
+        }
+      }, 200);
+    }, 300);
   }
 }, [selectedChild, activeChild, currentScreen]);
 
