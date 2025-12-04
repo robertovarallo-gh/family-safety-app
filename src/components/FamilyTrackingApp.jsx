@@ -877,6 +877,13 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 const loadSafeZones = async () => {
   try {
+    // ✨ Validar que user existe
+    if (!user?.id) {
+      console.log('⚠️ User no disponible aún');
+      setSafeZones([]);
+      return [];
+    }
+
     // Obtener family_id del usuario actual
     const { data: memberData } = await supabase
       .from('family_members')
