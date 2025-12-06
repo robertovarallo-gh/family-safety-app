@@ -1560,6 +1560,26 @@ useEffect(() => {
   }
 }, [selectedChild, activeChild, currentScreen]);
 
+// ✨ AGREGAR AQUÍ EL NUEVO useEffect
+useEffect(() => {
+  if (currentScreen === 'dashboard' && mapInstanceRef.current && window.google) {
+    const timer = setTimeout(() => {
+      console.log('🔄 Forzando resize del mapa...');
+      window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
+      
+      if (activeChild?.coordinates) {
+        mapInstanceRef.current.setCenter({
+          lat: activeChild.coordinates.lat,
+          lng: activeChild.coordinates.lng
+        });
+        mapInstanceRef.current.setZoom(16);
+      }
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }
+}, [currentScreen, children.length]);
+
 // ✨ NUEVO: Forzar resize del mapa cuando el layout cambia
 useEffect(() => {
   if (currentScreen === 'dashboard' && mapInstanceRef.current && window.google) {
