@@ -1542,13 +1542,23 @@ useEffect(() => {
     return;
   }
   
-  // Solo cargar mapa si NO existe
-  if (currentScreen === 'dashboard' && activeChild && activeChild.id && !mapInstanceRef.current) {
-    setTimeout(() => {
-      loadDashboardGoogleMap();
-    }, 100);
+  // Cargar mapa cuando ENTRAS al dashboard
+  if (currentScreen === 'dashboard' && activeChild && activeChild.id) {
+    // Solo si NO existe el mapa, crearlo
+    if (!mapInstanceRef.current) {
+      setTimeout(() => {
+        console.log('🆕 Creando mapa por primera vez...');
+        loadDashboardGoogleMap();
+      }, 300);
+    } else {
+      // Si ya existe, solo actualizar marcadores
+      console.log('♻️ Mapa ya existe, solo actualizando...');
+      setTimeout(() => {
+        loadDashboardGoogleMap(); // Esto actualizará marcadores sin recrear
+      }, 100);
+    }
   }
-}, [currentScreen]);
+}, [selectedChild, activeChild?.id, currentScreen]); // ← Dependencias optimizadas
 
 // ✨ AGREGAR AQUÍ EL NUEVO useEffect
 // ✨ Observar cuando el mapa sea visible
