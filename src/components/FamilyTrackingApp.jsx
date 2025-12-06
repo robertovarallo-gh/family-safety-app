@@ -1591,6 +1591,28 @@ useEffect(() => {
   return () => observer.disconnect();
 }, [currentScreen, activeChild?.id]);
 
+
+// ✨ NUEVO: Forzar resize del mapa cuando el layout cambia
+useEffect(() => {
+  if (currentScreen === 'dashboard' && mapInstanceRef.current && window.google) {
+    // Esperar a que el layout se estabilice
+    const timer = setTimeout(() => {
+      window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
+      
+      if (activeChild?.coordinates) {
+        mapInstanceRef.current.setCenter({
+          lat: activeChild.coordinates.lat,
+          lng: activeChild.coordinates.lng
+        });
+      }
+      
+      console.log('🗺️ Mapa resized y recentrado');
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }
+}, [currentScreen, activeChild?.id]);
+
 // ✨ Re-inicializar mapa cuando cambia entre mobile/desktop
 useEffect(() => {
   const handleResize = () => {
@@ -1617,27 +1639,6 @@ useEffect(() => {
   return () => window.removeEventListener('resize', handleResize);
 }, [currentScreen, activeChild?.coordinates]);
 
-
-// ✨ NUEVO: Forzar resize del mapa cuando el layout cambia
-useEffect(() => {
-  if (currentScreen === 'dashboard' && mapInstanceRef.current && window.google) {
-    // Esperar a que el layout se estabilice
-    const timer = setTimeout(() => {
-      window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
-      
-      if (activeChild?.coordinates) {
-        mapInstanceRef.current.setCenter({
-          lat: activeChild.coordinates.lat,
-          lng: activeChild.coordinates.lng
-        });
-      }
-      
-      console.log('🗺️ Mapa resized y recentrado');
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }
-}, [currentScreen, activeChild?.id]);
 
 // Realtime updates para ubicaciones
 useEffect(() => {
