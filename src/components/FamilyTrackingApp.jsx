@@ -53,6 +53,7 @@ const FamilyTrackingApp = () => {
   const [gpsError, setGpsError] = useState(null);  
   const markersRef = useRef({});
   const zoneCirclesRef = useRef([]);
+  const hasAutoSelectedUser = useRef(false);
 
   // Estados para funcionalidades
   const [checkStatus, setCheckStatus] = useState('idle');
@@ -823,17 +824,17 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
         m.id === userData?.id || m.name.includes(userData?.user_metadata?.first_name)
       );
       
-      if (loggedUserIndex !== -1 && selectedChild === 0) {
+      if (loggedUserIndex !== -1 && !hasAutoSelectedUser.current) {
         console.log('👤 Usuario logueado encontrado en índice:', loggedUserIndex);
         setSelectedChild(loggedUserIndex);
+        hasAutoSelectedUser.current = true; // ✅ Marcar como seleccionado
       }
       
     } catch (error) {
       console.error('Error cargando miembros familiares:', error);
       setChildren([]);
     }
-  };
-  
+  };  
   
 // Parte 4 del FamilyTrackingApp.jsx - Funciones de configuracion y formularios
 
