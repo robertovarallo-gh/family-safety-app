@@ -1591,6 +1591,33 @@ useEffect(() => {
   return () => observer.disconnect();
 }, [currentScreen, activeChild?.id]);
 
+// ✨ Re-inicializar mapa cuando cambia entre mobile/desktop
+useEffect(() => {
+  const handleResize = () => {
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    console.log('📱 Breakpoint cambió. Desktop:', isDesktop);
+    
+    if (currentScreen === 'dashboard' && mapInstanceRef.current) {
+      setTimeout(() => {
+        console.log('🔄 Re-renderizando mapa...');
+        if (window.google && mapInstanceRef.current) {
+          window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
+          if (activeChild?.coordinates) {
+            mapInstanceRef.current.setCenter({
+              lat: activeChild.coordinates.lat,
+              lng: activeChild.coordinates.lng
+            });
+          }
+        }
+      }, 300);
+    }
+  };
+
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
+}, [currentScreen, activeChild?.coordinates]);
+
+
 // ✨ NUEVO: Forzar resize del mapa cuando el layout cambia
 useEffect(() => {
   if (currentScreen === 'dashboard' && mapInstanceRef.current && window.google) {
