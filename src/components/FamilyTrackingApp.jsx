@@ -1561,24 +1561,35 @@ useEffect(() => {
 }, [selectedChild, activeChild, currentScreen]);
 
 // ✨ AGREGAR AQUÍ EL NUEVO useEffect
+// ✨ Observar cuando el mapa sea visible
 useEffect(() => {
-  if (currentScreen === 'dashboard' && mapInstanceRef.current && window.google) {
-    const timer = setTimeout(() => {
-      console.log('🔄 Forzando resize del mapa...');
-      window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
-      
-      if (activeChild?.coordinates) {
-        mapInstanceRef.current.setCenter({
-          lat: activeChild.coordinates.lat,
-          lng: activeChild.coordinates.lng
-        });
-        mapInstanceRef.current.setZoom(16);
+  if (currentScreen !== 'dashboard') return;
+
+  const mapContainer = document.getElementById('dashboard-map');
+  if (!mapContainer) return;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && mapInstanceRef.current && window.google) {
+        console.log('🔄 Mapa visible, forzando resize...');
+        setTimeout(() => {
+          window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
+          if (activeChild?.coordinates) {
+            mapInstanceRef.current.setCenter({
+              lat: activeChild.coordinates.lat,
+              lng: activeChild.coordinates.lng
+            });
+            mapInstanceRef.current.setZoom(16);
+          }
+        }, 100);
       }
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }
-}, [currentScreen, children.length]);
+    });
+  }, { threshold: 0.1 });
+
+  observer.observe(mapContainer);
+
+  return () => observer.disconnect();
+}, [currentScreen, activeChild?.id]);
 
 // ✨ NUEVO: Forzar resize del mapa cuando el layout cambia
 useEffect(() => {
