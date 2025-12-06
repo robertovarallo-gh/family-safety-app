@@ -1537,44 +1537,18 @@ useEffect(() => {
 useEffect(() => {
   // Limpiar referencias del mapa cuando NO estás en dashboard
   if (currentScreen !== 'dashboard') {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current = null;
-    }
+    mapInstanceRef.current = null;
     markersRef.current = {};
     return;
   }
   
-  // ✨ Destruir mapa existente antes de recrear
-  if (mapInstanceRef.current) {
-    console.log('🗑️ Destruyendo mapa existente...');
-    mapInstanceRef.current = null;
-    markersRef.current = {};
-    
-    // Limpiar el contenedor
-    const mapContainer = document.getElementById('dashboard-map');
-    if (mapContainer) {
-      mapContainer.innerHTML = '';
-    }
-  }
-  
-  // Cargar mapa cuando ENTRAS al dashboard
-  if (currentScreen === 'dashboard' && activeChild && activeChild.id) {
+  // Solo cargar mapa si NO existe
+  if (currentScreen === 'dashboard' && activeChild && activeChild.id && !mapInstanceRef.current) {
     setTimeout(() => {
-      console.log('🆕 Creando nuevo mapa...');
       loadDashboardGoogleMap();
-      
-      setTimeout(() => {
-        if (mapInstanceRef.current && window.google) {
-          window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
-          mapInstanceRef.current.setCenter({
-            lat: activeChild.coordinates?.lat || 4.6951,
-            lng: activeChild.coordinates?.lng || -74.0787
-          });
-        }
-      }, 500);
-    }, 300);
+    }, 100);
   }
-}, [selectedChild, activeChild, currentScreen]);
+}, [currentScreen]);
 
 // ✨ AGREGAR AQUÍ EL NUEVO useEffect
 // ✨ Observar cuando el mapa sea visible
@@ -1595,7 +1569,7 @@ useEffect(() => {
               lat: activeChild.coordinates.lat,
               lng: activeChild.coordinates.lng
             });
-            mapInstanceRef.current.setZoom(16);
+            mapInstanceRef.current.setZoom(14);
           }
         }, 100);
       }
@@ -1770,7 +1744,7 @@ const initializeDashboardMap = (mapContainer) => {
     if (shouldCenterMap) {
       console.log('🎯 Centrando mapa en:', activeChild.name);
       mapInstanceRef.current.setCenter(childLocation);
-      mapInstanceRef.current.setZoom(16);
+      mapInstanceRef.current.setZoom(14);
     } else {
       console.log('📍 Manteniendo vista actual');
     }
@@ -1789,7 +1763,7 @@ const initializeDashboardMap = (mapContainer) => {
 
   // Crear mapa primera vez
   const map = new window.google.maps.Map(mapContainer, {
-    zoom: 16,
+    zoom: 14,
     center: childLocation,
     mapTypeControl: true,
     streetViewControl: true,
