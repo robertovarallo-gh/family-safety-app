@@ -2994,7 +2994,7 @@ return (
           text: `${activeChild?.battery === null ? 'N/D' : activeChild.battery + '%'} • ${activeChild?.lastUpdate || 'Hace un momento'}`
         }}
         renderMap={() => (
-          <div className="absolute inset-0">
+          <div className="relative w-full h-full">  // ← Usar relative w-full h-full
             <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between bg-white bg-opacity-90 backdrop-blur-sm rounded-lg p-2 shadow-md">
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-blue-600" />
