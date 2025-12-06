@@ -67,7 +67,7 @@ const DashboardLayout = ({
       {/* Contenido principal - Izquierda */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mapa - Ocupa TODO el espacio */}
-        <div style={{ height: '70vh' }}>
+        <div className="flex-1">
           {renderMap()}
         </div>
       </div>
