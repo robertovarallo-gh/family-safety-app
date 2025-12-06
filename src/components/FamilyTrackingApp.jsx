@@ -818,12 +818,12 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
       setChildren(formattedMembers);
       console.log('Miembros con ubicaciones reales:', formattedMembers);
       
-      // ✨ Seleccionar usuario logueado por defecto
+      // ✨ Seleccionar usuario logueado SOLO la primera vez
       const loggedUserIndex = formattedMembers.findIndex(m => 
         m.id === userData?.id || m.name.includes(userData?.user_metadata?.first_name)
       );
       
-      if (loggedUserIndex !== -1) {
+      if (loggedUserIndex !== -1 && selectedChild === 0) {
         console.log('👤 Usuario logueado encontrado en índice:', loggedUserIndex);
         setSelectedChild(loggedUserIndex);
       }
@@ -834,44 +834,6 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
     }
   };
   
-  /*
-  const handleZoneChanges = (zoneDetection) => {
-    const alerts = [];
-    
-    // Alertas de entrada
-    zoneDetection.entered?.forEach(zone => {
-      alerts.push({
-        id: Date.now() + Math.random(),
-        type: 'entered',
-        zone: zone,
-        member: activeChild?.name || 'Miembro',
-        timestamp: new Date(),
-        message: `${activeChild?.name || 'Miembro'} entró a ${zone.name}`
-      });
-    });
-    
-    // Alertas de salida
-    zoneDetection.exited?.forEach(zone => {
-      alerts.push({
-        id: Date.now() + Math.random(),
-        type: 'exited',
-        zone: zone,
-        member: activeChild?.name || 'Miembro',
-        timestamp: new Date(),
-        message: `${activeChild?.name || 'Miembro'} salió de ${zone.name}`
-      });
-    });
-    
-    if (alerts.length > 0) {
-      setZoneAlerts(prev => [...alerts, ...prev].slice(0, 10));
-      setShowZoneAlert(true);
-      
-      setTimeout(() => {
-        setShowZoneAlert(false);
-      }, 10000);
-    }
-  };  
-  */
   
 // Parte 4 del FamilyTrackingApp.jsx - Funciones de configuracion y formularios
 
