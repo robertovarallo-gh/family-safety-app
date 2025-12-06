@@ -1537,16 +1537,32 @@ useEffect(() => {
 useEffect(() => {
   // Limpiar referencias del mapa cuando NO estás en dashboard
   if (currentScreen !== 'dashboard') {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current = null;
+    }
+    markersRef.current = {};
+    return;
+  }
+  
+  // ✨ Destruir mapa existente antes de recrear
+  if (mapInstanceRef.current) {
+    console.log('🗑️ Destruyendo mapa existente...');
     mapInstanceRef.current = null;
     markersRef.current = {};
+    
+    // Limpiar el contenedor
+    const mapContainer = document.getElementById('dashboard-map');
+    if (mapContainer) {
+      mapContainer.innerHTML = '';
+    }
   }
   
   // Cargar mapa cuando ENTRAS al dashboard
   if (currentScreen === 'dashboard' && activeChild && activeChild.id) {
     setTimeout(() => {
+      console.log('🆕 Creando nuevo mapa...');
       loadDashboardGoogleMap();
-
-      // ✨ Forzar resize del mapa después de cargar
+      
       setTimeout(() => {
         if (mapInstanceRef.current && window.google) {
           window.google.maps.event.trigger(mapInstanceRef.current, 'resize');
@@ -1555,7 +1571,7 @@ useEffect(() => {
             lng: activeChild.coordinates?.lng || -74.0787
           });
         }
-      }, 200);
+      }, 500);
     }, 300);
   }
 }, [selectedChild, activeChild, currentScreen]);
