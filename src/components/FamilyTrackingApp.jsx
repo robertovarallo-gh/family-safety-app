@@ -1579,7 +1579,7 @@ useEffect(() => {
               lat: activeChild.coordinates.lat,
               lng: activeChild.coordinates.lng
             });
-            mapInstanceRef.current.setZoom(14);
+            mapInstanceRef.current.setZoom(18);
           }
         }, 100);
       }
@@ -1754,7 +1754,7 @@ const initializeDashboardMap = (mapContainer) => {
     if (shouldCenterMap) {
       console.log('🎯 Centrando mapa en:', activeChild.name);
       mapInstanceRef.current.setCenter(childLocation);
-      mapInstanceRef.current.setZoom(14);
+      mapInstanceRef.current.setZoom(18);
     } else {
       console.log('📍 Manteniendo vista actual');
     }
@@ -1773,7 +1773,7 @@ const initializeDashboardMap = (mapContainer) => {
 
   // Crear mapa primera vez
   const map = new window.google.maps.Map(mapContainer, {
-    zoom: 14,
+    zoom: 18,
     center: childLocation,
     mapTypeControl: true,
     streetViewControl: true,
@@ -1814,7 +1814,7 @@ const recenterMap = () => {
   
   console.log('🎯 Re-centrando en:', activeChild.name);
   mapInstanceRef.current.setCenter(childLocation);
-  mapInstanceRef.current.setZoom(14);
+  mapInstanceRef.current.setZoom(18);
   setShouldCenterMap(true);
 };
 
@@ -3045,7 +3045,6 @@ return (
         selectedMember={selectedChild}
         onMemberSelect={(index) => {
           setSelectedChild(index);
-          setShouldCenterMap(true);
         }}
         members={children}
         memberStatus={{
