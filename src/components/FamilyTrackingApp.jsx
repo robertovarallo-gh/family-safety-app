@@ -3005,6 +3005,17 @@ return (
                 <span>Centrar</span>
               </button>
             </div>
+
+            {/* ✨ NUEVO: Zona segura arriba derecha */}
+            {activeChild?.safeZone && activeChild.safeZone !== "Verificando zona..." && (
+              <div className="absolute top-16 right-3 z-10 bg-green-500 text-white px-3 py-2 rounded-lg shadow-lg">
+                <div className="flex items-center space-x-2">
+                  <Shield className="h-4 w-4" />
+                  <span className="text-sm font-semibold">{activeChild.safeZone}</span>
+                </div>
+              </div>
+            )}
+
             <div id="dashboard-map" className="w-full h-full" />
           </div>
         )}

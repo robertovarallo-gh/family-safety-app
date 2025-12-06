@@ -61,11 +61,6 @@ const DashboardLayout = ({
           <div className="flex-1" style={{ minHeight: '400px' }}>
             {renderMap()}
           </div>
-
-          {/* Info del miembro - Compacto */}
-          <div className="bg-white border-t p-4">
-            {renderMemberInfo()}
-          </div>
         </div>
 
         {/* Sidebar - Derecha */}
