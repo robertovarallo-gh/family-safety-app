@@ -3053,19 +3053,23 @@ return (
           text: `${activeChild?.battery === null ? 'N/D' : activeChild.battery + '%'} • ${activeChild?.lastUpdate || 'Hace un momento'}`
         }}
         renderMap={() => (
-          <div className="relative w-full h-full">
+          <div className="w-full h-full relative">
+            {/* Barra superior con ubicación y botón centrar */}
             <div className="absolute top-3 left-3 right-3 z-10 flex items-center justify-between bg-white bg-opacity-90 backdrop-blur-sm rounded-lg p-2 shadow-md">
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-blue-600" />
                 <span className="text-sm font-medium text-gray-700">{activeChild?.location || 'Cargando...'}</span>
               </div>
-              <button onClick={recenterMap} className="flex items-center space-x-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs">
+              <button
+                onClick={recenterMap}
+                className="flex items-center space-x-1 px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs"
+              >
                 <MapPin className="h-3 w-3" />
                 <span>Centrar</span>
               </button>
             </div>
-
-            {/* ✨ NUEVO: Zona segura arriba derecha */}
+            
+            {/* Zona segura arriba derecha */}
             {activeChild?.safeZone && activeChild.safeZone !== "Verificando zona..." && (
               <div className="absolute top-16 right-3 z-10 bg-green-500 text-white px-3 py-2 rounded-lg shadow-lg">
                 <div className="flex items-center space-x-2">
@@ -3074,8 +3078,8 @@ return (
                 </div>
               </div>
             )}
-
-            <div id="dashboard-map" className="w-full h-full" />
+            
+            <div id="dashboard-map" className="absolute inset-0" />
           </div>
         )}
         renderMemberInfo={() => (
