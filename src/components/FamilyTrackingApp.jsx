@@ -3116,13 +3116,10 @@ return (
               <button 
                 onClick={handleLogout} 
                 className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
-                <div className="flex items-center space-x-2 mb-1">
                   <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Cambiar Usuario:</span>
-                </div>
-                <span className="text-xs text-gray-500">
-                  {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
-                </span>    
+                  <span className="font-medium truncate">
+                    Cambiar Usuario: {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
+                  </span>
               </button>
             </div>
           </>
