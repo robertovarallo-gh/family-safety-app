@@ -3016,6 +3016,7 @@ return (
           isConnected: activeChild?.isConnected,
           text: `${activeChild?.battery === null ? 'N/D' : activeChild.battery + '%'} • ${activeChild?.lastUpdate || 'Hace un momento'}`
         }}
+        user={user}
         renderMap={() => (
           <div className="w-full h-full relative">
             {/* Barra superior con ubicación y botón centrar */}
@@ -3112,9 +3113,16 @@ return (
             </button>
 
             <div className="hidden md:block pt-3 mt-3 border-t">
-              <button onClick={handleLogout} className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
-                <LogOut className="h-5 w-5" />
-                <span className="font-medium">Cambiar Usuario</span>
+              <button 
+                onClick={handleLogout} 
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors">
+                <div className="flex items-center space-x-2 mb-1">
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Cambiar Usuario</span>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {user?.user_metadata?.first_name} {user?.user_metadata?.last_name}
+                </span>    
               </button>
             </div>
           </>

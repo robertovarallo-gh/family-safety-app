@@ -5,6 +5,7 @@ const DashboardLayout = ({
   onMemberSelect,
   members = [],
   memberStatus,
+  user,
   renderMap,
   renderMemberInfo,
   renderActions
