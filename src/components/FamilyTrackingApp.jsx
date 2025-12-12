@@ -2919,8 +2919,8 @@ return (
             key={alert.id}
             className={`flex items-center p-3 rounded-lg border-l-4 bg-white shadow-lg ${
               alert.eventType === 'entered' 
-                ? 'bg-green-100 border-green-500' 
-                : 'bg-red-100 border-red-500'
+                ? 'bg-red-100 border-red-500' 
+                : 'bg-green-100 border-green-500'
             }`}
           >
             <span className="text-2xl mr-3">{alert.type === 'entered' ? '✅' : '⚠️'}</span>
