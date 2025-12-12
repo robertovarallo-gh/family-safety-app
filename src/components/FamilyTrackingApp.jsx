@@ -2959,7 +2959,7 @@ return (
     )}
 
     {silentEmergencies.length > 0 && (
-      <div className="fixed top-32 right-4 z-50 max-w-sm space-y-2">
+      <div className="fixed top-32 left-4 z-50 max-w-sm space-y-2">
         {silentEmergencies.map(emergency => {
           const targetMember = children.find(c => c.id === emergency.target_id);
           return (
