@@ -2913,7 +2913,7 @@ return (
 
     {/* Alertas flotantes */}
     {zoneAlerts.length > 0 && (
-      <div className="fixed top-4 right-4 z-50 max-w-sm space-y-2">
+      <div className="fixed top-4 left-4 z-50 max-w-sm space-y-2">
         {zoneAlerts.map(alert => (
           <div 
             key={alert.id}
@@ -2975,7 +2975,7 @@ return (
     )}
 
     {explicitEmergencies.length > 0 && (
-      <div className="fixed top-36 right-4 z-50 max-w-sm space-y-2">
+      <div className="fixed top-36 left-4 z-50 max-w-sm space-y-2">
         {explicitEmergencies.map(emergency => {
           const member = children.find(c => c.id === emergency.requester_id);
           return (
