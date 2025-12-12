@@ -2913,12 +2913,14 @@ return (
 
     {/* Alertas flotantes */}
     {zoneAlerts.length > 0 && (
-      <div className="fixed top-4 left-4 z-50 max-w-sm space-y-2">
+      <div className="fixed top-16 left-4 z-50 max-w-sm space-y-2">
         {zoneAlerts.map(alert => (
           <div 
             key={alert.id}
             className={`flex items-center p-3 rounded-lg border-l-4 bg-white shadow-lg ${
-              alert.type === 'entered' ? 'border-green-500' : 'border-red-500'
+              alert.eventType === 'entered' 
+                ? 'bg-green-100 border-green-500' 
+                : 'bg-red-100 border-red-500'
             }`}
           >
             <span className="text-2xl mr-3">{alert.type === 'entered' ? '✅' : '⚠️'}</span>
@@ -2939,7 +2941,7 @@ return (
     )}
 
     {batteryAlerts.length > 0 && (
-      <div className="fixed top-4 left-4 z-50 max-w-sm space-y-2">
+      <div className="fixed top-16 left-4 z-50 max-w-sm space-y-2">
         {batteryAlerts.map(alert => (
           <div key={alert.id} className="flex items-center p-3 rounded-lg border-l-4 bg-white shadow-lg border-red-500">
             <span className="text-2xl mr-3">⚠️</span>
@@ -2957,7 +2959,7 @@ return (
     )}
 
     {silentEmergencies.length > 0 && (
-      <div className="fixed top-20 right-4 z-50 max-w-sm space-y-2">
+      <div className="fixed top-32 right-4 z-50 max-w-sm space-y-2">
         {silentEmergencies.map(emergency => {
           const targetMember = children.find(c => c.id === emergency.target_id);
           return (
@@ -2975,7 +2977,7 @@ return (
     )}
 
     {explicitEmergencies.length > 0 && (
-      <div className="fixed top-36 left-4 z-50 max-w-sm space-y-2">
+      <div className="fixed top-48 left-4 z-50 max-w-sm space-y-2">
         {explicitEmergencies.map(emergency => {
           const member = children.find(c => c.id === emergency.requester_id);
           return (
