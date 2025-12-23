@@ -91,6 +91,8 @@ class SoundAlertService {
   // Función base para hablar
   speak(text, options = {}) {
 
+    alert(`DEBUG: Intentando hablar: ${text.substring(0, 30)}...`); // ← AGREGAR
+    
     console.log('🔊 Intentando hablar:', text);
     console.log('📱 User agent:', navigator.userAgent);
     console.log('🗣️ Synth disponible:', !!this.synth);
