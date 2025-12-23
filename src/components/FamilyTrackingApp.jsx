@@ -1504,13 +1504,19 @@ useEffect(() => {
     markersRef.current = {};
     return;
   }
+
+  // ✨ ESPERAR a que las zonas estén cargadas
+  if (!safeZones || safeZones.length === 0) {
+    console.log('⏳ Esperando a que se carguen las zonas...');
+    return;
+  }
   
-  // Cargar mapa cuando ENTRAS al dashboard
+  // Cargar mapa cuando ENTRAS al dashboard Y las zonas están listas
   if (currentScreen === 'dashboard' && activeChild && activeChild.id) {
     // Solo si NO existe el mapa, crearlo
     if (!mapInstanceRef.current) {
       setTimeout(() => {
-        console.log('🆕 Creando mapa por primera vez...');
+        console.log('🆕 Creando mapa por primera vez con zonas:', safeZones.length);
         loadDashboardGoogleMap();
       }, 300);
     } else {
