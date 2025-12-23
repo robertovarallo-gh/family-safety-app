@@ -580,8 +580,7 @@ useEffect(() => {
         },
         onExplicitEmergency: (emergency) => {
           console.log('🚨 Emergencia explícita, agregando alerta');
-          console.log('🚨 Emergencia explícita COMPLETA:', emergency);
-          console.log('📝 Keys disponibles:', Object.keys(emergency));
+          console.log('🚨 Emergencia explícita COMPLETA:', JSON.stringify(emergency, null, 2));
 
           // Anunciar con nombre y tipo
           const memberName = emergency.member_first_name || 'Un miembro';
