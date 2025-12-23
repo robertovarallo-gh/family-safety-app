@@ -90,6 +90,12 @@ class SoundAlertService {
 
   // Función base para hablar
   speak(text, options = {}) {
+
+    console.log('🔊 Intentando hablar:', text);
+    console.log('📱 User agent:', navigator.userAgent);
+    console.log('🗣️ Synth disponible:', !!this.synth);
+    console.log('🎤 Voz seleccionada:', this.defaultVoice?.name);
+
     if (!this.synth) {
       console.warn('Speech API no disponible');
       return;
@@ -111,15 +117,22 @@ class SoundAlertService {
     utterance.volume = options.volume || 1.0;
     utterance.lang = this.defaultVoice?.lang || 'es-ES';
 
-    utterance.onerror = (event) => {
-      console.error('Error en speech:', event);
+    utterance.onstart = () => {
+      console.log('✅ Speech iniciado');
     };
 
     utterance.onend = () => {
       console.log('✅ Speech completado');
     };
 
+    utterance.onerror = (event) => {
+      console.error('❌ Error en speech:', event.error, event);
+    };
+
+    console.log('🎯 Llamando synth.speak...');
     this.synth.speak(utterance);
+    console.log('🎯 synth.speak llamado, esperando...');
+
   }
 
   // Vibración en móvil
