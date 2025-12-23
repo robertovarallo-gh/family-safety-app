@@ -3311,15 +3311,35 @@ return (
           </div>
 
           <div className="space-y-3">
+
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
             <button
-              onClick={() => {
-                SoundAlertService.speak('Audio activado correctamente', { volume: 0.5 });
-                localStorage.setItem('audioPermissionGranted', 'true');
-                setAudioPermissionGranted(true);
-                setShowAudioPermissionModal(false);
-                setTimeout(() => {
-                  alert('✅ Audio activado. Recibirás alertas sonoras de emergencias.');
-                }, 500);
+              onClick={async () => {
+                try {
+                  // 1. Inicializar audio context si existe
+                  if (SoundAlertService.audioContext) {
+                    await SoundAlertService.audioContext.resume();
+                  }
+                  
+                  // 2. Forzar reproducción inmediata (esto desbloquea el audio)
+                  const testUtterance = new SpeechSynthesisUtterance('Activado');
+                  testUtterance.volume = 0.8;
+                  testUtterance.lang = 'es-ES';
+                  window.speechSynthesis.speak(testUtterance);
+                  
+                  // 3. Esperar un poco y confirmar
+                  await new Promise(resolve => setTimeout(resolve, 1000));
+                  
+                  // 4. Guardar permiso
+                  localStorage.setItem('audioPermissionGranted', 'true');
+                  setAudioPermissionGranted(true);
+                  setShowAudioPermissionModal(false);
+                  
+                  alert('✅ Audio activado. Recibirás alertas sonoras.');
+                } catch (error) {
+                  console.error('Error activando audio:', error);
+                  alert('⚠️ Hubo un problema activando el audio. Intenta de nuevo.');
+                }
               }}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
             >
