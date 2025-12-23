@@ -78,21 +78,37 @@ class SoundAlertService {
 
   // Anunciar emergencia explícita
   announceExplicitEmergency(memberName, emergencyType) {
-    const message = `¡Alerta! ${memberName} activó emergencia ${emergencyType}. ¡Requiere ayuda inmediata!`;
-    this.speak(message, { rate: 1.1, pitch: 1.2, volume: 1.0 });
-    this.vibrate([300, 100, 300, 100, 300]);
+    const message = `¡Alerta! ${memberName} activó emergencia ${emergencyType}. Requiere ayuda inmediata.`;
     
-    // Repetir después de 5 segundos
+    // Intentar speech primero
+    this.speak(message, { rate: 1.0, pitch: 1.1, volume: 1.0 });
+    
+    // Para móviles: vibración fuerte + notificación
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      this.vibrate([400, 200, 400, 200, 400, 200, 400]);
+      
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('🚨 EMERGENCIA', {
+          body: message,
+          requireInteraction: true,
+          vibrate: [400, 200, 400]
+        });
+      }
+      
+      this.playEmergencySound();
+    }
+    
     setTimeout(() => {
-      this.speak(`${memberName} necesita ayuda urgente.`, { rate: 1.1, pitch: 1.2, volume: 1.0 });
-    }, 5000);
+      this.speak(`${memberName} necesita ayuda urgente.`, { rate: 0.95, pitch: 1.0, volume: 0.9 });
+      this.vibrate([300, 100, 300]);
+    }, 3500);
   }
 
   // Función base para hablar
   speak(text, options = {}) {
 
     alert(`DEBUG: Intentando hablar: ${text.substring(0, 30)}...`); // ← AGREGAR
-    
+
     console.log('🔊 Intentando hablar:', text);
     console.log('📱 User agent:', navigator.userAgent);
     console.log('🗣️ Synth disponible:', !!this.synth);
@@ -151,6 +167,22 @@ class SoundAlertService {
   stop() {
     if (this.synth) {
       this.synth.cancel();
+    }
+  }
+
+  // Reproducir audio de emergencia
+  playEmergencySound() {
+    try {
+      const audio = new Audio('/sounds/emergency-alert.mp3');
+      audio.volume = 1.0;
+      
+      audio.play().then(() => {
+        console.log('✅ Audio de emergencia reproducido');
+      }).catch(error => {
+        console.error('❌ Error reproduciendo audio:', error);
+      });
+    } catch (e) {
+      console.error('Error creando audio:', e);
     }
   }
 }
