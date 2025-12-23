@@ -39,10 +39,10 @@ class SoundAlertService {
     this.speak(message, { rate: 1.1, pitch: 1.1, volume: 1.0 });
     this.vibrate([300, 100, 300, 100, 300]);
     
-    // Repetir después de 3 segundos
+    // Repetir después de 5 segundos
     setTimeout(() => {
       this.speak(`${memberName} necesita ayuda urgente.`, { rate: 1.1, pitch: 1.1, volume: 1.0 });
-    }, 3000);
+    }, 5000);
   }
 
   // Función base para hablar
