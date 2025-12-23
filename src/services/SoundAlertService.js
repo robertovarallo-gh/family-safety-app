@@ -101,8 +101,11 @@ class SoundAlertService {
       return;
     }
 
-    // Cancelar cualquier mensaje anterior
-    this.synth.cancel();
+    // NO cancelar en Android - causa problemas
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    if (!isAndroid) {
+      this.synth.cancel();
+    }
 
     // Si no está inicializado en móvil, intentar inicializar
     if (!this.isInitialized && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
