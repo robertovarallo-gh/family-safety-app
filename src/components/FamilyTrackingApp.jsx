@@ -33,6 +33,7 @@ import ZoneDetectionService from '../services/ZoneDetectionService';
 import BatteryAlertService from '../services/BatteryAlertService';
 import MessagingService from '../services/MessagingService';
 import SafetyCheckService from '../services/SafetyCheckService';
+import SoundAlertService from '../services/SoundAlertService';
 
 //Parte 2 del FamilyTrackingApp.jsx - Estados y funciones principales  
 
@@ -568,10 +569,21 @@ useEffect(() => {
         },
         onSilentEmergency: (emergency) => {
           console.log('🚨 Emergencia silenciosa, agregando alerta');
+
+          // Anunciar con nombre
+          const memberName = emergency.member_first_name || 'Un miembro';
+          SoundAlertService.announceSilentEmergency(memberName);
+
           setSilentEmergencies(prev => [emergency, ...prev].slice(0, 3));
         },
         onExplicitEmergency: (emergency) => {
           console.log('🚨 Emergencia explícita, agregando alerta');
+
+          // Anunciar con nombre y tipo
+          const memberName = emergency.member_first_name || 'Un miembro';
+          const type = emergency.emergency_type || 'explícita';
+          SoundAlertService.announceExplicitEmergency(memberName, type);
+
           setExplicitEmergencies(prev => [emergency, ...prev].slice(0, 3));
         }
       }
