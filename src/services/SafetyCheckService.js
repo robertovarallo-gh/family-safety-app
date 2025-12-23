@@ -174,7 +174,22 @@ class SafetyCheckService {
             // Si es emergencia explícita y NO soy yo quien la activó
             if (payload.new.emergency_type === 'explicit' && payload.new.requester_id !== memberId) {
               console.log('🚨 EMERGENCIA EXPLÍCITA detectada en INSERT');
-              callbacks.onExplicitEmergency?.(payload.new);
+              
+              // Obtener datos del miembro que activó
+              supabase
+                .from('family_members')
+                .select('first_name, last_name, avatar')
+                .eq('id', payload.new.requester_id)
+                .single()
+                .then(({ data: member }) => {
+                  console.log('👤 Datos del miembro:', member);
+                  callbacks.onExplicitEmergency?.({
+                    ...payload.new,
+                    member_first_name: member?.first_name,
+                    member_last_name: member?.last_name,
+                    member_avatar: member?.avatar
+                  });
+                });  
             }
           }
         }
