@@ -569,18 +569,22 @@ useEffect(() => {
         },
         onSilentEmergency: (emergency) => {
           console.log('🚨 Emergencia silenciosa, agregando alerta');
+          console.log('🚨 Emergencia silenciosa COMPLETA:', emergency);
+          console.log('📝 Keys disponibles:', Object.keys(emergency));
 
           // Anunciar con nombre
-          const memberName = emergency.member.first_name || 'Un miembro';
+          const memberName = emergency.member_first_name || 'Un miembro';
           SoundAlertService.announceSilentEmergency(memberName);
 
           setSilentEmergencies(prev => [emergency, ...prev].slice(0, 3));
         },
         onExplicitEmergency: (emergency) => {
           console.log('🚨 Emergencia explícita, agregando alerta');
+          console.log('🚨 Emergencia explícita COMPLETA:', emergency);
+          console.log('📝 Keys disponibles:', Object.keys(emergency));
 
           // Anunciar con nombre y tipo
-          const memberName = emergency.memberfirst_name || 'Un miembro';
+          const memberName = emergency.member_first_name || 'Un miembro';
           const type = emergency.emergency_type || 'explícita';
           SoundAlertService.announceExplicitEmergency(memberName, type);
 
