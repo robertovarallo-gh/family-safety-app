@@ -3327,29 +3327,55 @@ return (
             <button
               onClick={async () => {
                 try {
-                  // 1. Inicializar audio context si existe
-                  if (SoundAlertService.audioContext) {
-                    await SoundAlertService.audioContext.resume();
+                  console.log('🔊 Iniciando activación de audio...');
+                  console.log('📱 User Agent:', navigator.userAgent);
+                  
+                  // Detectar Android
+                  const isAndroid = /Android/i.test(navigator.userAgent);
+                  
+                  if (isAndroid) {
+                    console.log('📱 Es Android - usando método especial');
+                    
+                    // Para Android: reproducir audio más largo y esperar
+                    const testUtterance = new SpeechSynthesisUtterance('Audio activado correctamente. Ya puedes recibir alertas de emergencia.');
+                    testUtterance.volume = 1.0;
+                    testUtterance.rate = 1.0;
+                    testUtterance.lang = 'es-ES';
+                    
+                    // Esperar a que termine
+                    testUtterance.onend = () => {
+                      console.log('✅ Audio de prueba completado en Android');
+                      localStorage.setItem('audioPermissionGranted', 'true');
+                      setAudioPermissionGranted(true);
+                      setShowAudioPermissionModal(false);
+                      alert('✅ Audio activado correctamente');
+                    };
+                    
+                    testUtterance.onerror = (e) => {
+                      console.error('❌ Error en audio de prueba:', e);
+                      alert('⚠️ Error activando audio. Intenta de nuevo.');
+                    };
+                    
+                    window.speechSynthesis.speak(testUtterance);
+                    
+                  } else {
+                    // iPhone y otros
+                    const testUtterance = new SpeechSynthesisUtterance('Activado');
+                    testUtterance.volume = 0.8;
+                    testUtterance.lang = 'es-ES';
+                    window.speechSynthesis.speak(testUtterance);
+                    
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    localStorage.setItem('audioPermissionGranted', 'true');
+                    setAudioPermissionGranted(true);
+                    setShowAudioPermissionModal(false);
+                    alert('✅ Audio activado. Recibirás alertas sonoras.');
                   }
                   
-                  // 2. Forzar reproducción inmediata (esto desbloquea el audio)
-                  const testUtterance = new SpeechSynthesisUtterance('Activado');
-                  testUtterance.volume = 0.8;
-                  testUtterance.lang = 'es-ES';
-                  window.speechSynthesis.speak(testUtterance);
-                  
-                  // 3. Esperar un poco y confirmar
-                  await new Promise(resolve => setTimeout(resolve, 1000));
-                  
-                  // 4. Guardar permiso
-                  localStorage.setItem('audioPermissionGranted', 'true');
-                  setAudioPermissionGranted(true);
-                  setShowAudioPermissionModal(false);
-                  
-                  alert('✅ Audio activado. Recibirás alertas sonoras.');
                 } catch (error) {
-                  console.error('Error activando audio:', error);
-                  alert('⚠️ Hubo un problema activando el audio. Intenta de nuevo.');
+                  console.error('❌ Error activando audio:', error);
+                  alert('⚠️ Hubo un problema. Intenta de nuevo.');
                 }
               }}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
