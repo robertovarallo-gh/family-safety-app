@@ -6,19 +6,32 @@ class SoundAlertService {
   }
 
   initVoices() {
-    // Cargar voces disponibles
     const loadVoices = () => {
       const voices = this.synth.getVoices();
       
-      // Buscar voz en español (prioridad: es-ES, es-MX, es-US)
-      this.defaultVoice = voices.find(voice => 
-        voice.lang.startsWith('es-') || voice.lang.startsWith('pt-')
-      ) || voices[0];
+      console.log('🗣️ Voces disponibles:', voices.map(v => ({
+        name: v.name,
+        lang: v.lang,
+        default: v.default
+      })));
       
-      console.log('🗣️ Voz seleccionada:', this.defaultVoice?.name, this.defaultVoice?.lang);
+      // PRIORIDAD: Español (España o Latinoamérica)
+      const spanishVoices = voices.filter(v => 
+        v.lang.startsWith('es-')
+      );
+      
+      // Preferir voces MASCULINAS naturales
+      this.defaultVoice = 
+        spanishVoices.find(v => v.name.includes('Google') && v.name.includes('Male')) ||
+        spanishVoices.find(v => v.name.includes('Jorge') || v.name.includes('Diego') || v.name.includes('Carlos')) ||
+        spanishVoices.find(v => v.name.includes('Male') || v.name.includes('Man')) ||
+        spanishVoices.find(v => !v.name.includes('Female') && !v.name.includes('Woman')) ||
+        spanishVoices[0] ||
+        voices[0];
+      
+      console.log('✅ Voz seleccionada:', this.defaultVoice?.name, this.defaultVoice?.lang);
     };
 
-    // Cargar voces (algunos navegadores necesitan evento)
     if (this.synth.getVoices().length > 0) {
       loadVoices();
     } else {
@@ -31,12 +44,17 @@ class SoundAlertService {
     const message = `Atención. ${memberName} activó una emergencia silenciosa.`;
     this.speak(message, { rate: 1.0, pitch: 1.0, volume: 0.8 });
     this.vibrate([200, 100, 200]);
+
+    // Repetir después de 5 segundos
+    setTimeout(() => {
+      this.speak(`${memberName} necesita ayuda urgente.`, { rate: 1.1, pitch: 1.1, volume: 1.0 });
+    }, 5000);
   }
 
   // Anunciar emergencia explícita
   announceExplicitEmergency(memberName, emergencyType) {
-    const message = `¡Alerta! ${memberName} activó emergencia ${emergencyType}. Requiere ayuda inmediata.`;
-    this.speak(message, { rate: 1.1, pitch: 1.1, volume: 1.0 });
+    const message = `¡Alerta! ${memberName} activó emergencia ${emergencyType}. ¡Requiere ayuda inmediata!`;
+    this.speak(message, { rate: 1.5, pitch: 1.2, volume: 1.0 });
     this.vibrate([300, 100, 300, 100, 300]);
     
     // Repetir después de 5 segundos
