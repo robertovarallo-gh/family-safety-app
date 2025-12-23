@@ -1576,6 +1576,25 @@ useEffect(() => {
   }
 }, [currentScreen, activeChild?.id]);
 
+// ✨ Redibujar zonas cuando se carguen
+useEffect(() => {
+  if (currentScreen !== 'dashboard') return;
+  if (!mapInstanceRef.current) return;
+  if (!safeZones || safeZones.length === 0) return;
+  
+  console.log('🎨 Redibujando zonas porque se cargaron:', safeZones.length);
+  
+  // Limpiar zonas anteriores
+  zoneCirclesRef.current.forEach(item => {
+    if (item.circle) item.circle.setMap(null);
+    if (item.marker) item.marker.setMap(null);
+  });
+  zoneCirclesRef.current = [];
+  
+  // Redibujar con las nuevas zonas
+  drawSafeZones(mapInstanceRef.current);
+}, [safeZones, currentScreen]);
+
 // ✨ Re-inicializar mapa cuando cambia entre mobile/desktop
 useEffect(() => {
   const handleResize = () => {
