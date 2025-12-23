@@ -54,12 +54,12 @@ class SoundAlertService {
   // Anunciar emergencia explícita
   announceExplicitEmergency(memberName, emergencyType) {
     const message = `¡Alerta! ${memberName} activó emergencia ${emergencyType}. ¡Requiere ayuda inmediata!`;
-    this.speak(message, { rate: 1.5, pitch: 1.2, volume: 1.0 });
+    this.speak(message, { rate: 1.1, pitch: 1.2, volume: 1.0 });
     this.vibrate([300, 100, 300, 100, 300]);
     
     // Repetir después de 5 segundos
     setTimeout(() => {
-      this.speak(`${memberName} necesita ayuda urgente.`, { rate: 1.1, pitch: 1.1, volume: 1.0 });
+      this.speak(`${memberName} necesita ayuda urgente.`, { rate: 1.1, pitch: 1.2, volume: 1.0 });
     }, 5000);
   }
 
