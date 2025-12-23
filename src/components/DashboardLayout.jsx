@@ -58,7 +58,7 @@ const DashboardLayout = ({
       </div>
 
       {/* Botones - Scrollable */}
-      <div className="flex-1 overflow-y-auto bg-gray-50 px-4 py-4">
+      <div className="flex-1 overflow-y-auto bg-gray-50 px-4 pb-20">
         {renderActions()}
       </div>
     </div>
