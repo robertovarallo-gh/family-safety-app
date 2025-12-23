@@ -67,13 +67,15 @@ class SoundAlertService {
   // Anunciar emergencia silenciosa
   announceSilentEmergency(memberName) {
     const message = `Atención. ${memberName} activó una emergencia silenciosa.`;
-    this.speak(message, { rate: 1.0, pitch: 1.0, volume: 0.8 });
-    this.vibrate([200, 100, 200]);
-
-    // Repetir después de 5 segundos
-    setTimeout(() => {
-      this.speak(`${memberName} necesita ayuda urgente.`, { rate: 1.1, pitch: 1.1, volume: 1.0 });
-    }, 5000);
+    
+    // Intentar speech primero
+    this.speak(message, { rate: 0.9, pitch: 0.9, volume: 0.7 });
+    
+    // Para móviles: vibración suave + audio
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      this.vibrate([200, 100, 200]);
+      this.playSilentEmergencySound();
+    }
   }
 
   // Anunciar emergencia explícita
@@ -178,6 +180,22 @@ class SoundAlertService {
       
       audio.play().then(() => {
         console.log('✅ Audio de emergencia reproducido');
+      }).catch(error => {
+        console.error('❌ Error reproduciendo audio:', error);
+      });
+    } catch (e) {
+      console.error('Error creando audio:', e);
+    }
+  }
+
+  // Reproducir audio de emergencia silenciosa
+  playSilentEmergencySound() {
+    try {
+      const audio = new Audio('/sounds/silent-emergency-alert.mp3');
+      audio.volume = 0.7; // Un poco más bajo que emergencia explícita
+      
+      audio.play().then(() => {
+        console.log('✅ Audio de emergencia silenciosa reproducido');
       }).catch(error => {
         console.error('❌ Error reproduciendo audio:', error);
       });
