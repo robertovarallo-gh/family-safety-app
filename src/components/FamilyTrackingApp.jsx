@@ -67,6 +67,8 @@ const FamilyTrackingApp = () => {
   const [emergencyType, setEmergencyType] = useState('');
   const [alertStartTime, setAlertStartTime] = useState(null);
   const [batteryAlerts, setBatteryAlerts] = useState([]);
+  const [showAudioPermissionModal, setShowAudioPermissionModal] = useState(false);
+  const [audioPermissionGranted, setAudioPermissionGranted] = useState(false);
 
   // Detectar si es iOS
   const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -1663,6 +1665,19 @@ useEffect(() => {
     subscription.unsubscribe();
   };
 }, [user?.id]);
+
+// Detectar móvil y solicitar permiso de audio
+useEffect(() => {
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const hasGrantedPermission = localStorage.getItem('audioPermissionGranted');
+  
+  if (isMobile && !hasGrantedPermission && user) {
+    // Esperar 2 segundos después de cargar para mostrar modal
+    setTimeout(() => {
+      setShowAudioPermissionModal(true);
+    }, 2000);
+  }
+}, [user]);
 
 // ❌ useEffect viejo ELIMINADO - Causaba alertas duplicadas
 // Ahora usamos el nuevo useEffect (línea ~345) que detecta para TODOS los miembros
@@ -3275,6 +3290,55 @@ return (
               Senhas de teste: 1234, emma, jake
             </p>
           </div>
+        </div>
+      </div>
+    )}
+
+    {/* Modal de permiso de audio */}
+    {showAudioPermissionModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-xl">
+          <div className="text-center mb-4">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">🔊</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Activar Alertas de Audio
+            </h3>
+            <p className="text-gray-600 text-sm">
+              FamilyWatch necesita tu permiso para reproducir alertas sonoras de emergencias.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={() => {
+                SoundAlertService.speak('Audio activado correctamente', { volume: 0.5 });
+                localStorage.setItem('audioPermissionGranted', 'true');
+                setAudioPermissionGranted(true);
+                setShowAudioPermissionModal(false);
+                setTimeout(() => {
+                  alert('✅ Audio activado. Recibirás alertas sonoras de emergencias.');
+                }, 500);
+              }}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+            >
+              Permitir
+            </button>
+            
+            <button
+              onClick={() => {
+                setShowAudioPermissionModal(false);
+              }}
+              className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors"
+            >
+              Ahora no
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 text-center mt-4">
+            Puedes cambiar esto más tarde en la configuración
+          </p>
         </div>
       </div>
     )}
