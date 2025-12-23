@@ -3152,6 +3152,17 @@ return (
               <span className="font-medium">Agregar Nuevo Miembro</span>
             </button>
 
+            {/* BOTÓN TEMPORAL - BORRAR DESPUÉS */}
+            <button
+              onClick={() => {
+                localStorage.removeItem('audioPermissionGranted');
+                window.location.reload();
+              }}
+              className="w-full py-2 bg-red-500 text-white rounded-lg text-sm"
+            >
+              🔄 Reset Audio Permission (TEMP)
+            </button>
+
             <div className="hidden md:block pt-3 mt-3 border-t">
               <button 
                 onClick={handleLogout} 
