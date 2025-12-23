@@ -1521,7 +1521,7 @@ useEffect(() => {
       }, 100);
     }
   }
-}, [selectedChild, activeChild?.id, currentScreen]); // ← Dependencias optimizadas
+}, [selectedChild, activeChild?.id, currentScreen, safeZones]); // ← Dependencias optimizadas
 
 // ✨ AGREGAR AQUÍ EL NUEVO useEffect
 // ✨ Observar cuando el mapa sea visible
