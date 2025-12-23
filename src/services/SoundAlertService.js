@@ -2,7 +2,32 @@ class SoundAlertService {
   constructor() {
     this.synth = window.speechSynthesis;
     this.defaultVoice = null;
+    this.isInitialized = false; // ← AGREGAR
     this.initVoices();
+    this.setupMobileInit(); // ← AGREGAR
+  }
+
+  // ← AGREGAR ESTA FUNCIÓN
+  setupMobileInit() {
+    // Inicializar en el primer toque/click del usuario
+    const initAudio = () => {
+      if (this.isInitialized) return;
+      
+      // Reproducir silencio para "despertar" el audio
+      const utterance = new SpeechSynthesisUtterance('');
+      utterance.volume = 0;
+      this.synth.speak(utterance);
+      
+      this.isInitialized = true;
+      console.log('✅ Audio inicializado para móvil');
+      
+      // Remover listeners después de inicializar
+      document.removeEventListener('touchstart', initAudio);
+      document.removeEventListener('click', initAudio);
+    };
+    
+    document.addEventListener('touchstart', initAudio, { once: true });
+    document.addEventListener('click', initAudio, { once: true });
   }
 
   initVoices() {
@@ -73,6 +98,12 @@ class SoundAlertService {
     // Cancelar cualquier mensaje anterior
     this.synth.cancel();
 
+    // Si no está inicializado en móvil, intentar inicializar
+    if (!this.isInitialized && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      console.warn('⚠️ Audio no inicializado en móvil - requiere interacción del usuario');
+      this.isInitialized = true; // Marcar para no bloquear siguientes intentos
+    }
+
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice = this.defaultVoice;
     utterance.rate = options.rate || 1.0;
@@ -82,6 +113,10 @@ class SoundAlertService {
 
     utterance.onerror = (event) => {
       console.error('Error en speech:', event);
+    };
+
+    utterance.onend = () => {
+      console.log('✅ Speech completado');
     };
 
     this.synth.speak(utterance);
