@@ -3,8 +3,6 @@ class SoundAlertService {
     this.synth = window.speechSynthesis;
     this.defaultVoice = null;
     this.isInitialized = false;
-    this.emergencyAudio = null; // ← AGREGAR
-    this.silentAudio = null; // ← AGREGAR
     this.initVoices();
     this.setupMobileInit();
   }
@@ -21,7 +19,6 @@ class SoundAlertService {
       this.synth.speak(utterance);
       
       this.isInitialized = true;
-      this.preloadAudios(); // ← AGREGAR ESTA LÍNEA
       console.log('✅ Audio inicializado para móvil');
       
       // Remover listeners después de inicializar
@@ -31,21 +28,6 @@ class SoundAlertService {
     
     document.addEventListener('touchstart', initAudio, { once: true });
     document.addEventListener('click', initAudio, { once: true });
-  }
-
-  // Pre-cargar audios en iOS
-  preloadAudios() {
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    
-    if (isIOS) {
-      this.emergencyAudio = new Audio('/sounds/emergency-alert-iphone.m4a');
-      this.emergencyAudio.load();
-      
-      this.silentAudio = new Audio('/sounds/silent-emergency-alert-iphone.m4a');
-      this.silentAudio.load();
-      
-      console.log('✅ Audios pre-cargados para iOS');
-    }
   }
 
   initVoices() {
@@ -193,58 +175,27 @@ class SoundAlertService {
   // Reproducir audio de emergencia
   playEmergencySound() {
     try {
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const audioFile = isIOS 
-        ? '/sounds/emergency-alert-iphone.m4a' 
-        : '/sounds/emergency-alert.mp3';
-      
-      console.log('📱 Plataforma detectada:', isIOS ? 'iOS' : 'Android');
-      console.log('🔊 Archivo a reproducir:', audioFile);
-      
-      const audio = new Audio(audioFile);
+      const audio = new Audio('/sounds/emergency-alert.mp3');
       audio.volume = 1.0;
       
-      if (isIOS) {
-        audio.load();
-      }
-      
-      // Mostrar alert en iPhone para ver si llega aquí
-      if (isIOS) {
-        alert(`Intentando reproducir: ${audioFile}`);
-      }
-      
       audio.play().then(() => {
-        console.log('✅ Audio reproducido:', audioFile);
-        if (isIOS) alert('✅ Play exitoso');
+        console.log('✅ Audio de emergencia reproducido');
       }).catch(error => {
-        console.error('❌ Error:', error);
-        if (isIOS) alert('❌ Error: ' + error.message);
+        console.error('❌ Error reproduciendo audio:', error);
       });
     } catch (e) {
       console.error('Error creando audio:', e);
-      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        alert('❌ Excepción: ' + e.message);
-      }
     }
   }
 
   // Reproducir audio de emergencia silenciosa
   playSilentEmergencySound() {
     try {
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      const audioFile = isIOS 
-        ? '/sounds/silent-emergency-alert-iphone.m4a' 
-        : '/sounds/silent-emergency-alert.mp3';
-      
-      const audio = new Audio(audioFile);
+      const audio = new Audio('/sounds/silent-emergency-alert.mp3');
       audio.volume = 0.7;
       
-      if (isIOS) {
-        audio.load();
-      }
-      
       audio.play().then(() => {
-        console.log('✅ Audio silencioso reproducido:', audioFile);
+        console.log('✅ Audio silencioso reproducido');
       }).catch(error => {
         console.error('❌ Error reproduciendo audio:', error);
       });
