@@ -175,11 +175,22 @@ class SoundAlertService {
   // Reproducir audio de emergencia
   playEmergencySound() {
     try {
-      const audio = new Audio('/sounds/emergency-alert.mp3');
+      // Detectar iOS y usar M4A, sino MP3
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const audioFile = isIOS 
+        ? '/sounds/emergency-alert-iphone.m4a' 
+        : '/sounds/emergency-alert.mp3';
+      
+      const audio = new Audio(audioFile);
       audio.volume = 1.0;
       
+      // Preload para iOS
+      if (isIOS) {
+        audio.load();
+      }
+      
       audio.play().then(() => {
-        console.log('✅ Audio de emergencia reproducido');
+        console.log('✅ Audio de emergencia reproducido:', audioFile);
       }).catch(error => {
         console.error('❌ Error reproduciendo audio:', error);
       });
@@ -191,11 +202,20 @@ class SoundAlertService {
   // Reproducir audio de emergencia silenciosa
   playSilentEmergencySound() {
     try {
-      const audio = new Audio('/sounds/silent-emergency-alert.mp3');
-      audio.volume = 0.7; // Un poco más bajo que emergencia explícita
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const audioFile = isIOS 
+        ? '/sounds/silent-emergency-alert-iphone.m4a' 
+        : '/sounds/silent-emergency-alert.mp3';
+      
+      const audio = new Audio(audioFile);
+      audio.volume = 0.7;
+      
+      if (isIOS) {
+        audio.load();
+      }
       
       audio.play().then(() => {
-        console.log('✅ Audio de emergencia silenciosa reproducido');
+        console.log('✅ Audio silencioso reproducido:', audioFile);
       }).catch(error => {
         console.error('❌ Error reproduciendo audio:', error);
       });
