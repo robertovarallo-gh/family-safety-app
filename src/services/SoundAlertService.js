@@ -2,9 +2,11 @@ class SoundAlertService {
   constructor() {
     this.synth = window.speechSynthesis;
     this.defaultVoice = null;
-    this.isInitialized = false; // ← AGREGAR
+    this.isInitialized = false;
+    this.emergencyAudio = null; // ← AGREGAR
+    this.silentAudio = null; // ← AGREGAR
     this.initVoices();
-    this.setupMobileInit(); // ← AGREGAR
+    this.setupMobileInit();
   }
 
   // ← AGREGAR ESTA FUNCIÓN
@@ -19,6 +21,7 @@ class SoundAlertService {
       this.synth.speak(utterance);
       
       this.isInitialized = true;
+      this.preloadAudios(); // ← AGREGAR ESTA LÍNEA
       console.log('✅ Audio inicializado para móvil');
       
       // Remover listeners después de inicializar
@@ -28,6 +31,21 @@ class SoundAlertService {
     
     document.addEventListener('touchstart', initAudio, { once: true });
     document.addEventListener('click', initAudio, { once: true });
+  }
+
+  // Pre-cargar audios en iOS
+  preloadAudios() {
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    
+    if (isIOS) {
+      this.emergencyAudio = new Audio('/sounds/emergency-alert-iphone.m4a');
+      this.emergencyAudio.load();
+      
+      this.silentAudio = new Audio('/sounds/silent-emergency-alert-iphone.m4a');
+      this.silentAudio.load();
+      
+      console.log('✅ Audios pre-cargados para iOS');
+    }
   }
 
   initVoices() {
