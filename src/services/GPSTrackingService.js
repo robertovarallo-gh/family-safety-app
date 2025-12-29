@@ -161,7 +161,8 @@ async handlePositionUpdate(position, memberId) {
     altitudeAccuracy: position.coords.altitudeAccuracy,
     heading: position.coords.heading,
     speed: position.coords.speed,
-    timestamp: new Date(position.timestamp).toISOString()
+    timestamp: new Date(position.timestamp).toISOString(),
+    battery_level: batteryLevel  // ← AGREGAR ESTA LÍNEA
   };
 
   if (locationData.accuracy < 100) {
