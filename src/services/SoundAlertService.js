@@ -146,6 +146,14 @@
     utterance.volume = options.volume || 1.0;
     utterance.lang = this.defaultVoice?.lang || 'es-ES';
 
+    // ← AGREGAR ESTOS LOGS AQUÍ
+    console.log('🎤 VOZ USADA:', {
+      name: utterance.voice?.name,
+      lang: utterance.voice?.lang,
+      voiceURI: utterance.voice?.voiceURI
+    });
+    console.log('🌍 LANG FORZADO:', utterance.lang);
+
     utterance.onstart = () => {
       console.log('✅ Speech iniciado');
     };
