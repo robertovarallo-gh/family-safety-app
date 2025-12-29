@@ -1,4 +1,4 @@
-class SoundAlertService {
+ class SoundAlertService {
   constructor() {
     this.synth = window.speechSynthesis;
     this.defaultVoice = null;

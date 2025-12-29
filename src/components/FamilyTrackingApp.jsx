@@ -585,7 +585,7 @@ useEffect(() => {
           console.log('🚨 Emergencia explícita COMPLETA:', JSON.stringify(emergency, null, 2));
 
           // Alert visual para debuggear
-          alert(`🚨 EMERGENCIA RECIBIDA de ${emergency.member_first_name || 'Un miembro'}`);
+          // alert(`🚨 EMERGENCIA RECIBIDA de ${emergency.member_first_name || 'Un miembro'}`);
 
           // Anunciar con nombre y tipo
           const memberName = emergency.member_first_name || 'Un miembro';
