@@ -140,6 +140,12 @@
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
+
+    // Forzar voz española explícitamente
+    const spanishVoice = this.synth.getVoices().find(v => 
+      v.name === 'Google español' && v.lang === 'es-ES'
+    );
+
     utterance.voice = this.defaultVoice;
     utterance.rate = options.rate || 1.0;
     utterance.pitch = options.pitch || 1.0;
