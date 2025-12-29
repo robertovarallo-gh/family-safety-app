@@ -34,9 +34,15 @@
     const loadVoices = () => {
       const voices = this.synth.getVoices();
       
+      console.log('✅ Voz seleccionada:', this.defaultVoice?.name);
+      console.log('🌍 Lang:', this.defaultVoice?.lang);
+      console.log('🔊 Voice URI:', this.defaultVoice?.voiceURI);
+      console.log('🎭 Default:', this.defaultVoice?.default);
+
       console.log('🗣️ Voces disponibles:', voices.map(v => ({
         name: v.name,
         lang: v.lang,
+        voiceURI: v.voiceURI,
         default: v.default
       })));
       
