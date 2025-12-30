@@ -375,6 +375,79 @@ useEffect(() => {
   };
 }, [user?.id]);
 
+// Listener de alertas de batería en tiempo real
+useEffect(() => {
+  if (!user?.id) return;
+
+  console.log('🔋 Iniciando listener de alertas de batería...');
+
+  const setupBatteryListener = async () => {
+    const familyId = await getFamilyId();
+    
+    if (!familyId) {
+      console.error('No se pudo obtener family_id para listener de batería');
+      return null;
+    }
+
+    const batterySubscription = supabase
+      .channel('battery-alerts-realtime')
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'battery_alerts'
+        },
+        async (payload) => {
+          console.log('🔋 Nueva alerta de batería recibida:', payload.new);
+          
+          // Obtener info del miembro
+          const { data: member } = await supabase
+            .from('family_members')
+            .select('first_name, last_name, family_id')
+            .eq('id', payload.new.member_id)
+            .single();
+          
+          // Solo mostrar si es de la misma familia
+          if (member?.family_id === familyId) {
+            const memberName = `${member.first_name} ${member.last_name}`;
+            
+            const newAlert = {
+              id: payload.new.id,
+              type: 'battery',
+              memberName,
+              batteryLevel: payload.new.battery_level,
+              time: new Date(payload.new.created_at).toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })
+            };
+            
+            setBatteryAlerts(prev => {
+              // Evitar duplicados
+              if (prev.some(alert => alert.id === newAlert.id)) {
+                return prev;
+              }
+              return [newAlert, ...prev].slice(0, 3);
+            });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('🔋 Estado canal batería:', status);
+      });
+    
+    return batterySubscription;
+  };
+  
+  let subscription = null;
+  setupBatteryListener().then(sub => { subscription = sub; });
+  
+  return () => {
+    console.log('🔋 Cerrando listener de batería');
+    subscription?.unsubscribe();
+  };
+}, [user?.id]);
+
 // Listener de mensajes en tiempo real
 useEffect(() => {
   if (!user?.member_id) {
