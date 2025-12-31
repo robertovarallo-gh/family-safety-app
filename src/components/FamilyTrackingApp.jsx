@@ -3061,7 +3061,7 @@ return (
             <div className="flex-1">
               <p className="text-sm text-gray-800">
                 <span className="font-bold">{alert.memberName}</span> tiene batería baja: 
-                <span className="font-semibold text-red-600">{alert.batteryLevel}%</span>
+                <span className="font-semibold text-red-600"> {alert.batteryLevel}%</span>
               </p>
               <p className="text-xs text-gray-500">{alert.timestamp ? new Date(alert.timestamp).toLocaleTimeString() : 'Hace un momento'}</p>
             </div>
