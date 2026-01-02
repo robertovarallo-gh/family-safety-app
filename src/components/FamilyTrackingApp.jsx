@@ -3037,12 +3037,12 @@ return (
             }`}
           >
             <span className="text-2xl mr-3">
-              {alert.type === 'entered' ? '✅' : '⚠️'}
+              {alert.eventType === 'entered' ? '✅' : '⚠️'}
             </span>
             <div className="flex-1">
               <p className="text-sm text-gray-800">
                 <span className="font-bold">{alert.memberName}</span>
-                {alert.type === 'entered' ? ' entró a ' : ' salió de '}
+                {alert.eventType === 'entered' ? ' entró a ' : ' salió de '}
                 <span className="font-semibold text-blue-600">{alert.zoneName}</span>
               </p>
               <p className="text-xs text-gray-500">
