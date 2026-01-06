@@ -3032,15 +3032,17 @@ return (
             key={alert.id}
             className={`flex items-center p-3 rounded-lg border-l-4 bg-white shadow-lg ${
               alert.eventType === 'entered' 
-                ? 'bg-red-100 border-red-500' 
-                : 'bg-green-100 border-green-500'
+                ? 'bg-green-100 border-green-500'
+                : 'bg-red-100 border-red-500'
             }`}
           >
-            <span className="text-2xl mr-3">{alert.type === 'entered' ? '✅' : '⚠️'}</span>
+            <span className="text-2xl mr-3">
+              {alert.eventType === 'entered' ? '✅' : '⚠️'}
+            </span>
             <div className="flex-1">
               <p className="text-sm text-gray-800">
                 <span className="font-bold">{alert.memberName}</span>
-                {alert.type === 'entered' ? ' entró a ' : ' salió de '}
+                {alert.eventType === 'entered' ? ' entró a ' : ' salió de '}
                 <span className="font-semibold text-blue-600">{alert.zoneName}</span>
               </p>
               <p className="text-xs text-gray-500">

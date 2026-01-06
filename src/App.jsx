@@ -4,8 +4,10 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import CustomLoginScreen from './components/CustomLoginScreen'
 import FamilyTrackingApp from './components/FamilyTrackingApp'
 import ResetPasswordPage from './components/ResetPasswordPage'
-import './styles/supabase-override.css'
 import FamilyInvitationPage from './components/FamilyInvitationPage'
+import PricingPage from './components/PricingPage'
+import SubscriptionSuccess from './components/SubscriptionSuccess'
+import './styles/supabase-override.css'
 
 const AppContent = () => {
   const { user, loading } = useAuth()
@@ -31,20 +33,26 @@ const AppContent = () => {
   return (
     <div className="custom-auth-form family-auth-container">
       <Routes>
-        {/* Ruta para reset de contraseña - disponible sin autenticación */}
+        {/* Rutas públicas (sin autenticación) */}
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        
-		
-		{/* NUEVA RUTA - Agregar esta línea */}
         <Route path="/family-invitation" element={<FamilyInvitationPage />} />
-		
-        {/* Ruta principal - condicional según autenticación */}
-        <Route 
-          path="/" 
-          element={user ? <FamilyTrackingApp /> : <CustomLoginScreen />} 
-        />
         
-        {/* Ruta catch-all para manejar URLs no encontradas */}
+        {/* Rutas protegidas (requieren autenticación) */}
+        {user ? (
+          <>
+            <Route path="/" element={<FamilyTrackingApp />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/subscription-success" element={<SubscriptionSuccess />} />
+          </>
+        ) : (
+          <>
+            <Route path="/" element={<CustomLoginScreen />} />
+            <Route path="/pricing" element={<CustomLoginScreen />} />
+            <Route path="/subscription-success" element={<CustomLoginScreen />} />
+          </>
+        )}
+        
+        {/* Ruta catch-all */}
         <Route 
           path="*" 
           element={user ? <FamilyTrackingApp /> : <CustomLoginScreen />} 
