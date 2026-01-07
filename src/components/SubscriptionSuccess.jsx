@@ -1,7 +1,8 @@
-// src/components/SubscriptionSuccess.jsx
+// src/components/SubscriptionSuccess.jsx - VERSIÓN ACTUALIZADA
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
+import { supabase } from '../services/supabaseClient';
 import StripeService from '../services/StripeService';
 
 const SubscriptionSuccess = () => {
@@ -10,9 +11,7 @@ const SubscriptionSuccess = () => {
   const [processing, setProcessing] = useState(true);
   const [error, setError] = useState(null);
 
-  const sessionId = searchParams.get('session_id');
   const planType = searchParams.get('plan');
-  const familyId = searchParams.get('family_id');
 
   useEffect(() => {
     processSubscription();
@@ -20,18 +19,55 @@ const SubscriptionSuccess = () => {
 
   const processSubscription = async () => {
     try {
-      console.log('Processing subscription:', { sessionId, planType, familyId });
+      console.log('Processing subscription for plan:', planType);
 
-      if (!sessionId || !planType || !familyId) {
-        setError('Información de suscripción incompleta');
+      // Validar que tengamos el plan
+      if (!planType) {
+        setError('No se especificó el plan');
         setProcessing(false);
         return;
       }
 
-      // Simular upgrade del plan (sin webhook por ahora)
+      // Validar que sea un plan válido
+      if (!['family_plus', 'family_premium'].includes(planType)) {
+        setError('Plan inválido');
+        setProcessing(false);
+        return;
+      }
+
+      // Obtener usuario actual
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        setError('No se pudo obtener el usuario');
+        setProcessing(false);
+        return;
+      }
+
+      console.log('User ID:', user.id);
+
+      // Obtener family_id del usuario
+      const { data: member, error: memberError } = await supabase
+        .from('family_members')
+        .select('family_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (memberError || !member) {
+        console.error('Error getting family:', memberError);
+        setError('No se pudo obtener la familia del usuario');
+        setProcessing(false);
+        return;
+      }
+
+      const familyId = member.family_id;
+      console.log('Family ID:', familyId);
+
+      // Actualizar el plan
       const result = await StripeService.upgradePlanDirect(familyId, planType);
 
       if (result.success) {
+        console.log('Plan upgraded successfully');
         setProcessing(false);
       } else {
         throw new Error('Error al activar la suscripción');
@@ -39,7 +75,7 @@ const SubscriptionSuccess = () => {
 
     } catch (err) {
       console.error('Error processing subscription:', err);
-      setError(err.message);
+      setError(err.message || 'Error desconocido');
       setProcessing(false);
     }
   };
@@ -49,7 +85,7 @@ const SubscriptionSuccess = () => {
       family_plus: 'Family Plus',
       family_premium: 'Family Premium'
     };
-    return plans[planType] || planType;
+    return plans[planType] || 'Plan seleccionado';
   };
 
   if (processing) {
@@ -81,12 +117,20 @@ const SubscriptionSuccess = () => {
           <p className="text-gray-600 mb-6">
             {error}
           </p>
-          <button
-            onClick={() => navigate('/pricing')}
-            className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
-          >
-            Volver a intentar
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={() => navigate('/pricing')}
+              className="w-full bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+            >
+              Volver a intentar
+            </button>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
+            >
+              Ir al Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
