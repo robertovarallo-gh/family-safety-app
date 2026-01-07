@@ -1,58 +1,34 @@
-// src/services/StripeService.js
-import { loadStripe } from '@stripe/stripe-js';
+// src/services/StripeService.js - VERSIÓN ACTUALIZADA CON PAYMENT LINKS
 import { supabase } from './supabaseClient';
 
-const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
-const PRICE_IDS = {
-  family_plus: import.meta.env.VITE_STRIPE_PRICE_FAMILY_PLUS,
-  family_premium: import.meta.env.VITE_STRIPE_PRICE_FAMILY_PREMIUM
+// Aquí irán los Payment Links de Stripe (los crearás en Stripe Dashboard)
+const PAYMENT_LINKS = {
+  family_plus: import.meta.env.VITE_STRIPE_PAYMENT_LINK_PLUS || '',
+  family_premium: import.meta.env.VITE_STRIPE_PAYMENT_LINK_PREMIUM || ''
 };
 
 class StripeService {
-  constructor() {
-    this.stripePromise = null;
-  }
-
-  // Inicializar Stripe
-  async getStripe() {
-    if (!this.stripePromise) {
-      this.stripePromise = loadStripe(STRIPE_PUBLISHABLE_KEY);
-    }
-    return this.stripePromise;
-  }
-
-  // Crear sesión de checkout
+  // Redirigir a Payment Link de Stripe
   async createCheckoutSession(planType, familyId, userId) {
     try {
-      console.log('Creating checkout session:', { planType, familyId, userId });
+      console.log('Redirecting to Stripe Payment Link:', { planType, familyId, userId });
 
-      if (!PRICE_IDS[planType]) {
-        throw new Error(`Price ID not found for plan: ${planType}`);
+      const paymentLink = PAYMENT_LINKS[planType];
+      
+      if (!paymentLink) {
+        throw new Error(`Payment Link not configured for plan: ${planType}`);
       }
 
-      // Obtener Stripe instance
-      const stripe = await this.getStripe();
+      // Agregar parámetros a la URL
+      const url = new URL(paymentLink);
+      url.searchParams.set('client_reference_id', familyId);
+      url.searchParams.set('prefilled_email', (await supabase.auth.getUser()).data.user?.email || '');
 
-      // Crear sesión de checkout directo (sin backend por ahora)
-      const { error } = await stripe.redirectToCheckout({
-        lineItems: [{
-          price: PRICE_IDS[planType],
-          quantity: 1,
-        }],
-        mode: 'subscription',
-        successUrl: `${window.location.origin}/subscription-success?session_id={CHECKOUT_SESSION_ID}&plan=${planType}&family_id=${familyId}`,
-        cancelUrl: `${window.location.origin}/pricing`,
-        clientReferenceId: familyId,
-        customerEmail: (await supabase.auth.getUser()).data.user?.email,
-      });
-
-      if (error) {
-        console.error('Stripe redirect error:', error);
-        throw error;
-      }
+      // Redirigir a Stripe Payment Link
+      window.location.href = url.toString();
 
     } catch (error) {
-      console.error('Error creating checkout session:', error);
+      console.error('Error redirecting to payment:', error);
       throw error;
     }
   }
