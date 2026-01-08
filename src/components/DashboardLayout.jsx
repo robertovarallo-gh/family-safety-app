@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard } from 'lucide-react';
+import PlanBadge from './PlanBadge';
 
 const DashboardLayout = ({ 
   selectedMember,
@@ -8,6 +9,7 @@ const DashboardLayout = ({
   members = [],
   memberStatus,
   user,
+  familyId, // 🆕 NUEVO PROP
   renderMap,
   renderMemberInfo,
   renderActions
@@ -57,6 +59,9 @@ const DashboardLayout = ({
             <span className="text-gray-600">{memberStatus.text}</span>
           </div>
         )}
+        
+        {/* 🆕 Plan Badge en Mobile */}
+        {familyId && <PlanBadge familyId={familyId} />}
       </div>
 
       {/* Botones - Scrollable */}
@@ -86,7 +91,7 @@ const DashboardLayout = ({
               </div>
               <h1 className="text-xl font-bold">FamilyWatch</h1>
             </div>
-            {/* 💎 BOTÓN DE PLANES - NUEVO */}
+            {/* 💎 BOTÓN DE PLANES */}
             <button
               onClick={() => navigate('/pricing')}
               className="flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-lg transition-all text-sm font-semibold"
@@ -122,6 +127,9 @@ const DashboardLayout = ({
               <span className="text-gray-600">{memberStatus.text}</span>
             </div>
           )}
+          
+          {/* 🆕 Plan Badge */}
+          {familyId && <PlanBadge familyId={familyId} />}
         </div>
 
         {/* Acciones - Sin scroll, todo visible */}
