@@ -97,6 +97,7 @@ const FamilyTrackingApp = () => {
   const [chatMessages, setChatMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [familyId, setFamilyId] = useState(null);
 
   // ========== HELPER: OBTENER FAMILY_ID ==========
   
@@ -115,6 +116,17 @@ const FamilyTrackingApp = () => {
     
     return member?.family_id;
   };
+
+  // Obtener familyId cuando user esté disponible
+  useEffect(() => {
+    const loadFamilyId = async () => {
+      const id = await getFamilyId();
+      setFamilyId(id);
+    };
+    if (user) {
+      loadFamilyId();
+    }
+  }, [user]);
 
   // Auto-scroll al final cuando llegan mensajes nuevos
   useEffect(() => {
@@ -3132,6 +3144,7 @@ return (
           text: `${activeChild?.battery === null ? 'N/D' : activeChild.battery + '%'} • ${activeChild?.lastUpdate || 'Hace un momento'}`
         }}
         user={user}
+        familyId={familyId}
         renderMap={() => (
           <div className="w-full h-full relative">
             {/* Barra superior con ubicación y botón centrar */}
