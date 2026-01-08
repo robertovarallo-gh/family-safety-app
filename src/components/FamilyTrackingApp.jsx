@@ -22,6 +22,7 @@ import DashboardLayout from './DashboardLayout';
 // Importaciones de servicios reales
 import { familyService } from "../services/api.js";
 import SafeZonesManager from "./SafeZonesManager.jsx";
+import InfoConfigScreen from './InfoConfigScreen.jsx';
 import FamilyMembersService from '../services/FamilyMembersService.js';
 import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
@@ -2417,7 +2418,10 @@ const handleCheckMessages = () => {
   );
 } 
 
-
+// ⬇️ AGREGA AQUÍ EL NUEVO IF
+if (currentScreen === 'infoconfig') {
+  return <InfoConfigScreen familyId={familyId} user={user} />;
+}
   
 // Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajeria
 
@@ -3144,7 +3148,6 @@ return (
           text: `${activeChild?.battery === null ? 'N/D' : activeChild.battery + '%'} • ${activeChild?.lastUpdate || 'Hace un momento'}`
         }}
         user={user}
-        familyId={familyId}
         renderMap={() => (
           <div className="w-full h-full relative">
             {/* Barra superior con ubicación y botón centrar */}
@@ -3238,6 +3241,14 @@ return (
             <button onClick={() => setCurrentScreen('addchild')} className="w-full flex items-center space-x-3 px-4 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg transition-colors border-2 border-indigo-200">
               <div className="w-5 h-5 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold">+</div>
               <span className="font-medium">Agregar Nuevo Miembro</span>
+            </button>
+
+            <button 
+              onClick={() => setCurrentScreen('infoconfig')} 
+              className="w-full flex items-center space-x-3 px-4 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg transition-colors border-2 border-gray-200"
+            >
+              <Settings className="h-5 w-5" />
+              <span className="font-medium">Info & Configuración</span>
             </button>
 
             {/* BOTÓN TEMPORAL - BORRAR DESPUÉS */}

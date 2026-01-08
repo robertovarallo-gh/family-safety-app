@@ -1,7 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CreditCard } from 'lucide-react';
-import PlanBadge from './PlanBadge';
 
 const DashboardLayout = ({ 
   selectedMember,
@@ -9,13 +6,11 @@ const DashboardLayout = ({
   members = [],
   memberStatus,
   user,
-  familyId, // 🆕 NUEVO PROP
   renderMap,
   renderMemberInfo,
   renderActions
 }) => {
 
-  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
@@ -60,8 +55,6 @@ const DashboardLayout = ({
           </div>
         )}
         
-        {/* 🆕 Plan Badge en Mobile */}
-        {familyId && <PlanBadge familyId={familyId} />}
       </div>
 
       {/* Botones - Scrollable */}
@@ -84,22 +77,11 @@ const DashboardLayout = ({
       <div className="w-80 bg-white border-l flex flex-col shadow-lg">
         {/* Header del Sidebar */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🛡️</span>
-              </div>
-              <h1 className="text-xl font-bold">FamilyWatch</h1>
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
+              <span className="text-2xl">🛡️</span>
             </div>
-            {/* 💎 BOTÓN DE PLANES */}
-            <button
-              onClick={() => navigate('/pricing')}
-              className="flex items-center gap-2 bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-2 rounded-lg transition-all text-sm font-semibold"
-              title="Ver planes"
-            >
-              <CreditCard className="h-4 w-4" />
-              <span>Planes</span>
-            </button>
+            <h1 className="text-xl font-bold">FamilyWatch</h1>
           </div>
         </div>
 
@@ -128,8 +110,6 @@ const DashboardLayout = ({
             </div>
           )}
           
-          {/* 🆕 Plan Badge */}
-          {familyId && <PlanBadge familyId={familyId} />}
         </div>
 
         {/* Acciones - Sin scroll, todo visible */}
