@@ -660,6 +660,34 @@ const handleEdit = (zone) => {
         return;
       }
 
+      // 🆕 VALIDAR LÍMITE DE ZONAS DEL PLAN (solo al crear, no al editar)
+      if (!editingZone) {
+        // Contar zonas activas actuales
+        const { data: zones } = await supabase
+          .from('safe_zones')
+          .select('id')
+          .eq('family_id', familyId)
+          .eq('is_active', true);
+        
+        const currentCount = zones?.length || 0;
+        
+        // Importar StripeService
+        const StripeService = (await import('../services/StripeService')).default;
+        
+        const canAdd = await StripeService.canAddZone(familyId, currentCount);
+        
+        if (!canAdd) {
+          const planLimits = await StripeService.getPlanLimits(familyId);
+          
+          setFormErrors([
+            `Has alcanzado el límite de ${planLimits?.max_safe_zones} zonas de tu plan ${planLimits?.plan_name}. ` +
+            `Actualiza tu plan para agregar más zonas.`
+          ]);
+          setFormLoading(false);
+          return;
+        }
+      }
+
       let result;
       if (editingZone) {
         result = await SafeZonesService.updateSafeZone(editingZone.id, zoneData, familyId);

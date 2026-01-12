@@ -1429,6 +1429,29 @@ const handleAddMemberSubmit = async (e) => {
       throw new Error('No se pudo obtener la información de la familia');
     }
 
+    // 🆕 VALIDAR LÍMITE DE MIEMBROS DEL PLAN
+    const { data: members } = await supabase
+      .from('family_members')
+      .select('id')
+      .eq('family_id', currentUserData.family_id);
+
+    const currentCount = members?.length || 0;
+
+    // Importar StripeService
+    const StripeService = (await import('../services/StripeService')).default;
+
+    const canAdd = await StripeService.canAddMember(currentUserData.family_id, currentCount);
+
+    if (!canAdd) {
+      // Obtener plan actual para mensaje personalizado
+      const planLimits = await StripeService.getPlanLimits(currentUserData.family_id);
+      
+      throw new Error(
+        `Has alcanzado el límite de ${planLimits?.max_members} miembros de tu plan ${planLimits?.plan_name}. ` +
+        `Actualiza tu plan para agregar más miembros.`
+      );
+    }
+
     // Crear el nuevo miembro familiar
     const { data, error } = await supabase
       .from('family_members')
