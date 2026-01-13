@@ -5,7 +5,7 @@ import { ArrowLeft, Crown, Zap, Users, Shield, Bell, CreditCard, LogOut, Chevron
 import { useSubscription } from '../hooks/useSubscription';
 import { supabase } from '../services/supabaseClient';
 
-const InfoConfigScreen = ({ familyId, user }) => {
+const InfoConfigScreen = ({ familyId, user, onBack }) => {
   const navigate = useNavigate();
   const { currentPlan, planLimits, loading: planLoading } = useSubscription(familyId);
   const [memberCount, setMemberCount] = useState(0);
@@ -83,7 +83,7 @@ const InfoConfigScreen = ({ familyId, user }) => {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 shadow-lg">
         <div className="max-w-4xl mx-auto">
           <button
-            onClick={() => navigate('/')}
+            onClick={onBack}
             className="flex items-center gap-2 text-white hover:text-blue-100 transition-colors mb-3"
           >
             <ArrowLeft className="h-5 w-5" />

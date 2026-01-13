@@ -2443,7 +2443,13 @@ const handleCheckMessages = () => {
 
 // ⬇️ AGREGA AQUÍ EL NUEVO IF
 if (currentScreen === 'infoconfig') {
-  return <InfoConfigScreen familyId={familyId} user={user} />;
+  return (
+    <InfoConfigScreen 
+      familyId={familyId} 
+      user={user}
+      onBack={() => setCurrentScreen('dashboard')}
+    />
+  );
 }
   
 // Parte 8 del FamilyTrackingApp.jsx - Pantallas de emergencia, zonas seguras y mensajeria
