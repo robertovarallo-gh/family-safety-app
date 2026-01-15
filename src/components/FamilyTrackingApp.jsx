@@ -3455,8 +3455,10 @@ return (
                 try {
                   console.log('🔊 Iniciando activación de audio...');
                   const isAndroid = /Android/i.test(navigator.userAgent);
+                  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                   
                   if (isAndroid) {
+                    // Código Android existente (no tocar)
                     const testUtterance = new SpeechSynthesisUtterance('Audio activado correctamente. Ya puedes recibir alertas de emergencia.');
                     testUtterance.volume = 1.0;
                     testUtterance.rate = 1.0;
@@ -3476,7 +3478,51 @@ return (
                     };
                     
                     window.speechSynthesis.speak(testUtterance);
+                    
+                  } else if (isIOS) {
+                    // 🆕 CÓDIGO ESPECÍFICO PARA iOS
+                    console.log('🍎 Activando audio en iOS...');
+                    
+                    // 1. Reproducir audio de prueba
+                    const testUtterance = new SpeechSynthesisUtterance('Audio activado');
+                    testUtterance.volume = 0.8;
+                    testUtterance.rate = 1.0;
+                    testUtterance.lang = 'es-ES';
+                    
+                    // 2. Inicializar Web Audio API
+                    try {
+                      const AudioContext = window.AudioContext || window.webkitAudioContext;
+                      const audioContext = new AudioContext();
+                      
+                      // Reproducir tono silencioso para "despertar" el audio
+                      const oscillator = audioContext.createOscillator();
+                      const gainNode = audioContext.createGain();
+                      
+                      gainNode.gain.value = 0.01; // Muy bajo volumen
+                      oscillator.connect(gainNode);
+                      gainNode.connect(audioContext.destination);
+                      oscillator.frequency.value = 440;
+                      oscillator.start(0);
+                      oscillator.stop(audioContext.currentTime + 0.1);
+                      
+                      console.log('✅ Web Audio API activado');
+                    } catch (e) {
+                      console.warn('Web Audio API error:', e);
+                    }
+                    
+                    // 3. Hablar mensaje
+                    window.speechSynthesis.speak(testUtterance);
+                    
+                    // 4. Esperar y confirmar
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    localStorage.setItem('audioPermissionGranted', 'true');
+                    setAudioPermissionGranted(true);
+                    setShowAudioPermissionModal(false);
+                    alert('✅ Audio activado para iOS');
+                    
                   } else {
+                    // Otros navegadores
                     const testUtterance = new SpeechSynthesisUtterance('Activado');
                     testUtterance.volume = 0.8;
                     testUtterance.lang = 'es-ES';
@@ -3490,7 +3536,7 @@ return (
                   }
                 } catch (error) {
                   console.error('❌ Error:', error);
-                  alert('⚠️ Hubo un problema');
+                  alert('⚠️ Hubo un problema al activar el audio');
                 }
               }}
               className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"

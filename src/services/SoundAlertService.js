@@ -9,14 +9,46 @@
 
   // ← AGREGAR ESTA FUNCIÓN
   setupMobileInit() {
+    // Detectar si es iOS
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    
     // Inicializar en el primer toque/click del usuario
     const initAudio = () => {
       if (this.isInitialized) return;
       
-      // Reproducir silencio para "despertar" el audio
-      const utterance = new SpeechSynthesisUtterance('');
-      utterance.volume = 0;
-      this.synth.speak(utterance);
+      console.log('🔊 Inicializando audio para móvil...');
+      
+      // Para iOS: crear y reproducir audio silencioso
+      if (isIOS) {
+        // Speech Synthesis
+        const utterance = new SpeechSynthesisUtterance('');
+        utterance.volume = 0;
+        utterance.rate = 0.1;
+        this.synth.speak(utterance);
+        
+        // También inicializar Web Audio API
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          const audioContext = new AudioContext();
+          const oscillator = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          gainNode.gain.value = 0; // Silencioso
+          oscillator.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          oscillator.start(0);
+          oscillator.stop(0.001);
+          
+          console.log('✅ Web Audio API inicializado');
+        } catch (e) {
+          console.warn('Web Audio API no disponible:', e);
+        }
+      } else {
+        // Android y otros
+        const utterance = new SpeechSynthesisUtterance('');
+        utterance.volume = 0;
+        this.synth.speak(utterance);
+      }
       
       this.isInitialized = true;
       console.log('✅ Audio inicializado para móvil');
@@ -26,6 +58,7 @@
       document.removeEventListener('click', initAudio);
     };
     
+    // Listeners para primer toque
     document.addEventListener('touchstart', initAudio, { once: true });
     document.addEventListener('click', initAudio, { once: true });
   }
@@ -133,10 +166,11 @@
       this.synth.cancel();
     }
 
-    // Si no está inicializado en móvil, intentar inicializar
+    // Si no está inicializado en móvil, mostrar advertencia
     if (!this.isInitialized && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      console.warn('⚠️ Audio no inicializado en móvil - requiere interacción del usuario');
-      this.isInitialized = true; // Marcar para no bloquear siguientes intentos
+      console.warn('⚠️ Audio no inicializado - las alertas pueden no sonar');
+      console.warn('⚠️ El usuario debe interactuar primero con la app');
+      // NO marcar como inicializado, mantener la advertencia
     }
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -192,33 +226,70 @@
     }
   }
 
+
   // Reproducir audio de emergencia
   playEmergencySound() {
     try {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      
+      // Para iOS: intentar reproducir inmediatamente
       const audio = new Audio('/sounds/emergency-alert.mp3');
       audio.volume = 1.0;
       
-      audio.play().then(() => {
-        console.log('✅ Audio de emergencia reproducido');
-      }).catch(error => {
-        console.error('❌ Error reproduciendo audio:', error);
-      });
+      // iOS requiere cargar el audio explícitamente
+      if (isIOS) {
+        audio.load();
+      }
+      
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('✅ Audio de emergencia reproducido');
+          })
+          .catch(error => {
+            console.error('❌ Error reproduciendo audio:', error);
+            // Fallback: vibración fuerte
+            if ('vibrate' in navigator) {
+              navigator.vibrate([1000, 500, 1000, 500, 1000]);
+            }
+          });
+      }
     } catch (e) {
       console.error('Error creando audio:', e);
     }
   }
 
+ 
   // Reproducir audio de emergencia silenciosa
   playSilentEmergencySound() {
     try {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      
       const audio = new Audio('/sounds/silent-emergency-alert.mp3');
       audio.volume = 0.7;
       
-      audio.play().then(() => {
-        console.log('✅ Audio silencioso reproducido');
-      }).catch(error => {
-        console.error('❌ Error reproduciendo audio:', error);
-      });
+      // iOS requiere cargar el audio explícitamente
+      if (isIOS) {
+        audio.load();
+      }
+      
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('✅ Audio silencioso reproducido');
+          })
+          .catch(error => {
+            console.error('❌ Error reproduciendo audio:', error);
+            // Fallback: vibración suave
+            if ('vibrate' in navigator) {
+              navigator.vibrate([200, 100, 200]);
+            }
+          });
+      }
     } catch (e) {
       console.error('Error creando audio:', e);
     }
