@@ -1776,17 +1776,31 @@ useEffect(() => {
 }, [user?.id]);
 
 // Detectar móvil y solicitar permiso de audio
+// Detectar móvil y solicitar permiso de audio
 useEffect(() => {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   const hasGrantedPermission = localStorage.getItem('audioPermissionGranted');
   
-  if (isMobile && !hasGrantedPermission && user) {
+  console.log('🔊 Verificando permiso de audio:', {
+    isMobile,
+    hasGrantedPermission,
+    user: !!user,
+    children: children.length
+  });
+  
+  // Mostrar modal si:
+  // 1. Es móvil
+  // 2. No tiene permiso guardado
+  // 3. User está cargado
+  // 4. Tiene al menos 1 child (familia cargada)
+  if (isMobile && !hasGrantedPermission && user && children.length > 0) {
+    console.log('🔊 Mostrando modal de audio...');
     // Esperar 2 segundos después de cargar para mostrar modal
     setTimeout(() => {
       setShowAudioPermissionModal(true);
     }, 2000);
   }
-}, [user]);
+}, [user, children]);
 
 // ❌ useEffect viejo ELIMINADO - Causaba alertas duplicadas
 // Ahora usamos el nuevo useEffect (línea ~345) que detecta para TODOS los miembros
