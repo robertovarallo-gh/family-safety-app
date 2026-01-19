@@ -23,6 +23,7 @@ import DashboardLayout from './DashboardLayout';
 import { familyService } from "../services/api.js";
 import SafeZonesManager from "./SafeZonesManager.jsx";
 import InfoConfigScreen from './InfoConfigScreen.jsx';
+import UpgradeModal from './UpgradeModal.jsx';
 import FamilyMembersService from '../services/FamilyMembersService.js';
 import geolocationService from '../services/GeolocationService.js';
 import locationStorageService from '../services/LocationStorageService.js';
@@ -99,6 +100,13 @@ const FamilyTrackingApp = () => {
   const messagesEndRef = useRef(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [familyId, setFamilyId] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeModalData, setUpgradeModalData] = useState({
+    limitType: 'members',
+    currentPlan: 'family_free',
+    currentLimit: 3,
+    recommendedPlan: 'family_plus'
+  });
 
   // ========== HELPER: OBTENER FAMILY_ID ==========
   
@@ -1443,13 +1451,19 @@ const handleAddMemberSubmit = async (e) => {
     const canAdd = await StripeService.canAddMember(currentUserData.family_id, currentCount);
 
     if (!canAdd) {
-      // Obtener plan actual para mensaje personalizado
+      const currentPlan = await StripeService.getCurrentPlan(currentUserData.family_id);
       const planLimits = await StripeService.getPlanLimits(currentUserData.family_id);
       
-      throw new Error(
-        `Has alcanzado el límite de ${planLimits?.max_members} miembros de tu plan ${planLimits?.plan_name}. ` +
-        `Actualiza tu plan para agregar más miembros.`
-      );
+      // Mostrar modal de upgrade en lugar de error
+      setUpgradeModalData({
+        limitType: 'members',
+        currentPlan: currentPlan,
+        currentLimit: planLimits?.max_members,
+        recommendedPlan: planLimits?.max_members <= 3 ? 'family_plus' : 'family_premium'
+      });
+      setShowUpgradeModal(true);
+      setFormLoading(false);
+      return;
     }
 
     // Crear el nuevo miembro familiar
@@ -2511,7 +2525,13 @@ if (currentScreen === 'infoconfig') {
   // Safe Zones screen
   if (currentScreen === 'safezones') {
 	  console.log('🟢 Renderizando SafeZonesManager');
-      return <SafeZonesManager onBack={() => setCurrentScreen('dashboard')} />;
+      return <SafeZonesManager 
+                onBack={() => setCurrentScreen('dashboard')} 
+                onShowUpgradeModal={(data) => {
+                  setUpgradeModalData(data);
+                  setShowUpgradeModal(true);
+                }}
+             />;
   }
 
   // Emergency screen
@@ -3573,6 +3593,15 @@ return (
       </div>
     )}
     
+    {/* 💎 MODAL DE UPGRADE */}
+    <UpgradeModal
+      isOpen={showUpgradeModal}
+      onClose={() => setShowUpgradeModal(false)}
+      limitType={upgradeModalData.limitType}
+      currentPlan={upgradeModalData.currentPlan}
+      currentLimit={upgradeModalData.currentLimit}
+      recommendedPlan={upgradeModalData.recommendedPlan}
+    />
   </>
 );
 

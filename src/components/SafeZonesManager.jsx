@@ -479,7 +479,7 @@ const ensureGoogleMapsLoaded = async () => {
   );
 };
 
-const SafeZonesManager = ({ onBack }) => {
+const SafeZonesManager = ({ onBack, onShowUpgradeModal }) => {
   const { user } = useAuth(); 
   const [safeZones, setSafeZones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -677,16 +677,22 @@ const handleEdit = (zone) => {
         const canAdd = await StripeService.canAddZone(familyId, currentCount);
         
         if (!canAdd) {
+          const currentPlan = await StripeService.getCurrentPlan(familyId);
           const planLimits = await StripeService.getPlanLimits(familyId);
           
-          setFormErrors([
-            `Has alcanzado el límite de ${planLimits?.max_safe_zones} zonas de tu plan ${planLimits?.plan_name}. ` +
-            `Actualiza tu plan para agregar más zonas.`
-          ]);
+          // Llamar al modal del padre
+          if (onShowUpgradeModal) {
+            onShowUpgradeModal({
+              limitType: 'zones',
+              currentPlan: currentPlan,
+              currentLimit: planLimits?.max_safe_zones,
+              recommendedPlan: planLimits?.max_safe_zones <= 2 ? 'family_plus' : 'family_premium'
+            });
+          }
+          
           setFormLoading(false);
           return;
         }
-      }
 
       let result;
       if (editingZone) {
