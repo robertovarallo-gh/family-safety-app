@@ -693,6 +693,7 @@ const handleEdit = (zone) => {
           setFormLoading(false);
           return;
         }
+      }
 
       let result;
       if (editingZone) {
@@ -703,8 +704,8 @@ const handleEdit = (zone) => {
 
       if (result.success) {
         setShowAddForm(false);
-		const currentFamilyId = familyId;
-		  console.log('🔍 Recargando zonas con familyId:', currentFamilyId);
+    		const currentFamilyId = familyId;
+		    console.log('🔍 Recargando zonas con familyId:', currentFamilyId);
         await loadSafeZones(currentFamilyId);
         alert(`Zona "${zoneData.name}" ${editingZone ? 'actualizada' : 'creada'} exitosamente!`);
       } else {
