@@ -16,7 +16,7 @@ import {
   Search
 } from 'lucide-react';
 
-// Replace with your Google Maps API Key
+// Replace with your Google Maps API Key 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDFgYBq7tKtG9LP2w2-1XhFwBUOndyF0rA';
 
 import SafeZonesService from '../services/SafeZonesService';
