@@ -2229,243 +2229,255 @@ const handleCheckMessages = () => {
   console.log('Children:', children);
   console.log('Current screen:', currentScreen);
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen">
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
-        <div className="flex items-center space-x-3 mb-4">
-          <button 
-            onClick={() => setCurrentScreen('dashboard')}
-            className="p-2 hover:bg-blue-500 rounded-full transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-xl font-bold">Agregar Miembro Familiar</h1>
-        </div>
-      </div>
-
-      <div className="p-6">
-        {/* Mensaje de éxito */}
-        {formSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-              <p className="text-green-800 font-medium">{formSuccess}</p>
-            </div>
+    <>
+      <div className="max-w-md mx-auto bg-white min-h-screen">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+          <div className="flex items-center space-x-3 mb-4">
+            <button 
+              onClick={() => setCurrentScreen('dashboard')}
+              className="p-2 hover:bg-blue-500 rounded-full transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-xl font-bold">Agregar Miembro Familiar</h1>
           </div>
-        )}
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-blue-800 mb-2">Proceso de invitacion:</h3>
-          <ul className="text-sm text-blue-700 space-y-1">
-            <li>1. Se enviara un email de invitacion al miembro</li>
-            <li>2. Recibira una contrasena temporal para crear su cuenta</li>
-            <li>3. Podra cambiar su contrasena en el primer acceso</li>
-            <li>4. Una vez registrado aparecera en tu panel familiar</li>
-          </ul>
         </div>
 
-        <form onSubmit={handleAddMemberSubmit} className="space-y-4">
-          {/* Nombres separados */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre *
-              </label>
-              <input
-                type="text"
-                value={memberFormData.first_name}
-                onChange={(e) => handleMemberInputChange('first_name', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Nombre"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Apellido *
-              </label>
-              <input
-                type="text"
-                value={memberFormData.last_name}
-                onChange={(e) => handleMemberInputChange('last_name', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Apellido"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Correo Electronico *
-            </label>
-            <input
-              type="email"
-              value={memberFormData.email}
-              onChange={(e) => handleMemberInputChange('email', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="email@ejemplo.com"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Se enviara la invitacion a este correo
-            </p>
-          </div>
-
-          {/* Parentesco */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Parentesco *
-            </label>
-            <select
-              value={memberFormData.relationship}
-              onChange={(e) => handleMemberInputChange('relationship', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Selecciona el parentesco</option>
-              <option value="padre">Padre</option>
-              <option value="madre">Madre</option>
-              <option value="hijo">Hijo</option>
-              <option value="hija">Hija</option>
-              <option value="abuelo">Abuelo</option>
-              <option value="abuela">Abuela</option>
-              <option value="tio">Tio</option>
-              <option value="tia">Tia</option>
-              <option value="hermano">Hermano</option>
-              <option value="hermana">Hermana</option>
-              <option value="primo">Primo</option>
-              <option value="prima">Prima</option>
-              <option value="sobrino">Sobrino</option>
-              <option value="sobrina">Sobrina</option>
-              <option value="amigo">Amigo de la familia</option>
-              <option value="cuidador">Cuidador/Ninera</option>
-              <option value="otro">Otro</option>
-            </select>
-            {memberFormData.relationship && (
-              <p className="text-xs text-blue-600 mt-1">
-                Permisos que se asignaran: {getDefaultPermissions(memberFormData.relationship, determineRole(calculateAge(memberFormData.birth_date))).join(', ')}
-              </p>
-            )}
-          </div>
-
-          {/* Fecha de nacimiento */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Fecha de Nacimiento *
-            </label>
-            <input
-              type="date"
-              value={memberFormData.birth_date}
-              onChange={(e) => handleMemberInputChange('birth_date', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              max="2030-12-31"
-              min="1900-01-01"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Edad calculada: {memberFormData.birth_date ? calculateAge(memberFormData.birth_date) + ' años' : 'Selecciona fecha'}
-            </p>
-          </div>
-
-          {/* Telefono (opcional) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Telefono (Opcional)
-            </label>
-            <input
-              type="tel"
-              value={memberFormData.phone}
-              onChange={(e) => handleMemberInputChange('phone', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="+57 300 123 4567"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Para notificaciones de emergencia por SMS
-            </p>
-          </div>
-
-          {/* Genero (opcional) */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Genero (Opcional)
-            </label>
-            <select 
-              value={memberFormData.gender}
-              onChange={(e) => handleMemberInputChange('gender', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Selecciona (opcional)</option>
-              <option value="masculino">Masculino</option>
-              <option value="femenino">Femenino</option>
-              <option value="otro">Otro</option>
-              <option value="prefiero_no_decir">Prefiero no decir</option>
-            </select>
-          </div>
-
-          {/* Notas adicionales */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Notas Adicionales (Opcional)
-            </label>
-            <textarea
-              value={memberFormData.notes}
-              onChange={(e) => handleMemberInputChange('notes', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows="3"
-              placeholder="Informacion adicional, alergias, condiciones medicas, etc."
-            />
-          </div>
-
-          {/* Mensaje de error */}
-          {formError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-red-600 text-sm flex items-center">
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                {formError}
-              </p>
+        <div className="p-6">
+          {/* Mensaje de éxito */}
+          {formSuccess && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center">
+                <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                <p className="text-green-800 font-medium">{formSuccess}</p>
+              </div>
             </div>
           )}
 
-          {/* Botones */}
-          <div className="flex space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setCurrentScreen('dashboard')}
-              className="flex-1 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
-              disabled={formLoading}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={formLoading}
-              className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
-            >
-              {formLoading ? (
-                <span className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Enviando...
-                </span>
-              ) : (
-                'Enviar Invitacion'
-              )}
-            </button>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-blue-800 mb-2">Proceso de invitacion:</h3>
+            <ul className="text-sm text-blue-700 space-y-1">
+              <li>1. Se enviara un email de invitacion al miembro</li>
+              <li>2. Recibira una contrasena temporal para crear su cuenta</li>
+              <li>3. Podra cambiar su contrasena en el primer acceso</li>
+              <li>4. Una vez registrado aparecera en tu panel familiar</li>
+            </ul>
           </div>
-        </form>
 
-        {/* Información adicional */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-semibold text-gray-800 mb-2">Como funciona?</h4>
-          <div className="text-sm text-gray-600 space-y-2">
-            <p><strong>1.</strong> El miembro recibira un email con un enlace de registro</p>
-            <p><strong>2.</strong> Creara su cuenta con una contrasena personal</p>
-            <p><strong>3.</strong> Una vez registrado aparecera en tu panel familiar</p>
-            <p><strong>4.</strong> Podras ver su ubicacion y comunicarte con el</p>
+          <form onSubmit={handleAddMemberSubmit} className="space-y-4">
+            {/* Nombres separados */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Nombre *
+                </label>
+                <input
+                  type="text"
+                  value={memberFormData.first_name}
+                  onChange={(e) => handleMemberInputChange('first_name', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Nombre"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Apellido *
+                </label>
+                <input
+                  type="text"
+                  value={memberFormData.last_name}
+                  onChange={(e) => handleMemberInputChange('last_name', e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Apellido"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Correo Electronico *
+              </label>
+              <input
+                type="email"
+                value={memberFormData.email}
+                onChange={(e) => handleMemberInputChange('email', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="email@ejemplo.com"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Se enviara la invitacion a este correo
+              </p>
+            </div>
+
+            {/* Parentesco */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Parentesco *
+              </label>
+              <select
+                value={memberFormData.relationship}
+                onChange={(e) => handleMemberInputChange('relationship', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="">Selecciona el parentesco</option>
+                <option value="padre">Padre</option>
+                <option value="madre">Madre</option>
+                <option value="hijo">Hijo</option>
+                <option value="hija">Hija</option>
+                <option value="abuelo">Abuelo</option>
+                <option value="abuela">Abuela</option>
+                <option value="tio">Tio</option>
+                <option value="tia">Tia</option>
+                <option value="hermano">Hermano</option>
+                <option value="hermana">Hermana</option>
+                <option value="primo">Primo</option>
+                <option value="prima">Prima</option>
+                <option value="sobrino">Sobrino</option>
+                <option value="sobrina">Sobrina</option>
+                <option value="amigo">Amigo de la familia</option>
+                <option value="cuidador">Cuidador/Ninera</option>
+                <option value="otro">Otro</option>
+              </select>
+              {memberFormData.relationship && (
+                <p className="text-xs text-blue-600 mt-1">
+                  Permisos que se asignaran: {getDefaultPermissions(memberFormData.relationship, determineRole(calculateAge(memberFormData.birth_date))).join(', ')}
+                </p>
+              )}
+            </div>
+
+            {/* Fecha de nacimiento */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Fecha de Nacimiento *
+              </label>
+              <input
+                type="date"
+                value={memberFormData.birth_date}
+                onChange={(e) => handleMemberInputChange('birth_date', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                max="2030-12-31"
+                min="1900-01-01"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Edad calculada: {memberFormData.birth_date ? calculateAge(memberFormData.birth_date) + ' años' : 'Selecciona fecha'}
+              </p>
+            </div>
+
+            {/* Telefono (opcional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Telefono (Opcional)
+              </label>
+              <input
+                type="tel"
+                value={memberFormData.phone}
+                onChange={(e) => handleMemberInputChange('phone', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="+57 300 123 4567"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Para notificaciones de emergencia por SMS
+              </p>
+            </div>
+
+            {/* Genero (opcional) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Genero (Opcional)
+              </label>
+              <select 
+                value={memberFormData.gender}
+                onChange={(e) => handleMemberInputChange('gender', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Selecciona (opcional)</option>
+                <option value="masculino">Masculino</option>
+                <option value="femenino">Femenino</option>
+                <option value="otro">Otro</option>
+                <option value="prefiero_no_decir">Prefiero no decir</option>
+              </select>
+            </div>
+
+            {/* Notas adicionales */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Notas Adicionales (Opcional)
+              </label>
+              <textarea
+                value={memberFormData.notes}
+                onChange={(e) => handleMemberInputChange('notes', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows="3"
+                placeholder="Informacion adicional, alergias, condiciones medicas, etc."
+              />
+            </div>
+
+            {/* Mensaje de error */}
+            {formError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-red-600 text-sm flex items-center">
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  {formError}
+                </p>
+              </div>
+            )}
+
+            {/* Botones */}
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={() => setCurrentScreen('dashboard')}
+                className="flex-1 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+                disabled={formLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={formLoading}
+                className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+              >
+                {formLoading ? (
+                  <span className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Enviando...
+                  </span>
+                ) : (
+                  'Enviar Invitacion'
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* Información adicional */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-semibold text-gray-800 mb-2">Como funciona?</h4>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p><strong>1.</strong> El miembro recibira un email con un enlace de registro</p>
+              <p><strong>2.</strong> Creara su cuenta con una contrasena personal</p>
+              <p><strong>3.</strong> Una vez registrado aparecera en tu panel familiar</p>
+              <p><strong>4.</strong> Podras ver su ubicacion y comunicarte con el</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* 💎 MODAL DE UPGRADE */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        limitType={upgradeModalData.limitType}
+        currentPlan={upgradeModalData.currentPlan}
+        currentLimit={upgradeModalData.currentLimit}
+        recommendedPlan={upgradeModalData.recommendedPlan}
+      />
+    </>
   );
 } 
 
@@ -2526,15 +2538,27 @@ if (currentScreen === 'infoconfig') {
   if (currentScreen === 'safezones') {
 	  console.log('🟢 Renderizando SafeZonesManager');
       return (
-        <SafeZonesManager 
-          onBack={() => setCurrentScreen('dashboard')} 
-          onShowUpgradeModal={(data) => {
-            console.log('🎯 Modal recibido en FamilyTrackingApp:', data);
-            setUpgradeModalData(data);
-            setShowUpgradeModal(true);
-            console.log('🎯 showUpgradeModal cambiado a:', true);
-          }}
-        />
+        <>
+          <SafeZonesManager 
+            onBack={() => setCurrentScreen('dashboard')} 
+            onShowUpgradeModal={(data) => {
+              console.log('🎯 Modal recibido en FamilyTrackingApp:', data);
+              setUpgradeModalData(data);
+              setShowUpgradeModal(true);
+              console.log('🎯 showUpgradeModal cambiado a:', true);
+            }}
+          />
+
+          {/* 💎 MODAL DE UPGRADE */}
+          <UpgradeModal
+            isOpen={showUpgradeModal}
+            onClose={() => setShowUpgradeModal(false)}
+            limitType={upgradeModalData.limitType}
+            currentPlan={upgradeModalData.currentPlan}
+            currentLimit={upgradeModalData.currentLimit}
+            recommendedPlan={upgradeModalData.recommendedPlan}
+          />
+        </>
       );
   }
 
