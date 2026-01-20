@@ -523,7 +523,7 @@ useEffect(() => {
       if (memberData && !memberError) {
         console.log('✅ family_id (UUID) obtenido:', memberData.family_id);
         setFamilyId(memberData.family_id);
-		setMemberId(memberData.id);
+		    setMemberId(memberData.id);
       } else {
         console.error('Error obteniendo family_id:', memberError);
       }
@@ -670,24 +670,37 @@ const handleEdit = (zone) => {
           .eq('is_active', true);
         
         const currentCount = zones?.length || 0;
+
+        console.log('🔍 Zonas actuales:', currentCount);
+        console.log('🔍 familyId:', familyId);
         
         // Importar StripeService
         const StripeService = (await import('../services/StripeService')).default;
         
         const canAdd = await StripeService.canAddZone(familyId, currentCount);
+
+        console.log('🔍 canAdd:', canAdd);
         
         if (!canAdd) {
+          console.log('🚫 Límite alcanzado!');
           const currentPlan = await StripeService.getCurrentPlan(familyId);
           const planLimits = await StripeService.getPlanLimits(familyId);
+
+          console.log('📊 currentPlan:', currentPlan);
+          console.log('📊 planLimits:', planLimits);
+          console.log('📊 onShowUpgradeModal existe?', !!onShowUpgradeModal);
           
           // Llamar al modal del padre
           if (onShowUpgradeModal) {
+            console.log('✅ Llamando modal...');
             onShowUpgradeModal({
               limitType: 'zones',
               currentPlan: currentPlan,
               currentLimit: planLimits?.max_safe_zones,
               recommendedPlan: planLimits?.max_safe_zones <= 2 ? 'family_plus' : 'family_premium'
             });
+          } else {
+            console.error('❌ onShowUpgradeModal NO definido!');
           }
           
           setFormLoading(false);
