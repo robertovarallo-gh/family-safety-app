@@ -2525,13 +2525,17 @@ if (currentScreen === 'infoconfig') {
   // Safe Zones screen
   if (currentScreen === 'safezones') {
 	  console.log('🟢 Renderizando SafeZonesManager');
-      return <SafeZonesManager 
-                onBack={() => setCurrentScreen('dashboard')} 
-                onShowUpgradeModal={(data) => {
-                  setUpgradeModalData(data);
-                  setShowUpgradeModal(true);
-                }}
-             />;
+      return (
+        <SafeZonesManager 
+          onBack={() => setCurrentScreen('dashboard')} 
+          onShowUpgradeModal={(data) => {
+            console.log('🎯 Modal recibido en FamilyTrackingApp:', data);
+            setUpgradeModalData(data);
+            setShowUpgradeModal(true);
+            console.log('🎯 showUpgradeModal cambiado a:', true);
+          }}
+        />
+      );
   }
 
   // Emergency screen
