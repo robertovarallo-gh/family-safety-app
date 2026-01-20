@@ -1,7 +1,7 @@
 // src/components/UpgradeModal.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Users, Shield, Zap, Crown, ArrowRight } from 'lucide-react';
+import { X, Users, Shield, Zap, Crown, ArrowRight, Check } from 'lucide-react';
 
 const UpgradeModal = ({ isOpen, onClose, limitType, currentPlan, currentLimit, recommendedPlan }) => {
   const navigate = useNavigate();
@@ -85,93 +85,80 @@ const UpgradeModal = ({ isOpen, onClose, limitType, currentPlan, currentLimit, r
             Actualiza para agregar más.
           </p>
 
-          {/* Plan Comparison */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          {/* Plan Comparison - SOLO 2 COLUMNAS */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
             {/* Current Plan */}
-            <div className="text-center p-4 bg-gray-50 rounded-lg border-2 border-gray-200">
-              <div className="text-gray-400 mb-2">
-                {React.createElement(current.icon, { className: 'h-6 w-6 mx-auto' })}
+            <div className="text-center p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+              <div className={`text-${current.color}-600 mb-2`}>
+                {React.createElement(current.icon, { className: 'h-8 w-8 mx-auto' })}
               </div>
-              <div className="text-xs text-gray-500 mb-1">Actual</div>
-              <div className="font-bold text-gray-900 text-sm mb-1">{current.name}</div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center justify-center gap-1 mb-2">
+                <Check className="h-4 w-4 text-green-600" />
+                <span className="text-xs text-gray-600 font-semibold">Plan Actual</span>
+              </div>
+              <div className="font-bold text-gray-900 mb-1">{current.name}</div>
+              <div className="text-3xl font-bold text-gray-900 mb-1">
                 {limitType === 'members' ? current.members : current.zones}
               </div>
-              <div className="text-xs text-gray-500">{getLimitText()}</div>
+              <div className="text-sm text-gray-500 mb-2">{getLimitText()}</div>
+              {current.price && (
+                <div className="text-sm font-semibold text-gray-700">{current.price}/mes</div>
+              )}
             </div>
 
-            {/* Plus Plan */}
-            <div className={`text-center p-4 rounded-lg border-2 ${
-              recommendedPlan === 'family_plus'
-                ? 'bg-blue-50 border-blue-500 shadow-lg scale-105'
-                : 'bg-gray-50 border-gray-200'
-            }`}>
-              <div className={recommendedPlan === 'family_plus' ? 'text-blue-600' : 'text-gray-400'}>
-                {React.createElement(plans.family_plus.icon, { className: 'h-6 w-6 mx-auto mb-2' })}
+            {/* Recommended Plan */}
+            <div className="text-center p-4 rounded-lg border-2 border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-lg relative">
+              {/* Badge Recomendado */}
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                  <Crown className="h-3 w-3" />
+                  <span>Recomendado</span>
+                </div>
               </div>
-              {recommendedPlan === 'family_plus' && (
-                <div className="text-xs text-blue-600 font-semibold mb-1">✨ Recomendado</div>
-              )}
-              <div className="font-bold text-gray-900 text-sm mb-1">Plus</div>
-              <div className="text-2xl font-bold text-blue-600">
-                {limitType === 'members' ? plans.family_plus.members : plans.family_plus.zones}
+              
+              <div className="text-purple-600 mb-2 mt-2">
+                {React.createElement(recommended.icon, { className: 'h-8 w-8 mx-auto' })}
               </div>
-              <div className="text-xs text-gray-500 mb-1">{getLimitText()}</div>
-              <div className="text-xs font-semibold text-blue-600">{plans.family_plus.price}/mes</div>
-            </div>
-
-            {/* Premium Plan */}
-            <div className={`text-center p-4 rounded-lg border-2 ${
-              recommendedPlan === 'family_premium'
-                ? 'bg-purple-50 border-purple-500 shadow-lg scale-105'
-                : 'bg-gray-50 border-gray-200'
-            }`}>
-              <div className={recommendedPlan === 'family_premium' ? 'text-purple-600' : 'text-gray-400'}>
-                {React.createElement(plans.family_premium.icon, { className: 'h-6 w-6 mx-auto mb-2' })}
+              <div className="font-bold text-gray-900 mb-1">{recommended.name}</div>
+              <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-1">
+                {limitType === 'members' ? recommended.members : recommended.zones}
               </div>
-              {recommendedPlan === 'family_premium' && (
-                <div className="text-xs text-purple-600 font-semibold mb-1">✨ Recomendado</div>
-              )}
-              <div className="font-bold text-gray-900 text-sm mb-1">Premium</div>
-              <div className="text-2xl font-bold text-purple-600">
-                {limitType === 'members' ? plans.family_premium.members : plans.family_premium.zones}
-              </div>
-              <div className="text-xs text-gray-500 mb-1">{getLimitText()}</div>
-              <div className="text-xs font-semibold text-purple-600">{plans.family_premium.price}/mes</div>
+              <div className="text-sm text-gray-600 mb-2">{getLimitText()}</div>
+              <div className="text-sm font-semibold text-purple-700">{recommended.price}/mes</div>
             </div>
           </div>
 
           {/* Benefits */}
           <div className={`bg-gradient-to-r ${recommended.gradient} bg-opacity-10 rounded-lg p-4 mb-6`}>
-            <h3 className="font-semibold text-gray-900 mb-2 text-sm">
+            <h3 className="font-semibold text-gray-900 mb-3 text-sm">
               Con {recommended.name} también obtienes:
             </h3>
-            <ul className="text-xs text-gray-700 space-y-1">
-              <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
-                <span>Tracking en tiempo real</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
-                <span>Alertas de audio</span>
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-600 mr-2">✓</span>
-                <span>Modo offline</span>
-              </li>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex items-start gap-2">
+                <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-xs text-gray-700">Tracking en tiempo real</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-xs text-gray-700">Alertas de audio</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                <span className="text-xs text-gray-700">Modo offline</span>
+              </div>
               {recommendedPlan === 'family_premium' && (
                 <>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">✓</span>
-                    <span>Soporte prioritario 24/7</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-green-600 mr-2">✓</span>
-                    <span>Analytics avanzados</span>
-                  </li>
+                  <div className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-gray-700">Soporte prioritario 24/7</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-gray-700">Analytics avanzados</span>
+                  </div>
                 </>
               )}
-            </ul>
+            </div>
           </div>
 
           {/* Actions */}
